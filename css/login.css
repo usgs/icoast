@@ -1,0 +1,241 @@
+html {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  font-size: 14px;
+}
+
+body{
+  height: 100%;
+  width: 100%;
+}
+
+#wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+#loginWrapper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -250px;
+  margin-left: -350px;
+  /*height: 430px;*/
+  width: 700px;
+  overflow: hidden;
+  /*background: rgba(255, 255, 5255, 0.5);*/
+  background-color: #C7DBCC;
+  text-align: center;
+  border-radius: 10px;
+}
+
+#forms {
+  overflow: auto;
+}
+
+#signInFormWrapper,
+#registerFormWrapper,
+.formFieldRow label,
+.formFieldRow input,
+.formFieldRow select {
+  float:left;
+}
+
+#signInFormWrapper {
+  width: 310px;
+}
+
+#registerFormWrapper {
+  width: 385px;
+  border-left: grey solid 1px;
+}
+
+form {
+  padding: 0 20px;
+}
+
+.buttonForm {
+    display: inline-block;
+    height: 35px;
+    /*padding: 0 5px 0 0;*/
+}
+
+.formFieldRow {
+  text-align: right;
+  vertical-align: middle;
+  min-hight: 22px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.formFieldRow label {
+  height: 100%;
+  width: 40%;
+  margin-right: 5px;
+  display: inline-block;
+  line-height: 22px;
+}
+
+#projectIdSelect {
+  margin: 0 0 10px 0;
+}
+
+#registerFormWrapper label {
+  width: 140px;
+}
+
+label.error {
+  margin: 0;
+  text-align: center;
+color: red;
+font-size: 0.8em;
+  display: block;
+  clear: both;
+  width: 100%;
+}
+
+
+
+
+
+
+
+
+
+h1 {
+  font-size: 2em;
+  text-align: center;
+  margin: 20px 20px 10px 20px ;
+  font-weight: bold;
+  /*text-shadow: #666666 2px 2px 2px;*/
+}
+
+h2 {
+  font-size: 1.3em;
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 10px;
+  /*text-shadow: #666666 2px 2px 2px;*/
+}
+
+p {
+  margin: 10px 20px;
+  line-height: 1.2em;
+}
+table {
+  margin: auto;
+  text-align: left;
+}
+
+td {
+  padding: 3px 10px;
+}
+
+#loginWrapperFooter p {
+  padding: 0 10px;
+  text-align: left;
+  font-size: 0.8em;
+}
+
+.phpFormError {
+  color: #FF0000;
+}
+
+.userData {
+  font-weight: bold;
+  color: #e56969;
+}
+
+
+
+
+
+
+
+
+/* Buttons */
+
+/* Formatting for regular form buttons*/
+
+.formButton {
+  position: relative;
+  top: -6px;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  display: inline-block;
+  vertical-align: middle;
+
+  margin: 4px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 6px 10px;
+
+  background: #FFFFFF;
+  font: inherit;
+  font-weight: bold;
+
+  box-shadow: 3px 3px 3px #888888;
+
+}
+
+.formButton:hover, .formButton:active {
+  margin: 3px;
+  border: 2px solid black;
+}
+
+/* Formatting for form input buttons */
+
+.labelButton, select {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  background: #FFFFFF;
+  display: inline-table;
+  border: 1px solid black;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font: inherit;
+  font-weight: bold;
+  box-shadow: 3px 3px 3px #888888;
+  margin: 4px;
+}
+
+.labelButton:hover, .labelButton:active {
+  margin: 3px;
+  border: 2px solid black;
+}
+
+.labelButtonText {
+  line-height: 20px;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.labelButtonInput[type="checkbox"]:checked + .labelButton, .labelButtonInput[type="radio"]:checked + .labelButton {
+  background: #e56969;
+  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  border-width: 2px;
+  margin: 3px;
+}
+
+.labelButtonInput[type="checkbox"], .labelButtonInput[type="radio"] {
+  display: none;
+}
+
+select {
+  width: 161px;
+
+}

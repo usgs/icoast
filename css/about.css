@@ -1,0 +1,105 @@
+body {
+  padding: 5px;
+  font-size: 14px;
+}
+
+#wrapper {
+  background-color: #C7DBCC;
+  padding: 15px 15px;
+  overflow: hidden;
+}
+
+#usgsColorBand {
+  width: 100%;
+  height: 5.14em;
+  background: #006633 url('../images/system/hurricaneBanner.jpg') 178px 0px no-repeat;
+  min-height: 72px;
+  border-radius: 5px;
+}
+
+#usgsIdentifier {
+  background-color: black;
+  width: 178px;
+  height: 5.14em;
+  float:left;
+}
+
+#usgsIdentifier img {
+  border-radius: 5px;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 10px 0;
+  text-shadow: 2px 2px 2px #666666;
+}
+
+h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 20px 0 20px;
+}
+
+h3 {
+  margin: 10px 0;
+    font-size: 1.3em;
+  font-weight: bold;
+    clear: both;
+}
+
+p {
+    line-height: 1.2em;
+    margin-bottom: 1em;
+}
+
+a {
+  color: #444444;
+}
+
+a:hover {
+  color: #888888;
+}
+
+#team {
+  overflow: hidden;
+  width: 100%;
+}
+
+#teamLeftColumn {
+  width: 50%;
+  float: left;
+}
+
+#teamRightColumn {
+  width: 50%;
+  float: right;
+}
+
+.teamMember {
+  overflow: hidden;
+}
+
+.teamImageWrapper {
+  float: left;
+  width: 100px;
+  clear: both;
+  margin: 10px;
+}
+
+.teamImageWrapper img {
+  border-radius: 5px;
+}
+
+.teamDescriptionWrapper {
+
+  float: left;
+}
+
+.teamDescriptionWrapper p {
+}
+
+.teamPosition {
+  font-size: 1.1em;
+  font-weight: bold;
+}

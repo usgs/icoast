@@ -1,0 +1,232 @@
+/*CSS Reset*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+
+body {
+  line-height: 1;
+  /*background: #aaaaaa;*/
+  background: #040535;
+}
+
+#wrapper {
+  position: relative;
+  border-radius: 5px;
+  box-shadow: #00243A 3px 3px 2px;
+}
+
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+hr {
+  background-color: #12155E;
+  color: #12155E;
+  padding: 0;
+  margin: 0;
+}
+
+
+
+/*Elements & Individual Components*/
+
+strong {
+  font-weight: bold;
+}
+
+/*Fix FF Button Padding*/
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/*body {
+  background: -moz-linear-gradient(-45deg, rgba(235,241,246,1) 0%, rgba(171,211,238,1) 50%, rgba(137,195,235,1) 51%, rgba(213,235,251,1) 100%);
+background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,rgba(235,241,246,1)), color-stop(50%,rgba(171,211,238,1)), color-stop(51%,rgba(137,195,235,1)), color-stop(100%,rgba(213,235,251,1)));
+background: -webkit-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
+background: -o-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
+background: -ms-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
+background: linear-gradient(135deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
+}*/
+
+
+
+
+
+/*Base Structure*/
+
+html {
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/*#navMinimized {
+  position: fixed;
+  width: 200px;
+  top: 0px;
+  left: 0px;
+  background-color: #888888;
+  min-height: 15px;
+  border-radius: 0 0 5px 5px;
+  overflow: hidden;
+}*/
+
+#header {
+  position:absolute;
+  z-index: 100;
+  width: 100%
+}
+
+#usgsColorBand {
+  display: none;
+  width: 100%;
+  background: #006633 url('../images/system/hurricaneBanner.jpg') 178px 0px no-repeat;
+  height: 72px;
+  border-radius: 5px;
+}
+
+#usgsIdentifier {
+  background-color: black;
+  height: 72px;
+  width: 178px;
+  float:left;
+    border-radius: 5px 0 0 5px;
+}
+
+#usgsIdentifier img {
+  border-radius: 5px;
+}
+
+#navCenteringWrapper {
+  position: absolute;
+  left: 50%;
+}
+
+.icon-drop-down {
+  height: 25px;
+  line-height: 20px !important;
+  /*text-shadow: #666666 2px 2px 2px;*/
+  float: right;
+  margin-right: 25px;
+}
+
+#navHeader {
+  width: 320px;
+  margin: 0 0 0 -50%;
+  background-color: #040535;
+  height: 25px;
+  border-radius: 0 0 5px 5px;
+  overflow: hidden;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+}
+
+#navHeader p {
+  height: 25px;
+  line-height: 25px;
+  /*text-shadow: #666666 2px 2px 2px;*/
+  margin-left: 25px;
+}
+
+#navHeader #appTitle {
+  width: 240px;
+  font-size: 1.3em;
+  line-height: 22px;
+  float: left;
+}
+
+#navWrapper {
+  display: none;
+  width: 200px;
+  margin: 0 0 0 -100px;
+  padding: 0 0 3px 0;
+  background-color: #040535;
+  border-radius: 0 0 5px 5px;
+  text-align: center;
+  font-weight: bold;
+}
+#navWrapper a {
+/*  display: block;
+  font-size: 12px;*/
+padding: 1px;
+  text-decoration:none;
+  color: black;
+  text-shadow: #666666 2px 2px 2px;
+}
+
+#navWrapper a:hover {
+  text-decoration: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
