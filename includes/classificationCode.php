@@ -49,24 +49,38 @@ EOT;
     $tagTooltipImage = $tag['tooltipImage'];
     $tagTooltipImageWidth = $tag['tooltipImageWidth'];
     $tagTooltipImageHeight = $tag['tooltipImageHeight'];
+    $tagSelected = $tag['userSelected'];
+    if (isset($tag['userComment'])) {
+      $userComment = $tag['userComment'];
+    }
     if ($isTagAComment) {
       $tagString[0] .= <<<EOT
               <label id="tag$tagId">$tagText<br>
-                <textarea name="$tagId" rows="5" cols="50"></textarea>
-              </label>
-
+                <textarea name="$tagId" rows="5" cols="50">
 EOT;
+      if ($tagSelected) {
+        $tagString[0] .= htmlspecialchars($userComment);
+      }
+      $tagString[0] .= "</textarea></label>";
     } elseif ($isTagARadioButton) {
+      $tagString[0] .= '<input type="radio" ';
+      if ($tagSelected) {
+        $tagString[0] .= 'checked="checked" ';
+      }
       $tagString[0] .= <<<EOT
-              <input type="radio" id="$tagId" class="annotationInput" name="$radioButtonName" value="$tagId">
+              id="$tagId" class="annotationInput" name="$radioButtonName" value="$tagId">
               <label for="$tagId" id="tag$tagId" class="tag">
                 <span class="tagText">$tagText</span>
               </label>
 
 EOT;
     } else {
+      $tagString[0] .= '<input type="checkbox" ';
+      if ($tagSelected) {
+        $tagString[0] .= 'checked="checked" ';
+      }
       $tagString[0] .= <<<EOT
-              <input type="checkbox" id="$tagId" class="annotationInput" name="$tagId" value="$tagId">
+              id="$tagId" class="annotationInput" name="$tagId" value="$tagId">
               <label for="$tagId" id="tag$tagId" class="tag">
                 <span class="tagText">$tagText</span>
               </label>
@@ -104,20 +118,16 @@ EOT;
 //--------------------------------------------------------------------------------------------------
 // Define required files and initial includes
 // Define variables and PHP settings
+$revision = 0;
 $postImageId = $_GET['imageId'];
 If (isset($_GET['preImageId'])) {
   $preImageId = $_GET['preImageId'];
+  $specifiedPreImage = 1;
 }
 // Find project image metadata $projectMetadata
 if (!$projectMetadata = retrieve_entity_metadata($projectId, 'project')) {
   exit("Project $projectId not found in Database");
 }
-// Find post image metadata $postImageMetadata
-if (!$postImageMetadata = retrieve_entity_metadata($postImageId, 'image')) {
-  exit("Image $postImageId not found in Database");
-}
-$postImageLatitude = $postImageMetadata['latitude'];
-$postImageLongitude = $postImageMetadata['longitude'];
 // Find match data $imageMatchData
 if (!isset($preImageId)) {
   $imageMatchData = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
@@ -125,12 +135,44 @@ if (!isset($preImageId)) {
 }
 $imageMatchData = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
 $ComputerMatchImageId = $imageMatchData['pre_image_id'];
+
+//--------------------------------------------------------------------------------------------------
+// Determine if the user has already annotated the displayed image
+$annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = $userId AND "
+        . "project_id = $projectId AND image_id = $postImageId";
+$annotationExistsResult = run_database_query($annotationExistsQuery);
+if (!$annotationExistsResult) {
+  print "Query Failure: $annotationExistsQuery";
+  exit;
+}
+$existingAnnotation = FALSE;
+if ($annotationExistsResult->num_rows > 0) {
+  $existingAnnotation = $annotationExistsResult->fetch_assoc();
+  if (!is_null($existingAnnotation['user_match_id'])) {
+    if ($preImageId != $existingAnnotation['user_match_id'] && !isset($specifiedPreImage)) {
+      header("location: classification.php?&projectId=$projectId&imageId=$postImageId&preImageId={$existingAnnotation['user_match_id']}");
+    }
+  }
+}
+
+// Find post image metadata $postImageMetadata
+if (!$postImageMetadata = retrieve_entity_metadata($postImageId, 'image')) {
+  exit("Image $postImageId not found in Database");
+}
+$postImageLatitude = $postImageMetadata['latitude'];
+$postImageLongitude = $postImageMetadata['longitude'];
+
 // Find pre image metadata $preImageMetadata
 if (!$preImageMetadata = retrieve_entity_metadata($preImageId, 'image')) {
   exit("Image $preImageId not found in Database");
 }
 
-$annotationSessionId = (md5(time()));
+If (isset($_GET['sessId'])) {
+  $annotationSessionId = $_GET['sessId'];
+} else {
+  $annotationSessionId = (md5(time()));
+}
+
 $annotationMetaDataQueryString = "&annotationSessionId=$annotationSessionId&userId=$userId"
         . "&authCheckCode=$authCheckCode&projectId=$projectId&postImageId=$postImageId";
 
@@ -187,7 +229,7 @@ if ($thumbnailArray1[0]['image_id'] != 0) {
   $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
   $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
   $$thumbnailUrlVarName = $thumbnailArray1[0]['thumb_url'];
-  $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray1[0]['image_id']}";
+  $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray1[0]['image_id']}&sessId=$annotationSessionId";
 }
 
 $thumbnailCounter++;
@@ -196,7 +238,7 @@ foreach ($thumbnailArray2 as $thumbnail) {
     $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
     $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
     $$thumbnailUrlVarName = $thumbnail['thumb_url'];
-    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnail['image_id']}";
+    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnail['image_id']}&sessId=$annotationSessionId";
   }
   $thumbnailCounter++;
 }
@@ -204,8 +246,42 @@ if ($thumbnailArray3[2]['image_id'] != 0) {
   $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
   $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
   $$thumbnailUrlVarName = $thumbnailArray3[2]['thumb_url'];
-  $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray3[2]['image_id']}";
+  $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray3[2]['image_id']}&sessId=$annotationSessionId";
 }
+
+
+//--------------------------------------------------------------------------------------------------
+// Build an array of selected tags in any existing annotation
+if ($existingAnnotation) {
+  $existingTags = array();
+  $existingComments = array();
+
+  $tagSelectionQuery = "SELECT * FROM annotation_selections "
+          . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
+  $tagSelectionResult = run_database_query($tagSelectionQuery);
+
+  if (!$tagSelectionResult) {
+    print "Query Failure: $tagSelectionQuery";
+    exit;
+  }
+  while ($existingSelection = $tagSelectionResult->fetch_assoc()) {
+    $existingTags[] = $existingSelection['tag_id'];
+  }
+
+  $tagCommentQuery = "SELECT * FROM annotation_comments"
+          . " WHERE annotation_id = {$existingAnnotation['annotation_id']}";
+  $tagCommentResult = run_database_query($tagCommentQuery);
+
+  if (!$tagCommentResult) {
+    print "Query Failure: $tagCommentQuery";
+    exit;
+  }
+
+  while ($existingComment = $tagCommentResult->fetch_assoc()) {
+    $existingComments[$existingComment['tag_id']] = $existingComment['comment'];
+  }
+}
+
 
 //--------------------------------------------------------------------------------------------------
 // Build an array of the tasks.
@@ -299,8 +375,25 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
                             'tooltipText' => $tagMetadata[0]['tooltip_text'],
                             'tooltipImage' => $tagMetadata[0]['tooltip_image'],
                             'tooltipImageWidth' => $tagMetadata[0]['tooltip_image_width'],
-                            'tooltipImageHeight' => $tagMetadata[0]['tooltip_image_height']
+                            'tooltipImageHeight' => $tagMetadata[0]['tooltip_image_height'],
+                            'userSelected' => FALSE
                         );
+                        if ($existingAnnotation) {
+                          if ($tagMetadata[0]['is_comment_box'] == TRUE) {
+                            if (array_key_exists($tagId, $existingComments)) {
+                              $annotations[$taskId]['groups'][$tagGroupId]['groups'][$groupGroupId]
+                                      ['tags'][$tagId]['userSelected'] = TRUE;
+                              $annotations[$taskId]['groups'][$tagGroupId]['groups'][$groupGroupId]
+                                      ['tags'][$tagId]['userComment'] = $existingComments[$tagId];
+                            }
+                          } else {
+                            $key = array_search($tagId, $existingTags);
+                            if ($key !== FALSE) {
+                              $annotations[$taskId]['groups'][$tagGroupId]['groups'][$groupGroupId]
+                                      ['tags'][$tagId]['userSelected'] = TRUE;
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -332,8 +425,25 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
                       'tooltipText' => $tagMetadata[0]['tooltip_text'],
                       'tooltipImage' => $tagMetadata[0]['tooltip_image'],
                       'tooltipImageWidth' => $tagMetadata[0]['tooltip_image_width'],
-                      'tooltipImageHeight' => $tagMetadata[0]['tooltip_image_height']
+                      'tooltipImageHeight' => $tagMetadata[0]['tooltip_image_height'],
+                      'userSelected' => FALSE
                   );
+                  if ($existingAnnotation) {
+                    if ($tagMetadata[0]['is_comment_box'] == TRUE) {
+                      if (array_key_exists($tagId, $existingComments)) {
+                        $annotations[$taskId]['groups'][$tagGroupId]['tags'][$tagId]
+                                ['userSelected'] = TRUE;
+                        $annotations[$taskId]['groups'][$tagGroupId]['tags'][$tagId]
+                                ['userComment'] = $existingComments[$tagId];
+                      }
+                    } else {
+                      $key = array_search($tagId, $existingTags);
+                      if ($key !== FALSE) {
+                        $annotations[$taskId]['groups'][$tagGroupId]['tags'][$tagId]
+                                ['userSelected'] = TRUE;
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -343,9 +453,6 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
     }
   }
 }
-
-
-
 
 
 
@@ -567,7 +674,7 @@ foreach ($annotations as $task) {
             . '<input type="hidden" name="preImageId" value="' . $preImageId . '">'
 //            . '<input type="hidden" name="userId" value="' . $userId . '">'
 //            . '<input type="hidden" name="authCheckCode" value="' . $authCheckCode . '">'
-          ;
+    ;
   }
 //  $taskHeaderHTMLString .= <<<EOT
 //

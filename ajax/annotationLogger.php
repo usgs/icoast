@@ -85,7 +85,7 @@ if (isset($_POST['loadEvent'])) {
       exit;
     }
   } else {
-    if (is_null($existingAnnotation['user_match_id'])) {
+    if (is_null($existingAnnotation['user_match_id']) && $existingAnnotation['user_match_id'] != $annotationSessionId) {
       $annotationLoadEventQuery = "UPDATE annotations SET initial_session_id = '$annotationSessionId', "
               . "initial_session_start_time = NOW() "
               . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
@@ -237,6 +237,9 @@ if (isset($_POST['loadEvent'])) {
     }
   }
 
+
+
+
   if ($userDataChange) {
     if ($annotationSessionId == $existingAnnotation['initial_session_id']) {
 
@@ -261,14 +264,16 @@ if (isset($_POST['loadEvent'])) {
         $revisionCount = $existingAnnotation['revision_count'];
       }
       $annotationUpdateQuery = "UPDATE annotations "
-              . "SET revision_session_id = '$annotationSessionId',"
+              . "SET user_match_id = $preImageId, "
+              . "revision_session_id = '$annotationSessionId', "
               . "revision_count = $revisionCount, last_revision_time = NOW() "
               . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-      if ($annotationComplete == 1) {
+      if ($annotationComplete == 1 && $existingAnnotation['annotation_completed'] == 0) {
         $annotationUpdateQuery = "UPDATE annotations "
-                . "SET revision_session_id = '$annotationSessionId',"
+                . "SET user_match_id = $preImageId, "
+                . "revision_session_id = '$annotationSessionId', "
                 . "revision_count = $revisionCount, last_revision_time = NOW(), "
-                . "annotation_completed = 1 "
+                . "annotation_completed = 1, annotation_completed_under_revision = 1 "
                 . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
       }
       $annotationUpdateResult = run_database_query($annotationUpdateQuery);
