@@ -41,30 +41,30 @@ function ordinal_suffix($num) {
  * @return int|boolean If sucessful returns a random image id <b>OR</b><br>
  * On failure returns FALSE.
  */
-function random_post_image_id_generator($projectId, $isFiltered, $postCollectionId = 0, $preCollectionId = 0, $userId = 0) {
-  /* print "<p><b>In random_post_image_id_generator function.</b><br>Arguments:<br>$projectId<br>
-    $isFiltered<br>$postCollectionId<br>$preCollectionId<br>$userId</p>"; */
+function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postCollectionId = 0, $preCollectionId = 0, $userId = 0) {
+//   print "<p><b>In random_post_image_id_generator function.</b><br>Arguments:<br>ProjectId = $projectId<br>
+//    Filtered = $isFiltered<br>Post Collection = $postCollectionId<br>Pre Collection = $preCollectionId<br>$userId</p>";
   if (!is_null($projectId) && !is_null($isFiltered) && is_Numeric($projectId) &&
           is_Numeric($postCollectionId) && is_Numeric($preCollectionId) && is_Numeric($userId) &&
           is_bool($isFiltered)) {
-    $projectData = retrieve_entity_metadata($projectId, 'project');
+    $projectData = retrieve_entity_metadata($DBH, $projectId, 'project');
     if ($projectData) {
-      $projectDatasets = find_datasets_in_collection($projectData['post_collection_id']);
+      $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
     }
     if ($userId !== 0) {
-      $userGroups = find_user_group_membership($userId, $projectId, TRUE);
+      $userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
       if ($userGroups) {
-        $imageGroups = find_assigned_image_groups($userGroups, TRUE);
+        $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
         if ($imageGroups) {
-          $imageIdPool = retrieve_image_id_pool($imageGroups, TRUE, FALSE);
+          $imageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
         } else {
-          $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+          $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
         }
       } else {
-        $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+        $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
       }
     } else {
-      $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+      $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
     }
     if ($imageIdPool AND !$isFiltered) {
       $imagesCount = count($imageIdPool);
@@ -78,10 +78,10 @@ function random_post_image_id_generator($projectId, $isFiltered, $postCollection
         $randomIndex = rand(1, $imagesCount);
         $randomId = $imageIdPool[$randomIndex];
         array_splice($imageIdPool, $randomIndex, 1);
-        $imageMatchData = retrieve_image_match_data($postCollectionId, $preCollectionId, $randomId);
+        $imageMatchData = retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $randomId);
         if ($imageMatchData AND $imageMatchData['is_enabled'] == 1) {
           if ($userId != 0) {
-            if (has_user_annotated_image($randomId, $userId) == 0) {
+            if (has_user_annotated_image($DBH, $randomId, $userId) === 0) {
               /* print "RETURNING: $randomId Filtered (by Match Enabled and Not User Annotated)
                 Random Image Id<br>"; */
               return $randomId;
@@ -122,7 +122,7 @@ function random_post_image_id_generator($projectId, $isFiltered, $postCollection
  * @return int|boolean If sucessful returns a random image id <b>OR</b><br>
  * On failure returns FALSE.
  */
-function post_image_pool_generator($projectId, $isFiltered, $postCollectionId = 0, $preCollectionId = 0, $userId = 0) {
+function post_image_pool_generator($DBH, $projectId, $isFiltered, $postCollectionId = 0, $preCollectionId = 0, $userId = 0) {
   /* print "<p><b>In random_post_image_id_generator function.</b><br>Arguments:<br>$projectId<br>
     $isFiltered<br>$postCollectionId<br>$preCollectionId<br>$userId</p>"; */
   if (!is_null($projectId) && !is_null($isFiltered) && is_Numeric($projectId) &&
@@ -130,7 +130,7 @@ function post_image_pool_generator($projectId, $isFiltered, $postCollectionId = 
           is_bool($isFiltered)) {
     $projectData = retrieve_entity_metadata($projectId, 'project');
     if ($projectData) {
-      $projectDatasets = find_datasets_in_collection($projectData['post_collection_id']);
+      $projectDatasets = find_datasets_in_collection($DBH ,$projectData['post_collection_id']);
     }
     if ($userId !== 0) {
       $userGroups = find_user_group_membership($userId, $projectId, TRUE);
@@ -225,22 +225,27 @@ function all_user_annotated_images($userId, $projectId = 0) {
  * a row in the matches table of the iCoast DB <b>OR</b><br>
  * On failure or no match found returns FALSE.
  */
-function retrieve_image_match_data($postCollectionId, $preCollectionId, $postImageId) {
+function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $postImageId) {
   /* print "<p><b>In retrieve_image_match_data function.</b><br>Arguments:<br>$postCollectionId<br>
     $preCollectionId<br>$postImageId</p>"; */
 
   if (!empty($postCollectionId) AND !empty($preCollectionId) AND !empty($postImageId) AND
           is_numeric($postCollectionId) AND is_numeric($preCollectionId) AND
           is_numeric($postImageId)) {
-    $imageMatchDataQuery = "SELECT * FROM matches WHERE post_collection_id = $postCollectionId AND
-      pre_collection_id = $preCollectionId AND post_image_id = $postImageId";
-    $imageMatchDataResult = run_database_query($imageMatchDataQuery);
-    if ($imageMatchDataResult && $imageMatchDataResult->num_rows > 0) {
-      $imageMatchData = $imageMatchDataResult->fetch_assoc();
+    $imageMatchDataQuery = "SELECT * FROM matches WHERE post_collection_id = :postCollectionId AND
+      pre_collection_id = :preCollectionId AND post_image_id = :postImageId";
+    $imageMatchDataParams = array(
+        'postCollectionId' => $postCollectionId,
+        'preCollectionId' => $preCollectionId,
+        'postImageId' => $postImageId
+    );
+    $STH = run_prepared_query($DBH, $imageMatchDataQuery, $imageMatchDataParams);
+    $imageMatchData = $STH->fetchAll(PDO::FETCH_ASSOC);
+    if (count($imageMatchData) > 0) {
       /* print "RETURNING: <pre>";
         print_r($imageMatchData);
         print '</pre>'; */
-      return $imageMatchData;
+      return $imageMatchData[0];
     }
   }
 // print "RETURNING: FALSE<br>";
@@ -258,16 +263,25 @@ function retrieve_image_match_data($postCollectionId, $preCollectionId, $postIma
  * @return int|boolean On success returns a 0 (no annotation found) or 1 (annotation found)
  * <b>OR</b><br> On failure returns FALSE.
  */
-function has_user_annotated_image($postImageId, $userId, $projectId = 0) {
+function has_user_annotated_image($DBH, $postImageId, $userId, $projectId = 0) {
 // print "<p><b>In has_user_annotated_image function.</b><br>Arguments:<br>$postImageId</p>";
-  if (is_numeric($postImageId && is_numeric($userId) && is_numeric($projectId))) {
-    $annotationCheckQuery = "SELECT annotation_id FROM annotations WHERE user_id = $userId AND
-        image_id = $postImageId";
+  if (is_numeric($postImageId) && is_numeric($userId) && is_numeric($projectId)) {
+    $annotationCheckQuery = "SELECT COUNT(*) FROM annotations WHERE user_id = :userId AND
+        image_id = :postImageId";
+    $annotationCheckParams = array (
+        'userId' => $userId,
+        'postImageId' => $postImageId
+    );
     if ($projectId > 0) {
-      $annotationCheckQuery .= " AND project_id = $projectId";
+      $annotationCheckQuery .= " AND project_id = :projectId";
+      $annotationCheckParams['projectId'] = $projectId;
     }
-    $annotationCheckResult = run_database_query($annotationCheckQuery);
-    if ($annotationCheckResult->num_rows == 0) {
+    $STH = run_prepared_query($DBH, $annotationCheckQuery, $annotationCheckParams);
+    $annotationCheckResult = $STH->fetchColumn();
+//    print $annotationCheckResult;
+//    exit;
+//    $annotationCheckResult = run_database_query($annotationCheckQuery);
+    if ($annotationCheckResult == 0) {
 // print "RETURNING: 0 (No existing image annotation found for the user)<br>";
       return 0;
     } else {
@@ -295,7 +309,7 @@ function has_user_annotated_image($postImageId, $userId, $projectId = 0) {
  * image group, level 2 keys and values = individual image group fields from image_group_metadata
  * table in iCoast DB <b>OR</b><br> On failure or no image groups found retuns FALSE.
  */
-function find_assigned_image_groups($userGroups, $IdOnly = FALSE) {
+function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
   /* print "<p><b>In find_assigned_image_groups function</b>.<br>Arguments:<br><pre>";
     print_r($userGroups);
     print "</pre></p>"; */
@@ -308,11 +322,15 @@ function find_assigned_image_groups($userGroups, $IdOnly = FALSE) {
     }
   }
   $whereString = where_in_string_builder($userGroupIds);
-  $imageGroupIdQuery = "SELECT image_group_id FROM user_group_assignments WHERE user_group_id IN " .
-          $whereString;
-  $imageGroups = run_database_query($imageGroupIdQuery);
-  if ($imageGroups && $imageGroups->num_rows > 0) {
-    while ($singleImageGroup = $imageGroups->fetch_assoc()) {
+
+  $imageGroupIdQuery = "SELECT image_group_id FROM user_group_assignments WHERE user_group_id IN "
+          ."(:whereString)";
+  $imageGroupIdParams['whereString'] = $whereString;
+  $STH = run_prepared_query($DBH, $imageGroupIdQuery, $imageGroupIdParams);
+  $imageGroups = $STH->fetachAll(PDO::FETCH_ASSOC);
+//  $imageGroups = run_database_query($imageGroupIdQuery);
+  if (count($imageGroups) > 0) {
+    foreach ($imageGroups as $singleImageGroup) {
       $imageGroupIds[] = $singleImageGroup['image_group_id'];
     }
     if ($IdOnly) {
@@ -323,10 +341,13 @@ function find_assigned_image_groups($userGroups, $IdOnly = FALSE) {
     } else {
 // Potential Function
       $whereString = where_in_string_builder($imageGroupIds);
-      $imageGroupMetadataQuery = "SELECT * FROM image_group_metadata WHERE image_group_id IN " .
-              $whereString;
-      $imageGroupMetadata = run_database_query($imageGroupIdQuery);
-      while ($singleImageGroupMetadata = $imageGroupMetadata->fetch_assoc()) {
+      $imageGroupMetadataQuery = "SELECT * FROM image_group_metadata WHERE image_group_id IN "
+              . "(:whereString)";
+      $imageGroupMetadataParams['whereString'] = $whereString;
+//      $imageGroupMetadata = run_database_query($imageGroupIdQuery);
+      $STH = run_prepared_query($DBH, $imageGroupMetadataQuery, $imageGroupMetadataParams);
+      $imageGroupMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+      foreach ($imageGroupMetadata as $singleImageGroupMetadata) {
         $imageGroupResults[] = $singleImageGroupMetadata;
       }
       /* print "RETURNING: <pre>";
@@ -355,28 +376,37 @@ function find_assigned_image_groups($userGroups, $IdOnly = FALSE) {
  * user group, level 2 keys and values = individual user group fields from user_group_metadata
  * table in iCoast DB <b>OR</b><br> On failure or no image groups found retuns FALSE.
  */
-function find_user_group_membership($userId, $projectId = 0, $idOnly = FALSE) {
+function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FALSE) {
 //print "<p><b>In find_user_group_membership function.</b><br>Arguments:<br>$userId<br>$projectId</p>";
 // Define variables and PHP settings
   $idArray = array();
 
   if (!is_null($userId) && is_numeric($userId) && is_numeric($projectId) && is_Bool($idOnly)) {
-    $userGroupIdsQuery = "SELECT user_group_id FROM user_groups WHERE user_id = $userId";
-    $userGroupIds = run_database_query($userGroupIdsQuery);
-    if ($userGroupIds && $userGroupIds->num_rows > 0) {
-      while ($id = $userGroupIds->fetch_assoc()) {
+    $userGroupIdsQuery = "SELECT user_group_id FROM user_groups WHERE user_id = :userId";
+    $userGroupIdsParams['userId'] = $userId;
+//    $userGroupIds = run_database_query($userGroupIdsQuery);
+    $STH = run_prepared_query($DBH, $userGroupIdsQuery, $userGroupIdsParams);
+    $userGroupIds = $STH->fetchAll(PDO::FETCH_ASSOC);
+    if (count($userGroupIds) > 0) {
+      foreach ($userGroupIds as $id) {
         $idArray[] = $id;
       }
 // Potential Function
       $whereString = where_in_string_builder($idArray);
-      $userGroupDetailsQuery = "SELECT * FROM user_group_metadata WHERE user_group_id IN
-          $whereString";
+      $userGroupDetailsQuery = "SELECT * FROM user_group_metadata WHERE user_group_id IN "
+          . "(:whereString)";
+      $userGroupDetailsParams['whereString'] = $whereString;
+
       if ($projectId > 0) {
-        $userGroupDetailsQuery .= " AND project_id = $projectId";
+        $userGroupDetailsQuery .= " AND project_id = :projectId";
+        $userGroupDetailsParams['projectId'] = $projectId;
       }
-      $userGroupDetails = run_database_query($userGroupDetailsQuery);
-      if ($userGroupDetails && $userGroupDetails->num_rows > 0) {
-        while ($details = $userGroupDetails->fetch_assoc()) {
+      $STH = run_prepared_query($DBH, $userGroupDetailsQuery, $userGroupDetailsParams);
+      $userGroupDetails = $STH->fetchAll(PDO::FETCH_ASSOC);
+//      $userGroupDetails = run_database_query($userGroupDetailsQuery);
+
+      if (count($userGroupDetails) > 0) {
+        foreach ($userGroupDetails as $details) {
           if ($idOnly) {
             $userGroupResults[] = $details['user_group_id'];
           } else {
@@ -412,21 +442,21 @@ function find_user_group_membership($userId, $projectId = 0, $idOnly = FALSE) {
  * image was found in which case the 2nd level will contain one key "image_id" with value "0"
  * <b>OR</b><br> On failure returns FALSE.
  */
-function find_adjacent_images($imageId, $projectId = NULL) {
+function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
   // print "In find_adjacent_images. Image ID = $imageId Project ID = $projectId<br>";
   $adjacentSearchRange = 20;
   $adjacentImageArray = Array();
   if (!is_null($imageId) && is_numeric($imageId)) {
     // Retrieve image and dataset metadata
-    $imageMetadata = retrieve_entity_metadata($imageId, 'image');
+    $imageMetadata = retrieve_entity_metadata($DBH, $imageId, 'image');
     if (isset($imageMetadata) && $imageMetadata) {
       $positionInDataset = $imageMetadata['position_in_set'];
       $datasetId = $imageMetadata['dataset_id'];
-      $datasetMetadata = retrieve_entity_metadata($datasetId, 'dataset');
+      $datasetMetadata = retrieve_entity_metadata($DBH, $datasetId, 'dataset');
     }
     if (!is_null($projectId) && (is_numeric($projectId))) {
       // If project id is supplied retrieve project metadata
-      $projectMetadata = retrieve_entity_metadata($projectId, 'project');
+      $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
     }
     if (isset($datasetMetadata) && $datasetMetadata) {
       $imagesInDataset = $datasetMetadata['rows_in_set'];
@@ -442,11 +472,18 @@ function find_adjacent_images($imageId, $projectId = NULL) {
       }
 
       // Query the iCoast DB for all images with position id's in the defined range.
-      $adjacentImageQuery = "SELECT * FROM images WHERE dataset_id = $datasetId AND
-        position_in_set BETWEEN $minPosition AND $maxPosition";
-      $adjacentImageQueryResult = run_database_query($adjacentImageQuery);
-      if ($adjacentImageQueryResult && $adjacentImageQueryResult->num_rows > 0) {
-        $adjacentImageMetadata = $adjacentImageQueryResult->fetch_all(MYSQLI_ASSOC);
+      $adjacentImageQuery = "SELECT * FROM images WHERE dataset_id = :datasetId AND
+        position_in_set BETWEEN :minPosition AND :maxPosition";
+      $adjacentImageParams = array(
+          'datasetId' => $datasetId,
+          'minPosition' => $minPosition,
+          'maxPosition' => $maxPosition
+      );
+      $STH = run_prepared_query($DBH, $adjacentImageQuery, $adjacentImageParams);
+      $adjacentImageMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//      $adjacentImageQueryResult = run_database_query($adjacentImageQuery);
+      if (count($adjacentImageMetadata) > 0) {
+//        $adjacentImageMetadata = $adjacentImageQueryResult->fetch_all(MYSQLI_ASSOC);
 
         // Loop through the array of adjacent images in range in ascending order searching for
         // the image with the next ascending position_in_dataset number from the current image.
@@ -460,7 +497,7 @@ function find_adjacent_images($imageId, $projectId = NULL) {
               // Initiate a match check if required.
               if (!is_null($projectId)) {
                 if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                  $match = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
+                  $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
                   if (!$match || $match['is_enabled'] == 0) {
                     // Position was found but it didn't pass match check. Break the foreach loop and
                     // start again with the next position number.
@@ -511,7 +548,7 @@ function find_adjacent_images($imageId, $projectId = NULL) {
               // Initiate a match check if required.
               if (!is_null($projectId)) {
                 if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                  $match = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
+                  $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
                   if (!$match || $match['is_enabled'] == 0) {
                     // Position was found but it didn't pass match check. Break the foreach loop and
                     // start again with the next position number.
@@ -545,10 +582,10 @@ function find_adjacent_images($imageId, $projectId = NULL) {
             }
           }
         }
-         /*print "RETURNING: adjacentImageArray:<br>";
+        /* print "RETURNING: adjacentImageArray:<br>";
           print '<pre>';
           print_r($adjacentImageArray);
-          print '</pre>';*/
+          print '</pre>'; */
         return $adjacentImageArray;
       }
     }
@@ -556,5 +593,3 @@ function find_adjacent_images($imageId, $projectId = NULL) {
   //print "RETURNING: FALSE";
   return FALSE;
 }
-
-?>

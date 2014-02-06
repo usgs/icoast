@@ -1,5 +1,58 @@
 <?php
 
+$dbmsConnectionPath = '../iCoastSecure/DBMSConnection.php';
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to generate new user authentication credential cookies and matching database entries
+ *
+ * @param string $dbc A mysqli database connection object.
+ * @param integer $userId The database user_id number of the user account from the userId cookie.
+ * @return boolean Returns true on success or logs error on failure
+ * @todo Error reportin
+ */
+function generate_cookie_credentials($DBH, $userId) {
+  $authCheckCode = md5(rand());
+  $query = "UPDATE users SET auth_check_code = '$authCheckCode', last_logged_in_on = now() "
+          . "WHERE user_id = :userId";
+  $params['userId'] = $userId;
+  $STH = run_prepared_query($DBH, $query, $params);
+  if ($STH->rowCount() > 0) {
+    setcookie('userId', $userId, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
+    setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
+    return $authCheckCode;
+  } else {
+    //  Placeholder for error management
+    print 'User Cookie Generation Error: User Id Not found';
+    exit;
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to authenticate user against 'users' table of the database from credentials stored in
+ * user cookies.
+ *
+ * @param string $dbc A mysqli database connection object.
+ * @param integer $userId The database user_id number of the user account from the userId cookie.
+ * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
+ * @return array On success returns an array containing all fields from the users database record.
+ */
+function authenticate_cookie_credentials($DBH, $userId, $authCheckCode) {
+  $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
+  $params = array(
+      'userId' => $userId,
+      'authCheckCode' => $authCheckCode);
+  $STH = run_prepared_query($DBH, $query, $params);
+  $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
+  if (count($userData) == 0) {
+    header('Location: login.php');
+    exit;
+  } else {
+    return $userData[0];
+  }
+}
+
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to encrypt user email using 256 bit AES encryption for database storage.
@@ -64,17 +117,49 @@ function mysql_aes_decrypt($encryptedValue, $iv) {
  * @return string A combination of the original domain and the masked user portion of an e-mail
  * address.
  */
-function mask_email( $email, $maskCharacter="*", $maskPercentage=50 )
-{
+function mask_email($email, $maskCharacter = "*", $maskPercentage = 50) {
 
-        list( $user, $domain ) = preg_split("/@/", $email );
-        $len = strlen( $user );
-        $mask_count = floor( $len * $maskPercentage /100 );
-        $offset = floor( ( $len - $mask_count ) / 2 );
-        $masked = substr( $user, 0, $offset )
-                .str_repeat( $maskCharacter, $mask_count )
-                .substr( $user, $mask_count+$offset );
-        return( $masked.'@'.$domain );
+  list( $user, $domain ) = preg_split("/@/", $email);
+  $len = strlen($user);
+  $mask_count = floor($len * $maskPercentage / 100);
+  $offset = floor(( $len - $mask_count ) / 2);
+  $masked = substr($user, 0, $offset)
+          . str_repeat($maskCharacter, $mask_count)
+          . substr($user, $mask_count + $offset);
+  return( $masked . '@' . $domain );
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to run any supplied query against the database.
+ *
+ * @param object $DBH PDO database object.
+ * @param string $query A string suitible for a PDO prepared statement using named placeholders.
+ * @param array $params An array of values matching the named parameters specified in the query.
+ * @return object $STH PDO statement object for the executed query.
+ * @todo Error managament entries.
+ */
+function run_prepared_query($DBH, $query, $params) {
+
+  $STH = $DBH->prepare($query);
+  if (!$STH) {
+    //  Placeholder for error management
+    print 'PDO Prepare Error: <br>';
+    print_r($DBH->errorInfo());
+    exit;
+  }
+  if (!$STH->execute($params)) {
+    //  Placeholder for error management
+    print 'PDO Statement Execution Error: <br>';
+    print $query . '<br>';
+    print '<pre>';
+    print_r($params);
+    print '</pre>';
+    print_r($STH->errorInfo());
+    exit;
+  } else {
+    return $STH;
+  }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -97,7 +182,7 @@ function run_database_query($query) {
   if (!$queryResult = $dbc->query($query)) {
     print "Query failure.<br>Error Number:" . $dbc->errno . "<br>Error: " .
             $dbc->error . "<br>Query: $query";
- print "RETURNING: FALSE<br>";
+    print "RETURNING: FALSE<br>";
     return FALSE;
   }
 // print "RETURNING: Query Result For: $query<br>";
@@ -154,30 +239,32 @@ function where_in_string_builder($values) {
   if (is_array($values) OR is_string($values) OR is_numeric($values)) {
 // Builds a formatted string from an array of string or numeric values.
     if (is_array($values)) {
-      $whereString = "(";
+      $whereString = "";
       foreach ($values as $id) {
         if (is_numeric($id)) {
           $whereString .= "$id,";
         } elseif (is_string($id)) {
-          $id = escape_string($id);
-          if (!$id) {
-            return FALSE;
-          }
+////          $id = escape_string($id);
+//          if (!$id) {
+//            return FALSE;
+//          }
           $whereString .= "'$id',";
         }
       }
-      $whereString = substr_replace($whereString, ")", -1);
+      $whereString = substr_replace($whereString, "", -1);
     } else {
 // Builds a formatted string from a string
-      if (is_string($values)) {
-        $values = escape_string($values);
-        if (!$values) {
-          return FALSE;
-        }
-        $whereString = "('$values')";
+      if (is_numeric($values)) {
+//        $values = escape_string($values);
+//        if (!$values) {
+//          return FALSE;
+//        }
+//        $whereString = "('$values')";
+        $whereString = $values;
       } else {
 // Builds a formatted string from an numeric value.
-        $whereString = "($values)";
+//        $whereString = "($values)";
+        $whereString = "'$values'";
       }
     }
 //print "RETURNING: $whereString<br>";
@@ -204,7 +291,7 @@ function where_in_string_builder($values) {
  * @return array|boolean On success returns a 1D indexed array where element values contain
  * image_ids.  <b>OR</b><br>On failure returns boolean FALSE.
  */
-function retrieve_image_id_pool($searchIds, $imageGroupSearch = FALSE, $filtered = FALSE) {
+function retrieve_image_id_pool($DBH, $searchIds, $imageGroupSearch = FALSE, $filtered = FALSE) {
   /* print "<p><b>In retrieve_image_ids function.</b><br>Arguments:<br><pre>";
     print_r($searchIds);
     print "</pre>$imageGroupSearch<br>$filtered</p>"; */
@@ -216,14 +303,14 @@ function retrieve_image_id_pool($searchIds, $imageGroupSearch = FALSE, $filtered
   $imageIdQuery = "SELECT image_id FROM ";
   switch ($imageGroupSearch) {
     case FALSE: // $searchIds represent datasets to be queried in images table
-      $imageIdQuery .= "images WHERE dataset_id IN $whereString";
+      $imageIdQuery .= "images WHERE dataset_id IN (:whereString)";
       if ($filtered == TRUE) {
 // Pool results should exclude disabled images or those without display images
         $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
       }
       break;
     case TRUE: // $searchIds represent image_group ids to be queried in image_groups table
-      $imageIdQuery .= "image_groups WHERE image_group_id IN $whereString";
+      $imageIdQuery .= "image_groups WHERE image_group_id IN :whereString";
       if ($filtered == TRUE) {
 // Pool results should exclude disabled images or those without display images
         $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
@@ -233,17 +320,18 @@ function retrieve_image_id_pool($searchIds, $imageGroupSearch = FALSE, $filtered
 //print "RETURNING: FALSE<br>";
       return FALSE;
   }
-  $imageIdResult = run_database_query($imageIdQuery);
-  if ($imageIdResult) {
+  $imageIdParams['whereString'] = $whereString;
+  $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
+  $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+//  $imageIdResult = run_database_query($imageIdQuery);
 // Build the array to return.
-    while ($imageId = $imageIdResult->fetch_assoc()) {
+    foreach ($imageIdResult as $imageId) {
       $imageIdsReturn[] = $imageId['image_id'];
     }
 // print "RETURNING: imageIdsReturn Array<br>";
+// print_r($imageIdsReturn);
     return $imageIdsReturn;
-  }
-// print "RETURNING: FALSE<br>";
-  return FALSE;
+
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -339,21 +427,23 @@ function build_image_location_string($imageMetadata) {
  * @return array|boolean If successful returns a 1D indexed array where each element value contains
  * a datset id. Returns FALSE on failure.
  */
-function find_datasets_in_collection($collectionId) {
+function find_datasets_in_collection($DBH, $collectionId) {
 // print "<p><b>In find_datasets_in_collection function</b>.<br>Arguments:<br>$collectionId</p>";
   $datasets = array();
   if (is_numeric($collectionId)) {
     $datasetsQuery = "SELECT dataset_id FROM datasets WHERE collection_id = $collectionId";
-    $datasetsResult = run_database_query($datasetsQuery);
-    if ($datasetsResult) {
-      while ($singleDataset = $datasetsResult->fetch_assoc()) {
+    $datasetsParams['collectionId'] = $collectionId;
+    $STH = run_prepared_query($DBH, $datasetsQuery, $datasetsParams);
+
+//    $datasetsResult = run_database_query($datasetsQuery);
+      while ($singleDataset = $STH->fetch(PDO::FETCH_ASSOC)) {
         $datasets[] = $singleDataset['dataset_id'];
       }
-      /* print "RETURNING: <pre>";
-        print_r($datasets);
-        print '</pre>'; */
+//       print "RETURNING: <pre>";
+//        print_r($datasets);
+//        print '</pre>';
       return $datasets;
-    }
+
   }
 // print "RETURNING: FALSE<br>";
   return FALSE;
@@ -430,17 +520,17 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
  * $ids value was an array, or a 1D array (where each element value holds image metadata) if
  * $ids was an integer.<b>OR</b><br>On failure returns FALSE.
  */
-function retrieve_entity_metadata($ids, $entity) {
-  /* print "<p><b>In retrieve_collection_metadata function.</b><br>Arguments:";
-    print "<br>Entity: $entity";
-    if (is_array($ids)) {
-    print "<br>An array of values.</p>";
-    print "<pre>";
-    print_r($ids);
-    print "</pre>";
-    } else {
-    print "<br>IDs: $ids</p>";
-    } */
+function retrieve_entity_metadata($DBH, $ids, $entity) {
+//   print "<p><b>In retrieve_collection_metadata function.</b><br>Arguments:";
+//    print "<br>Entity: $entity";
+//    if (is_array($ids)) {
+//    print "<br>An array of values.</p>";
+//    print "<pre>";
+//    print_r($ids);
+//    print "</pre>";
+//    } else {
+//    print "<br>IDs: $ids</p>";
+//    }
   // Define PHP settings and Variables
   $returnData = array();
   // Check validity of input data
@@ -469,24 +559,20 @@ function retrieve_entity_metadata($ids, $entity) {
     }
     // Build and run the query
     $idsToQuery = where_in_string_builder($ids);
-    $metadataQuery = "SELECT * FROM $table WHERE $column IN $idsToQuery";
-    $metadataResults = run_database_query($metadataQuery);
-    if ($metadataResults) {
-      if (is_numeric($ids)) {
-        $returnData = $metadataResults->fetch_assoc();
-      } else {
-        while ($result = $metadataResults->fetch_assoc()) {
-          $returnData[] = $result;
-        }
-      }
-      /* print "RETURNING: <pre>";
-        print_r($imageDataReturn);
-        print '</pre>'; */
-      return $returnData;
+    $metadataQuery = "SELECT * FROM $table WHERE $column IN (:idsToQuery)";
+    $metadataParams['idsToQuery'] = $idsToQuery;
+    $STH = run_prepared_query($DBH, $metadataQuery, $metadataParams);
+
+    if (is_numeric($ids)) {
+      $returnData = $STH->fetch(PDO::FETCH_ASSOC);
+    } else {
+      $returnData = $STH->fetchAll(PDO::FETCH_ASSOC);
     }
+//     print "RETURNING: <pre>";
+//      print_r($returnData);
+//      print '</pre>';
+    return $returnData;
   }
-  // print "RETURNING: FALSE<br>";
+//   print "RETURNING: FALSE<br>";
   return FALSE;
 }
-?>
-

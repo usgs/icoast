@@ -1,14 +1,12 @@
 <?php
+ob_start();
 require 'includes/openid.php';
-require '../iCoastSecure/DBMSConnection.php';
 require 'includes/globalFunctions.php';
+require $dbmsConnectionPath;
 
 if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
-  $userId = $_COOKIE['userId'];
-  $authCheckCode = $_COOKIE['authCheckCode'];
-  $query = "SELECT * FROM users WHERE user_id = '$userId' AND auth_check_code = '$authCheckCode' LIMIT 1";
-  $mysqlResult = run_database_query($query);
-  if ($mysqlResult->num_rows == 1) {
+  $authResult = authenticate_cookie_credentials($DBH, $_COOKIE['userId'], $_COOKIE['authCheckCode']);
+  if (count($authResult) > 0) {
     header('Location: welcome.php?userType=existing');
     exit;
   }
@@ -72,22 +70,34 @@ EOL;
 EOL;
           } else {
             $user = $openid->getAttributes();
-            $googleUserEmail = $user['contact/email'];
+            $googleUserEmail = filter_var($user['contact/email'], FILTER_VALIDATE_EMAIL);
+            if (!$googleUserEmail) {
+//            Placeholder for error management
+              print 'Error. Invalid eMail Address.<br>';
+              exit;
+            }
             $maskedUserEmail = mask_email($googleUserEmail);
-            $query = "SELECT * FROM users WHERE masked_email = '$maskedUserEmail'";
-            $mysqlResult = run_database_query($query);
-            if ($mysqlResult->num_rows > 0) {
+
+            $queryStatement = "SELECT * FROM users WHERE masked_email = :maskedEmail";
+            $queryParams['maskedEmail'] = $maskedUserEmail;
+            $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
+            $queryResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+            if (count($queryResult) > 0) {
               $userFound = FALSE;
-              while ($userCredentials = $mysqlResult->fetch_assoc()) {
-//                Print "In while";
+              foreach ($queryResult as $userCredentials) {
                 $decryptedEmail = mysql_aes_decrypt($userCredentials['encrypted_email'], $userCredentials['encryption_data']);
                 if (strcasecmp($decryptedEmail, $googleUserEmail) === 0) {
                   $userFound = TRUE;
                   $authCheckCode = md5(rand());
-                  $query = "UPDATE users SET auth_check_code = '$authCheckCode', last_logged_in_on = now() "
-                          . "WHERE user_id = '{$userCredentials['user_id']}'";
-                  $mysqlResult = run_database_query($query);
-                  if ($mysqlResult) {
+
+                  $queryStatement = "UPDATE users SET auth_check_code = :authCheckCode, last_logged_in_on = now() WHERE user_id = :userId";
+                  $queryParams = array(
+                      'authCheckCode' => $authCheckCode,
+                      'userId' => $userCredentials['user_id']
+                  );
+                  $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
+
+                  if ($STH->rowCount() === 1) {
                     setcookie('userId', $userCredentials['user_id'], time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
                     setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
                     header('Location: welcome.php?userType=existing');
@@ -104,7 +114,7 @@ EOL;
                 }
               }
             }
-            if ($mysqlResult->num_rows === 0 || $userFound == FALSE) {
+            if (count($queryResult) === 0 || $userFound === FALSE) {
               setcookie('registrationEmail', $googleUserEmail, time() + 60 * 5, '/', '', 0, 1);
               header('Location: registration.php');
               exit;

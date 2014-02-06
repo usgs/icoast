@@ -1,9 +1,6 @@
 <?php
-if (!$_COOKIE['registrationEmail']) {
-  header("Location: login.php");
-}
-require '../iCoastSecure/DBMSConnection.php';
 require 'includes/globalFunctions.php';
+require $dbmsConnectionPath;
 ob_start();
 $userEmail = null;
 if (!isset($_COOKIE['registrationEmail'])) {
@@ -15,7 +12,13 @@ if (!isset($_COOKIE['registrationEmail'])) {
 if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
   $validCredentials = true;
   $errorMessage = array();
-  $registerEmail = (isset($_POST['registerEmail'])) ? trim($_POST['registerEmail']) : null;
+  $registerEmail = (isset($_POST['registerEmail'])) ? strtolower(trim($_POST['registerEmail'])) : null;
+  $registerEmail = filter_var($registerEmail, FILTER_VALIDATE_EMAIL);
+  if (!$registerEmail) {
+  //  Placeholder for error management
+    print 'Error. Invalid eMail Address.<br>';
+    exit;
+  }
   $registerCrowdType = (isset($_POST['registerCrowdType'])) ? trim($_POST['registerCrowdType']) : null;
   $registerOther = (isset($_POST['registerOther'])) ? trim($_POST['registerOther']) : null;
   $registerAffiliation = (isset($_POST['registerAffiliation'])) ? trim($_POST['registerAffiliation']) : null;
@@ -35,7 +38,7 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     $errorMessage[] = 'You must type your "Other Crowd Type" if "Other" is selected in the crowd type list.';
   } elseif (!empty($registerOther) && strlen($registerOther) > 255) {
     $validCredentials = false;
-    $errorMessage[] = 'Your specified other "Crowd Type" is too long for registration (max 255 characters).';
+    $errorMessage[] = 'Your specified "Other Crowd Type" is too long for registration (max 255 characters).';
   }
 
   if (!empty($registerAffiliation)) {
@@ -46,22 +49,26 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
   }
 
   if ($validCredentials) {
-//    $registerEmail = escape_string($registerEmail);
-    $maskedEmail = mask_email($registerEmail);
     $encryptedEmailData = mysql_aes_encrypt($registerEmail);
-    $encryptedRegisterEmail = $encryptedEmailData[0];
-    $encryptedRegisterEmailIV = $encryptedEmailData[1];
-    $registerCrowdType = escape_string($registerCrowdType);
-    $registerOther = escape_string($registerOther);
-    $registerAffiliation = escape_string($registerAffiliation);
+    setType($registerCrowdType, "int");
     $authCheckCode = md5(rand());
-    $query = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
-            . "account_created_on, last_logged_in_on) VALUES ('$maskedEmail', '$encryptedRegisterEmail', "
-            . "'$encryptedRegisterEmailIV', '$authCheckCode', '$registerCrowdType', "
-            . "'$registerOther', '$registerAffiliation', NOW( ), NOW( ))";
-    $mysqlResult = run_database_query($query);
-    if ($mysqlResult) {
-      setcookie('userId', $dbc->insert_id, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
+    $queryStatement = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
+            . "account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
+            . ":encryptedRegisterEmailIV, :authCheckCode, :registerCrowdType, "
+            . ":registerOther, :registerAffiliation, NOW( ), NOW( ))";
+    $queryParams = array (
+      'maskedEmail' => mask_email($registerEmail),
+      'encryptedRegisterEmail' => $encryptedEmailData[0],
+      'encryptedRegisterEmailIV' => $encryptedEmailData[1],
+      'authCheckCode' => $authCheckCode,
+      'registerCrowdType' => $registerCrowdType,
+      'registerOther' => $registerOther,
+      'registerAffiliation' => $registerAffiliation
+    );
+    $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
+    if ($STH->rowCount() > 0) {
+      print $STH->rowCount();
+      setcookie('userId', $DBH->lastInsertId(), time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
       setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
       setcookie('registrationEmail', '', time() - 360 * 24, '/', '', 0, 1);
       header('Location: welcome.php?userType=new');

@@ -124,30 +124,30 @@ If (isset($_GET['preImageId'])) {
   $preImageId = $_GET['preImageId'];
   $specifiedPreImage = 1;
 }
-// Find project image metadata $projectMetadata
-if (!$projectMetadata = retrieve_entity_metadata($projectId, 'project')) {
+// Find project metadata $projectMetadata
+if (!$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project')) {
+  //  Placeholder for error management
   exit("Project $projectId not found in Database");
 }
 // Find match data $imageMatchData
+$imageMatchData = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
 if (!isset($preImageId)) {
-  $imageMatchData = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
   $preImageId = $imageMatchData['pre_image_id'];
 }
-$imageMatchData = retrieve_image_match_data($projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
 $ComputerMatchImageId = $imageMatchData['pre_image_id'];
 
 //--------------------------------------------------------------------------------------------------
 // Determine if the user has already annotated the displayed image
-$annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = $userId AND "
-        . "project_id = $projectId AND image_id = $postImageId";
-$annotationExistsResult = run_database_query($annotationExistsQuery);
-if (!$annotationExistsResult) {
-  print "Query Failure: $annotationExistsQuery";
-  exit;
-}
-$existingAnnotation = FALSE;
-if ($annotationExistsResult->num_rows > 0) {
-  $existingAnnotation = $annotationExistsResult->fetch_assoc();
+$annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = :userId AND "
+        . "project_id = :projectId AND image_id = :postImageId";
+$annotationExistsParams = array(
+    'userId' => $userId,
+    'projectId' => $projectId,
+    'postImageId' => $postImageId
+);
+$STH = run_prepared_query($DBH, $annotationExistsQuery, $annotationExistsParams);
+$existingAnnotation = $STH->fetch(PDO::FETCH_ASSOC);
+if ($existingAnnotation) {
   if (!is_null($existingAnnotation['user_match_id'])) {
     if ($preImageId != $existingAnnotation['user_match_id'] && !isset($specifiedPreImage)) {
       header("location: classification.php?&projectId=$projectId&imageId=$postImageId&preImageId={$existingAnnotation['user_match_id']}");
@@ -156,14 +156,16 @@ if ($annotationExistsResult->num_rows > 0) {
 }
 
 // Find post image metadata $postImageMetadata
-if (!$postImageMetadata = retrieve_entity_metadata($postImageId, 'image')) {
+if (!$postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image')) {
+  //  Placeholder for error management
   exit("Image $postImageId not found in Database");
 }
 $postImageLatitude = $postImageMetadata['latitude'];
 $postImageLongitude = $postImageMetadata['longitude'];
 
 // Find pre image metadata $preImageMetadata
-if (!$preImageMetadata = retrieve_entity_metadata($preImageId, 'image')) {
+if (!$preImageMetadata = retrieve_entity_metadata($DBH, $preImageId, 'image')) {
+  //  Placeholder for error management
   exit("Image $preImageId not found in Database");
 }
 
@@ -203,7 +205,7 @@ $markerToolTip = build_image_location_string($postImageMetadata);
 
 //--------------------------------------------------------------------------------------------------
 // Find image id's of next and previous post images
-$postImageArray = find_adjacent_images($postImageId, $projectId);
+$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId);
 $previousImageId = $postImageArray[0]['image_id'];
 $nextImageId = $postImageArray[2]['image_id'];
 
@@ -213,14 +215,14 @@ $nextImageId = $postImageArray[2]['image_id'];
 
 //--------------------------------------------------------------------------------------------------
 // Build thumbnail data.
-$thumbnailArray2 = find_adjacent_images($preImageMetadata['image_id']);
+$thumbnailArray2 = find_adjacent_images($DBH, $preImageMetadata['image_id']);
 if ($thumbnailArray2[0]['image_id'] != 0) {
-  $thumbnailArray1 = find_adjacent_images($thumbnailArray2[0]['image_id']);
+  $thumbnailArray1 = find_adjacent_images($DBH, $thumbnailArray2[0]['image_id']);
 } else {
   $thumbnailArray1[0]['image_id'] = 0;
 }
 if ($thumbnailArray2[2]['image_id'] != 0) {
-  $thumbnailArray3 = find_adjacent_images($thumbnailArray2[2]['image_id']);
+  $thumbnailArray3 = find_adjacent_images($DBH, $thumbnailArray2[2]['image_id']);
 } else {
   $thumbnailArray3[2]['image_id'] = 0;
 }
@@ -257,27 +259,22 @@ if ($existingAnnotation) {
   $existingComments = array();
 
   $tagSelectionQuery = "SELECT * FROM annotation_selections "
-          . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-  $tagSelectionResult = run_database_query($tagSelectionQuery);
+          . "WHERE annotation_id = :annotationId";
+  $tagSelectionParams['annotationId'] = $existingAnnotation['annotation_id'];
+  $STH = run_prepared_query($DBH, $tagSelectionQuery, $tagSelectionParams);
+//  $tagSelectionResult = run_database_query($tagSelectionQuery);
 
-  if (!$tagSelectionResult) {
-    print "Query Failure: $tagSelectionQuery";
-    exit;
-  }
-  while ($existingSelection = $tagSelectionResult->fetch_assoc()) {
+  while ($existingSelection = $STH->fetch(PDO::FETCH_ASSOC)) {
     $existingTags[] = $existingSelection['tag_id'];
   }
 
   $tagCommentQuery = "SELECT * FROM annotation_comments"
           . " WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-  $tagCommentResult = run_database_query($tagCommentQuery);
+  $tagCommentParams['annotationId'] = $existingAnnotation['annotation_id'];
+  $STH = run_prepared_query($DBH, $tagCommentQuery, $tagCommentParams);
+//  $tagCommentResult = run_database_query($tagCommentQuery);
 
-  if (!$tagCommentResult) {
-    print "Query Failure: $tagCommentQuery";
-    exit;
-  }
-
-  while ($existingComment = $tagCommentResult->fetch_assoc()) {
+  while ($existingComment = $STH->fetch(PDO::FETCH_ASSOC)) {
     $existingComments[$existingComment['tag_id']] = $existingComment['comment'];
   }
 }
@@ -285,11 +282,14 @@ if ($existingAnnotation) {
 
 //--------------------------------------------------------------------------------------------------
 // Build an array of the tasks.
-$taskMetadataQuery = "SELECT * from task_metadata WHERE project_id = $projectId
+$taskMetadataQuery = "SELECT * from task_metadata WHERE project_id = :projectId
   ORDER BY order_in_project";
-$taskMetadataResults = run_database_query($taskMetadataQuery);
-if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
-  $taskMetadata = $taskMetadataResults->fetch_all(MYSQLI_ASSOC);
+$taskMetadataParams['projectId'] = $projectId;
+$STH = run_prepared_query($DBH, $taskMetadataQuery, $taskMetadataParams);
+$taskMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//$taskMetadataResults = run_database_query($taskMetadataQuery);
+if (count($taskMetadata) > 0) {
+//  $taskMetadata = $taskMetadataResults->fetch_all(MYSQLI_ASSOC);
   foreach ($taskMetadata as $task) {
     if ($task['is_enabled'] == 0) {
       continue;
@@ -301,18 +301,27 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
         'groups' => array()
     );
 
-    $taskContentsQuery = "SELECT tag_group_id FROM task_contents WHERE task_id = $taskId
+    $taskContentsQuery = "SELECT tag_group_id FROM task_contents WHERE task_id = :taskId
       ORDER BY order_in_task";
-    $taskContentsResult = run_database_query($taskContentsQuery);
-    if ($taskContentsResult && $taskContentsResult->num_rows > 0) {
-      $taskContents = $taskContentsResult->fetch_all(MYSQLI_ASSOC);
+    $taskContentsParams['taskId'] = $taskId;
+    $STH = run_prepared_query($DBH, $taskContentsQuery, $taskContentsParams);
+    $taskContents = $STH->fetchAll(PDO::FETCH_ASSOC);
+//    $taskContentsResult = run_database_query($taskContentsQuery);
+    if (count($taskContents) > 0) {
+//      $taskContents = $taskContentsResult->fetch_all(MYSQLI_ASSOC);
       foreach ($taskContents as $tagGroupIdArray) {
         $tagGroupId = $tagGroupIdArray['tag_group_id'];
-        $tagGroupMetadataQuery = "SELECT * from tag_group_metadata WHERE tag_group_id = $tagGroupId
-            AND project_id = $projectId";
-        $tagGroupMetadataResults = run_database_query($tagGroupMetadataQuery);
-        if ($tagGroupMetadataResults && $tagGroupMetadataResults->num_rows == 1) {
-          $tagGroupMetadata = $tagGroupMetadataResults->fetch_all(MYSQLI_ASSOC);
+        $tagGroupMetadataQuery = "SELECT * from tag_group_metadata WHERE tag_group_id = :tagGroupId
+            AND project_id = :projectId";
+        $tagGroupMetadataParams = array(
+            'tagGroupId' => $tagGroupId,
+            'projectId' => $projectId
+        );
+        $STH = run_prepared_query($DBH, $tagGroupMetadataQuery, $tagGroupMetadataParams);
+        $tagGroupMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//        $tagGroupMetadataResults = run_database_query($tagGroupMetadataQuery);
+        if (count($tagGroupMetadata) == 1) {
+//          $tagGroupMetadata = $tagGroupMetadataResults->fetch_all(MYSQLI_ASSOC);
           if ($tagGroupMetadata[0]['is_enabled'] == 0) {
             continue;
           }
@@ -329,17 +338,26 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
 
           if ($tagGroupMetadata[0]['contains_groups'] == 1) {
             $groupContentsQuery = "SELECT tag_id FROM tag_group_contents WHERE
-                    tag_group_id = $tagGroupId ORDER BY order_in_group";
-            $groupContentsResult = run_database_query($groupContentsQuery);
-            if ($groupContentsResult && $groupContentsResult->num_rows > 0) {
-              $groupContents = $groupContentsResult->fetch_all(MYSQLI_ASSOC);
+                    tag_group_id = :tagGroupId ORDER BY order_in_group";
+            $groupContentsParams['tagGroupId'] = $tagGroupId;
+            $STH = run_prepared_query($DBH, $groupContentsQuery, $groupContentsParams);
+            $groupContents = $STH->fetchAll(PDO::FETCH_ASSOC);
+//            $groupContentsResult = run_database_query($groupContentsQuery);
+            if (count($groupContents) > 0) {
+//              $groupContents = $groupContentsResult->fetch_all(MYSQLI_ASSOC);
               foreach ($groupContents as $groupContentsArray) {
                 $groupGroupId = $groupContentsArray['tag_id'];
                 $groupGroupMetadataQuery = "SELECT * from tag_group_metadata WHERE
-                  tag_group_id = $groupGroupId AND project_id = $projectId";
-                $groupGroupMetadataResults = run_database_query($groupGroupMetadataQuery);
-                if ($groupGroupMetadataResults && $groupGroupMetadataResults->num_rows == 1) {
-                  $groupGroupMetadata = $groupGroupMetadataResults->fetch_all(MYSQLI_ASSOC);
+                  tag_group_id = :groupGroupId AND project_id = :projectId";
+                $groupGroupMetadataParams = array (
+                    'groupGroupId' => $groupGroupId,
+                    'projectId' => $projectId
+                );
+                $STH = run_prepared_query($DBH, $groupGroupMetadataQuery, $groupGroupMetadataParams);
+                $groupGroupMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//                $groupGroupMetadataResults = run_database_query($groupGroupMetadataQuery);
+                if (count($groupGroupMetadata) == 1) {
+//                  $groupGroupMetadata = $groupGroupMetadataResults->fetch_all(MYSQLI_ASSOC);
                   if ($groupGroupMetadata[0]['is_enabled'] == 0) {
                     continue;
                   }
@@ -351,17 +369,28 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
                       'tags' => array()
                   );
                   $tagGroupContentsQuery = "SELECT tag_id FROM tag_group_contents WHERE
-                    tag_group_id = $groupGroupId ORDER BY order_in_group";
-                  $tagGroupContentsResult = run_database_query($tagGroupContentsQuery);
-                  if ($tagGroupContentsResult && $tagGroupContentsResult->num_rows > 0) {
-                    $tagGroupContents = $tagGroupContentsResult->fetch_all(MYSQLI_ASSOC);
+                    tag_group_id = :groupGroupId ORDER BY order_in_group";
+                  $tagGroupContentsParams = array();
+                  $tagGroupContentsParams['groupGroupId'] = $groupGroupId;
+                  $STH = run_prepared_query($DBH, $tagGroupContentsQuery, $tagGroupContentsParams);
+                  $tagGroupContents = $STH->fetchAll(PDO::FETCH_ASSOC);
+//                  $tagGroupContentsResult = run_database_query($tagGroupContentsQuery);
+                  if (count($tagGroupContents) > 0) {
+//                    $tagGroupContents = $tagGroupContentsResult->fetch_all(MYSQLI_ASSOC);
                     foreach ($tagGroupContents as $tagIdArray) {
                       $tagId = $tagIdArray['tag_id'];
-                      $tagMetadataQuery = "SELECT * FROM tags WHERE tag_id = $tagId AND
-                        project_id = $projectId";
-                      $tagMetadataResult = run_database_query($tagMetadataQuery);
-                      if ($tagMetadataResult && $tagMetadataResult->num_rows == 1) {
-                        $tagMetadata = $tagMetadataResult->fetch_all(MYSQLI_ASSOC);
+                      $tagMetadataQuery = "SELECT * FROM tags WHERE tag_id = :tagId AND
+                        project_id = :projectId";
+                      $tagMetadataParams = array();
+                      $tagMetadataParams = array(
+                          'tagId' => $tagId,
+                          'projectId' => $projectId
+                      );
+                      $STH = run_prepared_query($DBH, $tagMetadataQuery, $tagMetadataParams);
+                      $tagMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//                      $tagMetadataResult = run_database_query($tagMetadataQuery);
+                      if (count($tagMetadata) == 1) {
+//                        $tagMetadata = $tagMetadataResult->fetch_all(MYSQLI_ASSOC);
                         if ($tagMetadata[0]['is_enabled'] == 0) {
                           continue;
                         }
@@ -402,17 +431,28 @@ if ($taskMetadataResults && $taskMetadataResults->num_rows > 0) {
             }
           } else {
             $tagGroupContentsQuery = "SELECT tag_id FROM tag_group_contents WHERE
-          tag_group_id = $tagGroupId ORDER BY order_in_group";
-            $tagGroupContentsResult = run_database_query($tagGroupContentsQuery);
-            if ($tagGroupContentsResult && $tagGroupContentsResult->num_rows > 0) {
-              $tagGroupContents = $tagGroupContentsResult->fetch_all(MYSQLI_ASSOC);
+          tag_group_id = :tagGroupId ORDER BY order_in_group";
+            $tagGroupContentsParams = array();
+            $tagGroupContentsParams['tagGroupId'] = $tagGroupId;
+            $STH = run_prepared_query($DBH, $tagGroupContentsQuery, $tagGroupContentsParams);
+            $tagGroupContents = $STH->fetchAll(PDO::FETCH_ASSOC);
+//            $tagGroupContentsResult = run_database_query($tagGroupContentsQuery);
+            if (count($tagGroupContents) > 0) {
+//              $tagGroupContents = $tagGroupContentsResult->fetch_all(MYSQLI_ASSOC);
               foreach ($tagGroupContents as $tagIdArray) {
                 $tagId = $tagIdArray['tag_id'];
-                $tagMetadataQuery = "SELECT * FROM tags WHERE tag_id = $tagId AND
-                project_id = $projectId";
-                $tagMetadataResult = run_database_query($tagMetadataQuery);
-                if ($tagMetadataResult && $tagMetadataResult->num_rows == 1) {
-                  $tagMetadata = $tagMetadataResult->fetch_all(MYSQLI_ASSOC);
+                $tagMetadataQuery = "SELECT * FROM tags WHERE tag_id = :tagId AND
+                project_id = :projectId";
+                $tagMetadataParams = array();
+                $tagMetadataParams = array(
+                    'tagId' => $tagId,
+                    'projectId' => $projectId
+                );
+                $STH = run_prepared_query($DBH, $tagMetadataQuery, $tagMetadataParams);
+                $tagMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
+//                $tagMetadataResult = run_database_query($tagMetadataQuery);
+                if (count($tagMetadata) == 1) {
+//                  $tagMetadata = $tagMetadataResult->fetch_all(MYSQLI_ASSOC);
                   if ($tagMetadata[0]['is_enabled'] == 0) {
                     continue;
                   }
@@ -477,7 +517,7 @@ EOT;
 // Build next/previous post image buttons HTML
 $newRandomPostImageId = 0;
 while ($newRandomPostImageId == 0 || $newRandomPostImageId == $postImageId) {
-  $newRandomPostImageId = random_post_image_id_generator($projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
+  $newRandomPostImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
 }
 
 $postImageNavigationHtml = '';

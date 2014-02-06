@@ -1,9 +1,9 @@
 <?php
 //////////
 // => Define required files and initial includes
-require_once('../iCoastSecure/DBMSConnection.php');
 require_once('includes/globalFunctions.php');
 require_once('includes/userFunctions.php');
+require $dbmsConnectionPath;
 //////////
 $filtered = TRUE;
 
@@ -15,45 +15,26 @@ if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
   header('Location: login.php');
   exit;
 }
-$userId = escape_string($_COOKIE['userId']);
-$authCheckCode = escape_string($_COOKIE['authCheckCode']);
-$authQuery = "SELECT * FROM users WHERE user_id = '$userId' AND auth_check_code = '$authCheckCode' LIMIT 1";
-$authMysqlResult = run_database_query($authQuery);
-if ($authMysqlResult && $authMysqlResult->num_rows == 0) {
-  header('Location: login.php');
-  exit;
-}
-$userData = $authMysqlResult->fetch_assoc();
-$authCheckCode = md5(rand());
-$query = "UPDATE users SET auth_check_code = '$authCheckCode', last_logged_in_on = now() "
-        . "WHERE user_id = '$userId'";
-$mysqlResult = run_database_query($query);
-if ($mysqlResult) {
-  setcookie('userId', $userId, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
-  setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
-} else {
-  $error = true;
-  $bodyHTML .= <<<EOL
-          <p>Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
-          <form action="login.php" method="post">
-            <input type="submit" value="Login / Register using Google" />
-          </form>
+$userId = $_COOKIE['userId'];
+$authCheckCode = $_COOKIE['authCheckCode'];
+$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
+$authCheckCode = generate_cookie_credentials($DBH, $userId);
 
-EOL;
-}
 $projectId = "";
 if (empty($_POST['projectId']) && empty($_GET['projectId'])) {
   header("location: welcome.php?userType=existing");
   exit;
 } else {
   if (!empty($_POST['projectId'])) {
-    $projectId = escape_string($_POST['projectId']);
+    $projectId = $_POST['projectId'];
   } else {
-    $projectId = escape_string($_GET['projectId']);
+    $projectId = $_GET['projectId'];
   }
-  $validProjectQuery = "SELECT * FROM projects WHERE project_id = $projectId";
-  $validProjectMysqlResult = run_database_query($validProjectQuery);
-  if (!$validProjectMysqlResult || ($validProjectMysqlResult && $validProjectMysqlResult->num_rows == 0)) {
+  $validProjectQuery = "SELECT COUNT(*) FROM projects WHERE project_id = :projectId";
+  $validProjectParams['projectId'] = $projectId;
+  $STH = run_prepared_query($DBH, $validProjectQuery, $validProjectParams);
+  $matchingProjectCount = $STH->fetchColumn();
+  if ($matchingProjectCount == 0) {
     header("location: welcome.php?userType=existing");
     exit;
   }
@@ -61,8 +42,8 @@ if (empty($_POST['projectId']) && empty($_GET['projectId'])) {
 
 
 if (empty($_GET['imageId'])) {
-  $projectMetadata = retrieve_entity_metadata($projectId, 'project');
-  $postImageId = random_post_image_id_generator($projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
+  $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+  $postImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
   header("location: classification.php?projectId=$projectId&imageId=$postImageId");
   exit();
 }

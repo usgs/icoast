@@ -77,8 +77,8 @@ $existingAnnotation = $annotationExistsResult->fetch_assoc();
 if (isset($_POST['loadEvent'])) {
   if ($annotationExistsResult->num_rows == 0) {
     $annotationLoadEventQuery = "INSERT INTO annotations (initial_session_id, user_id, "
-            . "project_id, image_id) VALUES ('$annotationSessionId', $userId, "
-            . "$projectId, $postImageId)";
+            . "project_id, image_id, initial_session_start_time) VALUES ('$annotationSessionId', $userId, "
+            . "$projectId, $postImageId, NOW())";
     $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
     if (!$annotationLoadEventResult) {
       print "Query Failure: $annotationLoadEventQuery";
