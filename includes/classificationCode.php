@@ -939,7 +939,9 @@ $jsAnnotationNavButtons .= <<<EOT
           formData += '$annotationMetaDataQueryString';
           formData += '&annotationComplete=1';
           console.log(formData);
-          $.post('ajax/annotationLogger.php', formData);
+          $.post('ajax/annotationLogger.php', formData, function() {
+            window.location.href = 'classification.php?projectId=$projectId';
+          });
         });
 
 EOT;

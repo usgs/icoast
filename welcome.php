@@ -190,7 +190,7 @@ EOL;
               <input type="hidden" name="userId" value="$userId" />
               <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Classifying $projectName" />
             </form>
-              <h3>or<h3>
+             
  $selectProjectButtonHTML
 EOL;
     } else {

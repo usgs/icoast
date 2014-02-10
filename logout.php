@@ -1,6 +1,6 @@
 <?php
-require '../iCoastSecure/DBMSConnection.php';
 require 'includes/globalFunctions.php';
+require $dbmsConnectionPath;
 
 if (isset($_COOKIE['userId'])) {
   setcookie('userId', '', time() - 360 * 24, '/', '', 0, 1);

@@ -1,4 +1,4 @@
 <?php
-header("location: classification.php");
+header("location: login.php");
 exit();
 ?>

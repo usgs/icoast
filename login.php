@@ -5,8 +5,8 @@ require 'includes/globalFunctions.php';
 require $dbmsConnectionPath;
 
 if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
-  $authResult = authenticate_cookie_credentials($DBH, $_COOKIE['userId'], $_COOKIE['authCheckCode']);
-  if (count($authResult) > 0) {
+  $authResult = authenticate_cookie_credentials($DBH, $_COOKIE['userId'], $_COOKIE['authCheckCode'], FALSE);
+  if ($authResult) {
     header('Location: welcome.php?userType=existing');
     exit;
   }
@@ -28,7 +28,7 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
       <div id="forms">
 
         <?php
-        $openid = new LightOpenID('localhost');
+        $openid = new LightOpenID('http://'.$_SERVER['HTTP_HOST']);
         if (!$openid->mode) {
           print <<<EOL
           <p>Help scientists at the US Geological Survey look for changes to the coast before and
@@ -37,14 +37,14 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
                 your eyes to help us analyze how US coasts are changing from extreme storms.</p>
           <p>Please click the button below to login or register using your Google Login</p>
           <form action="?login" method="post">
-            <input type="checkbox" id="rememberMe" class="labelButtonInput" name="rememberMe" value="1">
-            <label for="rememberMe" id="rememberMeCheckbox" class="labelButton">
-            <span class="labelButtonText">Remember Me</span>
-            </label>
           <input type="submit" class="formButton" id="registerSubmitButton" value="Login or Register Using Google" />
           </form>
                 </div>
 EOL;
+//                      <input type="checkbox" id="rememberMe" class="labelButtonInput" name="rememberMe" value="1">
+//            <label for="rememberMe" id="rememberMeCheckbox" class="labelButton">
+//            <span class="labelButtonText">Remember Me</span>
+//            </label>
           if (isset($_GET['login'])) {
             $openid->identity = 'https://www.google.com/accounts/o8/id';
             $openid->required = array('contact/email');

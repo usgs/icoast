@@ -130,7 +130,7 @@ function post_image_pool_generator($DBH, $projectId, $isFiltered, $postCollectio
           is_bool($isFiltered)) {
     $projectData = retrieve_entity_metadata($projectId, 'project');
     if ($projectData) {
-      $projectDatasets = find_datasets_in_collection($DBH ,$projectData['post_collection_id']);
+      $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
     }
     if ($userId !== 0) {
       $userGroups = find_user_group_membership($userId, $projectId, TRUE);
@@ -268,7 +268,7 @@ function has_user_annotated_image($DBH, $postImageId, $userId, $projectId = 0) {
   if (is_numeric($postImageId) && is_numeric($userId) && is_numeric($projectId)) {
     $annotationCheckQuery = "SELECT COUNT(*) FROM annotations WHERE user_id = :userId AND
         image_id = :postImageId";
-    $annotationCheckParams = array (
+    $annotationCheckParams = array(
         'userId' => $userId,
         'postImageId' => $postImageId
     );
@@ -324,8 +324,9 @@ function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
   $whereString = where_in_string_builder($userGroupIds);
 
   $imageGroupIdQuery = "SELECT image_group_id FROM user_group_assignments WHERE user_group_id IN "
-          ."(:whereString)";
-  $imageGroupIdParams['whereString'] = $whereString;
+          . "($whereString)";
+//  $imageGroupIdParams['whereString'] = $whereString;
+  $imageGroupIdParams = array();
   $STH = run_prepared_query($DBH, $imageGroupIdQuery, $imageGroupIdParams);
   $imageGroups = $STH->fetachAll(PDO::FETCH_ASSOC);
 //  $imageGroups = run_database_query($imageGroupIdQuery);
@@ -342,8 +343,9 @@ function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
 // Potential Function
       $whereString = where_in_string_builder($imageGroupIds);
       $imageGroupMetadataQuery = "SELECT * FROM image_group_metadata WHERE image_group_id IN "
-              . "(:whereString)";
-      $imageGroupMetadataParams['whereString'] = $whereString;
+              . "($whereString)";
+//      $imageGroupMetadataParams['whereString'] = $whereString;
+      $imageGroupMetadataParams = array();
 //      $imageGroupMetadata = run_database_query($imageGroupIdQuery);
       $STH = run_prepared_query($DBH, $imageGroupMetadataQuery, $imageGroupMetadataParams);
       $imageGroupMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
@@ -394,9 +396,9 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
 // Potential Function
       $whereString = where_in_string_builder($idArray);
       $userGroupDetailsQuery = "SELECT * FROM user_group_metadata WHERE user_group_id IN "
-          . "(:whereString)";
-      $userGroupDetailsParams['whereString'] = $whereString;
-
+              . "($whereString)";
+//      $userGroupDetailsParams['whereString'] = $whereString;
+      $userGroupDetailsParams = array();
       if ($projectId > 0) {
         $userGroupDetailsQuery .= " AND project_id = :projectId";
         $userGroupDetailsParams['projectId'] = $projectId;
@@ -484,7 +486,6 @@ function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
 //      $adjacentImageQueryResult = run_database_query($adjacentImageQuery);
       if (count($adjacentImageMetadata) > 0) {
 //        $adjacentImageMetadata = $adjacentImageQueryResult->fetch_all(MYSQLI_ASSOC);
-
         // Loop through the array of adjacent images in range in ascending order searching for
         // the image with the next ascending position_in_dataset number from the current image.
         if ($positionInDataset == $maxPosition) {

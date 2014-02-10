@@ -1,22 +1,22 @@
 <?php
 
-print '<pre>';
-print_r($_POST);
-print '</pre>';
+//print 'Raw Data<br><pre>';
+//print_r($_POST);
+//print '</pre><br>';
 
-require_once('../../iCoastSecure/DBMSConnection.php');
 require_once('../includes/globalFunctions.php');
+require $dbmsConnectionPathDeep;
 
-function validateUser($userId, $authCheckCode) {
+function validateUser($DBH, $userId, $authCheckCode) {
   $validUser = TRUE;
   $errorMsg = '';
-  $userValidationQuery = "SELECT auth_check_code, is_enabled FROM users WHERE user_id = $userId LIMIT 1";
-  $userValidationResult = run_database_query($userValidationQuery);
-  if ($userValidationResult == FALSE) {
-    $validUser = FALSE;
-    $errorMsg = 'Query Failure';
-  }
-  $user = $userValidationResult->fetch_assoc();
+
+  $userValidationQuery = "SELECT auth_check_code, is_enabled FROM users WHERE user_id = :userId LIMIT 1";
+  $userValidationParams['userId'] = $userId;
+  $STH = run_prepared_query($DBH, $userValidationQuery, $userValidationParams);
+  $user = $STH->fetch(PDO::FETCH_ASSOC);
+//  $userValidationResult = run_database_query($userValidationQuery);
+//  $user = $userValidationResult->fetch_assoc();
 
   if ($user['auth_check_code'] != $authCheckCode) {
     $validUser = FALSE;
@@ -32,11 +32,6 @@ function validateUser($userId, $authCheckCode) {
       'errorMsg' => $errorMsg);
 }
 
-foreach ($_POST as $key => $value) {
-  $_POST[$key] = escape_string($value);
-}
-
-
 $annotationSessionId = $_POST['annotationSessionId'];
 $userId = $_POST['userId'];
 $authCheckCode = $_POST['authCheckCode'];
@@ -49,7 +44,7 @@ unset($_POST['authCheckCode']);
 unset($_POST['projectId']);
 unset($_POST['postImageId']);
 
-$validUser = validateUser($userId, $authCheckCode);
+$validUser = validateUser($DBH, $userId, $authCheckCode);
 if (!$validUser['validationResult']) {
   print "User authentication error: {$validUser['errorMsg']}";
   exit;
@@ -66,40 +61,60 @@ if (!$validUser['validationResult']) {
 
 $annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = $userId AND "
         . "project_id = $projectId AND image_id = $postImageId";
-$annotationExistsResult = run_database_query($annotationExistsQuery);
-if (!$annotationExistsResult) {
-  print "Query Failure: $annotationExistsQuery";
-  exit;
+$annotationExistsParams = array(
+    'userId' => $userId,
+    'projectId' => $projectId,
+    'postImageId' => $postImageId
+);
+$STH = run_prepared_query($DBH, $annotationExistsQuery, $annotationExistsParams);
+$existingAnnotation = $STH->fetchAll(PDO::FETCH_ASSOC);
+$existingAnnotationStatus = FALSE;
+if (count($existingAnnotation) > 0) {
+  $existingAnnotationStatus = TRUE;
+  $existingAnnotation = $existingAnnotation[0];
 }
-$existingAnnotation = $annotationExistsResult->fetch_assoc();
-
+//$annotationExistsResult = run_database_query($annotationExistsQuery);
+//$existingAnnotation = $annotationExistsResult->fetch_assoc();
 
 if (isset($_POST['loadEvent'])) {
-  if ($annotationExistsResult->num_rows == 0) {
+  if (!$existingAnnotationStatus) {
     $annotationLoadEventQuery = "INSERT INTO annotations (initial_session_id, user_id, "
-            . "project_id, image_id, initial_session_start_time) VALUES ('$annotationSessionId', $userId, "
-            . "$projectId, $postImageId, NOW())";
-    $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
-    if (!$annotationLoadEventResult) {
-      print "Query Failure: $annotationLoadEventQuery";
+            . "project_id, image_id, initial_session_start_time) VALUES (:annotationSessionId, :userId, "
+            . ":projectId, :postImageId, NOW())";
+    $annotationLoadEventParams = array(
+        'annotationSessionId' => $annotationSessionId,
+        'userId' => $userId,
+        'projectId' => $projectId,
+        'postImageId' => $postImageId
+    );
+    $STH = run_prepared_query($DBH, $annotationLoadEventQuery, $annotationLoadEventParams);
+//    $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
+    if ($STH->rowCount() != 1) {
+      //  Placeholder for error management
+      print "Load event database update failed: $annotationLoadEventQuery";
       exit;
     }
   } else {
-    if (is_null($existingAnnotation['user_match_id']) && $existingAnnotation['user_match_id'] != $annotationSessionId) {
-      $annotationLoadEventQuery = "UPDATE annotations SET initial_session_id = '$annotationSessionId', "
+    if (is_null($existingAnnotation['user_match_id']) && $existingAnnotation['initial_session_id'] != $annotationSessionId) {
+      $annotationLoadEventQuery = "UPDATE annotations SET initial_session_id = :annotationSessionId, "
               . "initial_session_start_time = NOW() "
-              . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-      $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
+              . "WHERE annotation_id = :annotationId";
+      $annotationLoadEventParams = array(
+          'annotationSessionId' => $annotationSessionId,
+          'annotationId' => $existingAnnotation['annotation_id']
+      );
+      $STH = run_prepared_query($DBH, $annotationLoadEventQuery, $annotationLoadEventParams);
+//      $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Load event database update failed: $annotationLoadEventQuery");
+      }
     }
   }
 } else { // End loadEvent If
   $userDataChange = FALSE;
 
-  print '<pre>';
-  print_r($_POST);
-  print '</pre>';
-
-  if ($annotationExistsResult->num_rows == 0) {
+  if (!$existingAnnotationStatus) {
     print "Error: No annotation to update.";
     exit;
   }
@@ -112,19 +127,20 @@ if (isset($_POST['loadEvent'])) {
     unset($_POST['annotationComplete']);
   }
 
+//  print 'Raw Selections<br><pre>';
+//  print_r($_POST);
+//  print '</pre>';
+
 
   if ($existingAnnotation['user_match_id'] != $preImageId ||
-          $existingAnnotation['annotation_completed'] != $annotationComplete) {
+          ($existingAnnotation['annotation_completed'] == 0 && $existingAnnotation['annotation_completed'] != $annotationComplete)) {
+//    print "Changinh userDataChange Flag<br>";
     $userDataChange = TRUE;
   }
 
   $selections = $_POST;
   $comments = array();
   unset($_POST);
-
-  print '<pre>';
-  print_r($selections);
-  print '</pre>';
 
   foreach ($selections as $tagId => $tagValue) {
     if (!is_numeric($tagId)) {
@@ -139,70 +155,78 @@ if (isset($_POST['loadEvent'])) {
     }
   }
 
-  print '<pre>';
-  print_r($selections);
-  print '</pre>';
-
-  print '<pre>';
-  print_r($comments);
-  print '</pre>';
-
-
+//  print 'Unprocessed Selections<br><pre>';
+//  print_r($selections);
+//  print '</pre>';
 
   $tagSelectionQuery = "SELECT * FROM annotation_selections "
-          . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-  $tagSelectionResult = run_database_query($tagSelectionQuery);
+          . "WHERE annotation_id = :annotationId";
+  $tagSelectionParams['annotationId'] = $existingAnnotation['annotation_id'];
+  $STH = run_prepared_query($DBH, $tagSelectionQuery, $tagSelectionParams);
+  $existingSelections = $STH->fetchAll(PDO::FETCH_ASSOC);
+//  print 'Existing Selections<br><pre>';
+//  print_r($existingSelections);
+//  print '</pre>';
 
-  if (!$tagSelectionResult) {
-    print "Query Failure: $tagSelectionQuery";
-    exit;
-  }
+//  $tagSelectionResult = run_database_query($tagSelectionQuery);
 
-
-  while ($existingSelection = $tagSelectionResult->fetch_assoc()) {
+  foreach ($existingSelections as $existingSelection) {
     $databaseTagId = $existingSelection['tag_id'];
     $databaseEntryId = $existingSelection['table_id'];
     if (in_array($databaseTagId, $selections)) {
       unset($selections[$databaseTagId]);
     } else {
       $tagSelectionDeleteQuery = "DELETE FROM annotation_selections "
-              . "WHERE table_id = $databaseEntryId LIMIT 1";
-      $tagSelectionDeleteResult = run_database_query($tagSelectionDeleteQuery);
-      if (!$tagSelectionDeleteResult) {
-        print "Query Failure: $tagSelectionDeleteQuery";
-        exit;
+              . "WHERE table_id = :databaseEntryId LIMIT 1";
+      $tagSelectionDeleteParams['databaseEntryId'] = $databaseEntryId;
+      $STH = run_prepared_query($DBH, $tagSelectionDeleteQuery, $tagSelectionDeleteParams);
+
+//      $tagSelectionDeleteResult = run_database_query($tagSelectionDeleteQuery);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Deletion of unselcted tag from database failed: $annotationLoadEventQuery");
       }
       $userDataChange = TRUE;
     }
   }
 
+//    print 'Selections to insert<br><pre>';
+//  print_r($selections);
+//  print '</pre>';
   if (count($selections > 0)) {
     foreach ($selections as $selection) {
       $tagSelectionInsertQuery = "INSERT INTO annotation_selections (annotation_id, tag_id) VALUES "
-              . "({$existingAnnotation['annotation_id']}, $selection)";
-      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
-      if (!$tagSelectionInsertResult) {
-        print "Query Failure: $tagSelectionInsertResult";
-        exit;
+              . "(:annotationId, :tagId)";
+      $tagSelectionInsertParams = array(
+          'annotationId' => $existingAnnotation['annotation_id'],
+          'tagId' => $selection
+      );
+      $STH = run_prepared_query($DBH, $tagSelectionInsertQuery, $tagSelectionInsertParams);
+//      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Insertion of  newly selcted tag from database failed: $annotationLoadEventQuery");
       }
       $userDataChange = TRUE;
     }
   }
 
-
-
+//  print 'Unprocessed Comments<br><pre>';
+//  print_r($comments);
+//  print '</pre>';
 
 
   $tagCommentQuery = "SELECT * FROM annotation_comments"
-          . " WHERE annotation_id = {$existingAnnotation['annotation_id']}";
-  $tagCommentResult = run_database_query($tagCommentQuery);
+          . " WHERE annotation_id = :annotationId";
+  $tagCommentParams['annotationId'] = $existingAnnotation['annotation_id'];
+  $STH = run_prepared_query($DBH, $tagCommentQuery, $tagCommentParams);
+  $existingComments = $STH->fetchAll(PDO::FETCH_ASSOC);
+//  $tagCommentResult = run_database_query($tagCommentQuery);
+//  print 'Existing Comments<br><pre>';
+//  print_r($existingComments);
+//  print '</pre>';
 
-  if (!$tagCommentResult) {
-    print "Query Failure: $tagCommentQuery";
-    exit;
-  }
-
-  while ($existingComment = $tagCommentResult->fetch_assoc()) {
+  foreach ($existingComments as $existingComment) {
     $databaseTagId = $existingComment['tag_id'];
     $databaseEntryId = $existingComment['table_id'];
     $databaseComment = $existingComment['comment'];
@@ -210,28 +234,41 @@ if (isset($_POST['loadEvent'])) {
       if (strcmp($databaseComment, $comments[$databaseTagId]) == 0) {
         unset($comments[$databaseTagId]);
       } else {
-        $tagCommentDeleteQuery = "UPDATE annotation_comments "
-                . "SET comment ='$comments[$databaseTagId]'"
-                . "WHERE table_id = $databaseEntryId LIMIT 1";
-        $tagCommentDeleteResult = run_database_query($tagCommentDeleteQuery);
-        if (!$tagCommentDeleteResult) {
-          print "Query Failure: $tagCommentDeleteQuery";
-          exit;
+        $tagCommentUpdateQuery = "UPDATE annotation_comments "
+                . "SET comment = :comment "
+                . "WHERE table_id = :databaseEntryId LIMIT 1";
+        $tagCommentUpdateParams = array(
+            'comment' => $comments[$databaseTagId],
+            'databaseEntryId' => $databaseEntryId
+        );
+        $STH = run_prepared_query($DBH, $tagCommentUpdateQuery, $tagCommentUpdateParams);
+//        $tagCommentDeleteResult = run_database_query($tagCommentDeleteQuery);
+        if ($STH->rowCount() != 1) {
+          //  Placeholder for error management
+          exit("Update of existing comment in database failed: $annotationLoadEventQuery");
         }
         unset($comments[$databaseTagId]);
         $userDataChange = TRUE;
       }
     }
   }
-
+//    print 'Comments to insert<br><pre>';
+//  print_r($comments);
+//  print '</pre>';
   if (count($comments > 0)) {
     foreach ($comments as $tagId => $comment) {
       $tagSelectionInsertQuery = "INSERT INTO annotation_comments (annotation_id, tag_id, comment) "
-              . "VALUES ({$existingAnnotation['annotation_id']}, $tagId, '$comment')";
-      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
-      if (!$tagSelectionInsertResult) {
-        print "Query Failure: $tagSelectionInsertResult";
-        exit;
+              . "VALUES (:annotationId, :tagId, :comment)";
+      $tagSelectionInsertParams = array(
+          'annotationId' => $existingAnnotation['annotation_id'],
+          'tagId' => $tagId,
+          'comment' => $comment
+      );
+      $STH = run_prepared_query($DBH, $tagSelectionInsertQuery, $tagSelectionInsertParams);
+//      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Insertion of new comment into database failed: $annotationLoadEventQuery");
       }
       $userDataChange = TRUE;
     }
@@ -243,20 +280,31 @@ if (isset($_POST['loadEvent'])) {
   if ($userDataChange) {
     if ($annotationSessionId == $existingAnnotation['initial_session_id']) {
 
-      $annotationUpdateQuery = "UPDATE annotations SET user_match_id = $preImageId,"
-              . "initial_session_end_time = NOW() "
-              . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
 
-      if ($annotationComplete == 1) {
-        $annotationUpdateQuery = "UPDATE annotations SET user_match_id = $preImageId,"
+      if ($annotationComplete == 0) {
+        $annotationUpdateQuery = "UPDATE annotations SET user_match_id = :preImageId,"
+                . "initial_session_end_time = NOW() "
+                . "WHERE annotation_id = :annotationId";
+      } else {
+        $annotationUpdateQuery = "UPDATE annotations SET user_match_id = :preImageId,"
                 . "initial_session_end_time = NOW(), annotation_completed = 1 "
-                . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
+                . "WHERE annotation_id = :annotationId";
       }
-      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
-      if (!$annotationUpdateResult) {
-        print "Query Failure: $annotationUpdateResult";
-        exit;
+      $annotationUpdateParams = array(
+          'preImageId' => $preImageId,
+          'annotationId' => $existingAnnotation['annotation_id']
+      );
+      $STH = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Update of annotations table in database failed: $annotationLoadEventQuery");
       }
+
+//      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
+//      if (!$annotationUpdateResult) {
+//        print "Query Failure: $annotationUpdateResult";
+//        exit;
+//      }
     } else {
       if ($annotationSessionId != $existingAnnotation['revision_session_id']) {
         $revisionCount = $existingAnnotation['revision_count'] + 1;
@@ -264,24 +312,37 @@ if (isset($_POST['loadEvent'])) {
         $revisionCount = $existingAnnotation['revision_count'];
       }
       $annotationUpdateQuery = "UPDATE annotations "
-              . "SET user_match_id = $preImageId, "
-              . "revision_session_id = '$annotationSessionId', "
-              . "revision_count = $revisionCount, last_revision_time = NOW() "
-              . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
+              . "SET user_match_id = :preImageId, "
+              . "revision_session_id = :annotationSessionId, "
+              . "revision_count = :revisionCount, last_revision_time = NOW() "
+              . "WHERE annotation_id = :annotationId";
       if ($annotationComplete == 1 && $existingAnnotation['annotation_completed'] == 0) {
         $annotationUpdateQuery = "UPDATE annotations "
-                . "SET user_match_id = $preImageId, "
-                . "revision_session_id = '$annotationSessionId', "
-                . "revision_count = $revisionCount, last_revision_time = NOW(), "
+                . "SET user_match_id = :preImageId, "
+                . "revision_session_id = :annotationSessionId, "
+                . "revision_count = :revisionCount, last_revision_time = NOW(), "
                 . "annotation_completed = 1, annotation_completed_under_revision = 1 "
-                . "WHERE annotation_id = {$existingAnnotation['annotation_id']}";
+                . "WHERE annotation_id = :annotationId";
       }
-      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
-      if (!$annotationUpdateResult) {
-        print "Query Failure: $annotationUpdateResult";
-        exit;
+      $annotationUpdateParams = array(
+          'preImageId' => $preImageId,
+          'annotationSessionId' => $annotationSessionId,
+          'revisionCount' => $revisionCount,
+          'annotationId' => $existingAnnotation['annotation_id'],
+      );
+      $STH = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
+      if ($STH->rowCount() != 1) {
+        //  Placeholder for error management
+        exit("Update of annotations table in database failed: $annotationLoadEventQuery");
       }
+
+//      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
+//      if (!$annotationUpdateResult) {
+//        print "Query Failure: $annotationUpdateResult";
+//        exit;
+//      }
     }
   }
 } // End loadEvent Else
+
 
