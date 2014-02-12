@@ -57,9 +57,8 @@ EOL;
   $onlyProjectId = $allProjects[0]['project_id'];
   $onlyProjectName = $allProjects[0]['name'];
   $selectProjectButtonHTML = <<<EOL
-      <form method="post" action="classification.php" class="buttonForm">
+      <form method="post" action="start.php" class="buttonForm">
         <input type="hidden" name="projectId" value="$onlyProjectId" />
-        <input type="hidden" name="userId" value="$userId" />
         <input type="submit" id="continueClassifyingButton" class="formButton" value="Start Classifying $onlyProjectName" />
       </form>
 EOL;
@@ -185,12 +184,11 @@ EOL;
               . "</table>";
       $bodyHTML .= <<<EOL
             <h2>What would you like to do next?</h2>
- <form method="post" action="classification.php" class="buttonForm">
+ <form method="post" action="start.php" class="buttonForm">
               <input type="hidden" name="projectId" value="$lastProjectId" />
-              <input type="hidden" name="userId" value="$userId" />
               <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Classifying $projectName" />
             </form>
-             
+
  $selectProjectButtonHTML
 EOL;
     } else {

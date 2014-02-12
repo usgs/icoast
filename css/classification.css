@@ -110,7 +110,7 @@ body {
 }
 
 .imageColumn {
-  width: 50%;
+  width: 40%;
   position: relative;
   overflow: hidden;
 }
@@ -128,6 +128,22 @@ body {
   position: relative;
 }
 
+#imageColumnMiddle {
+  float: left;
+  position: relative;
+  width: 20%;
+  height: 100%;
+  /*max-width: 225px;*/
+  /*margin-top: 50px;*/
+}
+
+#mapInsert {
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+  box-shadow: 5px 5px 5px #666666;
+}
+
 
 
 /**Images Footer*/
@@ -140,35 +156,49 @@ body {
   text-align: center;
 }
 
-#preNavigationHeader {
+/*#preNavigationHeader {
   width: 250px;
   height: 25px;
   border-radius: 0px 0 5px 0;
-  /*background-color: #aaaaaa;*/
+  background-color: #aaaaaa;
   background-color: #040535;
   color: white;
   text-align: center;
   font-weight: bold;
   line-height: 25px;
-  /*text-shadow: #666666 2px 2px 2px;*/
+  text-shadow: #666666 2px 2px 2px;
 
 }
 #preNavigationHeader p {
   width: 185px;
   text-align: center;
-  /*padding-left: 5px;*/
+  padding-left: 5px;
   margin-right: 25px;
   float: right;
+}*/
+
+
+#preNavigationCenteringWrapper {
+  position: absolute;
+  top: 90px;
+  width: 100%;
 }
 
 #preNavigationWrapper {
-  position: absolute;
-  top: 25px;
+  margin-left: auto;
+  margin-right: auto;
   min-height: 77px;
-  display: none;
-  z-index: 100;
-  background-color: #040535;
+  width: 700px;
+  overflow: hidden;
+  /*display: none;*/
+  /*z-index: 100;*/
+  /*background-color: #040535;*/
   border-radius: 0 0 5px 5px;
+}
+
+#preNavigationWrapper p {
+  line-height: 1.2em;
+  font-weight: bold;
 }
 
 .leftDropArrow {
@@ -267,6 +297,7 @@ body {
   float: left;
   width: 24%;
   overflow: hidden;
+  text-align: center;
 
 }
 
@@ -274,6 +305,7 @@ body {
   float: left;
   width: 19%;
   overflow: hidden;
+  text-align: center;
 
 }
 
@@ -352,7 +384,7 @@ body {
 .task {
   display: none;
   clear: both;
-  padding-top: 5px;
+  /*padding-top: 5px;*/
   text-align: center;
 }
 
@@ -398,7 +430,7 @@ body {
   /*  width: auto;*/
   height: 100%;
   /*padding: 5px;*/
-  margin: 10px;
+  margin: 5px;
   float: left;
   border-radius: 5px;
   text-align: center;
@@ -414,7 +446,7 @@ body {
   /*width: auto;*/
   height: 100%;
   padding: 5px;
-  margin: 5px;
+  /*margin: 5px;*/
   float: left;
   border-radius: 5px;
   text-align: center;

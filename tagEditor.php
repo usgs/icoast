@@ -1,9 +1,9 @@
 <?php
 //////////
 // => Define required files and initial includes
-require_once('../iCoastSecure/DBMSConnection.php');
 require_once('includes/globalFunctions.php');
 require_once('includes/adminFunctions.php');
+require $dbmsConnectionPath;
 //////////
 $filtered = TRUE;
 $projectId = 1;

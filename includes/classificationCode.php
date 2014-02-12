@@ -349,7 +349,7 @@ if (count($taskMetadata) > 0) {
                 $groupGroupId = $groupContentsArray['tag_id'];
                 $groupGroupMetadataQuery = "SELECT * from tag_group_metadata WHERE
                   tag_group_id = :groupGroupId AND project_id = :projectId";
-                $groupGroupMetadataParams = array (
+                $groupGroupMetadataParams = array(
                     'groupGroupId' => $groupGroupId,
                     'projectId' => $projectId
                 );
@@ -577,6 +577,7 @@ if ($thumbnailArray1[0]['image_id'] == $ComputerMatchImageId) {
               <a href="$thumbnail1Link">
                 <img id="computerMatch" class="thumbnail" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle">
               </a>
+          <p>Computer Match</p>
             </div>
 
 EOT;
@@ -593,6 +594,7 @@ EOT;
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -604,6 +606,7 @@ if ($thumbnailArray2[0]['image_id'] == $ComputerMatchImageId) {
               <a href="$thumbnail2Link">
                 <img id="computerMatch" class="thumbnail" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle">
               </a>
+          <p>Computer Match</p>
             </div>
 
 EOT;
@@ -620,6 +623,7 @@ EOT;
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -629,6 +633,8 @@ if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
   $currentThumbnailHtml .= <<<EOT
             <div class="currentThumbnailWrapper">
               <img id="computerMatch" class="thumbnail" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle">
+          <p>Computer Match &</p>
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -636,6 +642,7 @@ EOT;
   $currentThumbnailHtml .= <<<EOT
             <div class="currentThumbnailWrapper">
               <img class="thumbnail" src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle">
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -647,6 +654,7 @@ if ($thumbnailArray2[2]['image_id'] == $ComputerMatchImageId) {
               <a href="$thumbnail4Link">
                 <img id="computerMatch" class="thumbnail" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle">
               </a>
+          <p>Computer Match</p>
             </div>
 
 EOT;
@@ -663,6 +671,7 @@ EOT;
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -674,6 +683,7 @@ if ($thumbnailArray3[2]['image_id'] == $ComputerMatchImageId) {
               <a href="$thumbnail5Link">
                 <img id="computerMatch" class="thumbnail" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle">
               </a>
+          <p>Computer Match</p>
             </div>
 
 EOT;
@@ -690,6 +700,7 @@ EOT;
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+          <p>Currently Displayed Photo</p>
             </div>
 
 EOT;
@@ -886,7 +897,32 @@ for ($i = 1; $i <= $taskCount; $i++) {
 
 // Annotation Next Navigation Button
   if ($i < $taskCount) {
-    $jsAnnotationNavButtons .= <<<EOT
+
+    if ($i == 1) {
+      $jsAnnotationNavButtons .= <<<EOT
+        $('#task{$i}NextButton').click(function() {
+          var formData = $('.annotationForm').serialize();
+          formData += '$annotationMetaDataQueryString';
+          console.log(formData);
+          $.post('ajax/annotationLogger.php', formData);
+          $('#task{$i}').css('display', 'none');
+          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
+          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#task{$i}Header').css('display', 'none');
+          $('#task{$j}').css('display', 'block');
+          $('#task{$j}Breadcrumb').addClass('currentTaskBreadcrumb');
+          $('#task{$j}BreadcrumbContent').css('display', 'inline');
+          $('#task{$j}Header').css('display', 'block');
+          $('#preNavigationCenteringWrapper').css('display', 'none');
+          icDisplayedTask++;
+          setMinGroupHeaderWidth(icDisplayedTask);
+        });
+
+
+EOT;
+    } else {
+
+      $jsAnnotationNavButtons .= <<<EOT
         $('#task{$i}NextButton').click(function() {
           var formData = $('.annotationForm').serialize();
           formData += '$annotationMetaDataQueryString';
@@ -906,11 +942,36 @@ for ($i = 1; $i <= $taskCount; $i++) {
 
 
 EOT;
+    }
   }
 
   // Annotation Previous Navigation Button
   if ($i > 1) {
-    $jsAnnotationNavButtons .= <<<EOT
+
+    if ($i == 2) {
+      $jsAnnotationNavButtons .= <<<EOT
+        $('#task{$i}PreviousButton').click(function() {
+          var formData = $('.annotationForm').serialize();
+          formData += '$annotationMetaDataQueryString';
+          console.log(formData);
+          $.post('ajax/annotationLogger.php', formData);
+          $('#task{$i}').css('display', 'none');
+          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
+          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#task{$i}Header').css('display', 'none');
+          $('#task{$h}').css('display', 'block');
+          $('#task{$h}Breadcrumb').addClass('currentTaskBreadcrumb');
+          $('#task{$h}BreadcrumbContent').css('display', 'inline');
+          $('#task{$h}Header').css('display', 'block');
+          $('#preNavigationCenteringWrapper').css('display', 'block');
+          icDisplayedTask--;
+          setMinGroupHeaderWidth(icDisplayedTask);
+        });
+
+
+EOT;
+    } else {
+      $jsAnnotationNavButtons .= <<<EOT
         $('#task{$i}PreviousButton').click(function() {
           var formData = $('.annotationForm').serialize();
           formData += '$annotationMetaDataQueryString';
@@ -930,6 +991,7 @@ EOT;
 
 
 EOT;
+    }
   }
 }
 
