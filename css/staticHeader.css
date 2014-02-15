@@ -1,0 +1,85 @@
+#usgsColorBand {
+  z-index: 100;
+  position: absolute;
+  /*top: -47px;*/
+  width: 100%;
+  height: 72px;
+  vertical-align: bottom;
+}
+#usgsColorBand > img {
+  position: absolute;
+  left: 350px;
+}
+
+#usgsIdentifier {
+  background-color: black;
+  height: 72px;
+  width: 350px;
+  float:left;
+}
+
+#usgsIdentifier a {
+}
+
+
+
+#usgsColorBand p {
+  font-family: arial;
+  position: absolute;
+  color: #FFFFFF;
+  font-weight: bold;
+  display: inline-block;
+  background-color: rgba(0, 0, 0, 1);
+}
+
+#appTitle {
+  font-size: 48px;
+  line-height: 48px;
+  left: 190px;
+  top: 7px;
+}
+
+#appSubtitle {
+  font-style: italic;
+  font-size: 14px;
+  left: 190px;
+  top: 52px;
+  line-height: 14px;
+
+}
+
+#mainHeaderNavigation {
+  font-size: 16px;
+  position: absolute;
+  left: 400px;
+  top: 23px;
+  opacity: 1;
+  color: #ffffff;
+
+}
+
+#mainHeaderNavigation li {
+  display: inline-block;
+  margin: 0 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 5px 15px 8px 15px;
+  border-radius: 5px;
+}
+
+.missingPageLink {
+  color: #333333;
+}
+
+#activePageLink {
+  color: #E56969;
+}
+
+#mainHeaderNavigation a {
+  text-decoration: none;
+  color: white;
+}
+
+#mainHeaderNavigation a:hover {
+  color: #5384ed;
+}
+

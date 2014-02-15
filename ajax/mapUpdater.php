@@ -56,7 +56,24 @@ if (count($imagesInBounds) > 0) {
     $count++;
   }
 }
+
+
+
+
+
+
+
 //print 'Count = ' . $count;
+
+
+
+
+
+
+
+
+
+
 ////  $imagesToDisplay = $queryResult->fetch_all(MYSQL_ASSOC);
 //}
 //echo 'Unfiltered images to display<pre>';
@@ -124,7 +141,21 @@ for ($i = 0; $i < count($imagesToDisplay); $i++) {
 //  $count++;
 }
 
+
+
+
+
+
+
 //print 'images to display = ' . count($imagesToDisplay);
+
+
+
+
+
+
+
+
 //echo 'Filtered Images to Display<pre>';
 //print_r($imagesToDisplay);
 //echo '</pre>';

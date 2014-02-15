@@ -20,15 +20,16 @@ body{
   position: fixed;
   top: 50%;
   left: 50%;
-  margin-top: -250px;
-  margin-left: -350px;
+  margin-top: -150px;
+  margin-left: -400px;
   /*height: 430px;*/
-  width: 700px;
+  width: 800px;
   overflow: hidden;
   /*background: rgba(255, 255, 5255, 0.5);*/
   background-color: #C7DBCC;
   text-align: center;
   border-radius: 10px;
+  padding: 0px 10px 10px 10px;
 }
 
 #forms {
@@ -57,9 +58,9 @@ form {
 }
 
 .buttonForm {
-    display: inline-block;
-    height: 35px;
-    /*padding: 0 5px 0 0;*/
+  display: inline-block;
+  height: 35px;
+  /*padding: 0 5px 0 0;*/
 }
 
 .formFieldRow {
@@ -89,8 +90,8 @@ form {
 label.error {
   margin: 0;
   text-align: center;
-color: red;
-font-size: 0.8em;
+  color: red;
+  font-size: 0.8em;
   display: block;
   clear: both;
   width: 100%;
@@ -128,17 +129,19 @@ h3 {
   /*text-shadow: #666666 2px 2px 2px;*/
 }
 
-p {
+#loginWrapper p {
+  font-weight: bold;
   margin: 10px 20px;
   line-height: 1.2em;
 }
 table {
-  margin: auto;
+  margin: 10px auto 10px;;
   text-align: left;
 }
 
 td {
   padding: 3px 10px;
+    font-weight: bold;
 }
 
 #loginWrapperFooter p {
@@ -152,8 +155,7 @@ td {
 }
 
 .userData {
-  font-weight: bold;
-  color: #e56969;
+  color: #5384ed;
 }
 
 
@@ -195,7 +197,7 @@ td {
 
 /* Formatting for form input buttons */
 
-.labelButton, select {
+.labelButton, select, input {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
   background: #FFFFFF;
@@ -243,7 +245,6 @@ td {
   display: none;
 }
 
-select {
-  width: 161px;
-
+#registerCrowdType, #registerOther, #registerAffiliation {
+  width: 230px;
 }

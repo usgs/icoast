@@ -59,6 +59,7 @@ require_once('includes/classificationCode.php');
 
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
+    <link rel="stylesheet" href="css/dynamicHeader.css">
     <link rel="stylesheet" href="css/classification.css">
     <link rel="stylesheet" href="css/icoast_icons.css">
     <link rel="stylesheet" href="css/tipTip.css">
@@ -386,7 +387,11 @@ require_once('includes/classificationCode.php');
         // Dynamically size the page;
         $('html').css('overflow', 'hidden');
         var windowHeight = $(window).height();
+        var windowWidth = $(window).width();
         $('html').css('overflow', 'auto');
+        if (windowWidth > 1650) {
+          windowWidth = 1650;
+        }
 //        // Calculate image sizes for Map is shown
 //        if ($('#mapWrapper').css('display') === 'block') {
 //          var mapContentHeight = $('#mapContent').height();
@@ -462,22 +467,32 @@ require_once('includes/classificationCode.php');
           var headerHeight = $('.imageColumnHeader').outerHeight();
           var annotationHeight = $('#annotationWrapper').outerHeight();
 //          var maxImageHeight = windowHeight - 25 - headerHeight - footerHeight - annotationHeight;
-          var maxImageHeight = windowHeight - 22 - headerHeight - annotationHeight;
+          var maxImageHeight = windowHeight - 37 - headerHeight - annotationHeight;
           var maxImageWidth = maxImageHeight / 0.65;
 //          thumbnailsWidth += 'px';
+          maxImageHeight += 'px'
           maxImageWidth += 'px';
         } else {
           var maxImageWidth = "278px";
 //          var thumbnailsWidth = "470px";
         }
         $('.imageColumnContent').css('max-width', maxImageWidth);
-        var mapInsertHeight = $('.imageColumnContent').height();
+
+//        function setMapDivHeight() {
+//          var height = $('.imageColumnContent').height();
+////          console.log(height);
+//          height += 'px';
+//          $('#mapInsert').css('height', height);
+//          if (icMap != null) {
+//            icMap.setCenter(icCurrentImageLatLon);
+//          }
+//        }
+//
+//        window.setTimeout(setMapDivHeight, 100000);
+        var mapInsertHeight = ((windowWidth * 0.43) - 15) * 0.65;
 //        console.log(mapInsertHeight);
-        mapInsertHeight += 'px';
         $('#mapInsert').css('height', mapInsertHeight);
-        if (icMap != null) {
-          icMap.setCenter(icCurrentImageLatLon);
-        }
+
 
 //          $('#rightImageColumnFooter').css('max-width', thumbnailsWidth);
 //        $('#rightImageColumnFooter, #trackNavFooter').css('max-width', thumbnailsWidth);
@@ -828,6 +843,7 @@ print $jsProjectId;
         $(window).resize(function() {
           dynamicSizing(icDisplayedTask);
         });
+        dynamicSizing(icDisplayedTask);
       }); // End loadScript
 
 
@@ -841,7 +857,7 @@ print $jsProjectId;
 
       <?php
       $pageName = "classify";
-//      require("includes/header.php");
+      require("includes/header.php");
       ?>
       <div id="images">
 

@@ -53,7 +53,7 @@ if ($projectMetadataResult && $projectMetadataResult->num_rows > 0) {
 }
 $projectMetadata['projectId'] = $projectId;
 
-$ownerQuery = "SELECT email FROM users WHERE user_id = {$projectMetadata['owner']}";
+$ownerQuery = "SELECT masked_email FROM users WHERE user_id = {$projectMetadata['owner']}";
 $ownerResult = run_database_query($ownerQuery);
 if ($ownerResult && $ownerResult->num_rows > 0) {
   $ownerArray = $ownerResult->fetch_assoc();
@@ -88,7 +88,7 @@ function build_project_form_html($projectId) {
   }
   $projectMetadata['projectId'] = $projectId;
 
-  $ownerQuery = "SELECT email FROM users WHERE user_id = {$projectMetadata['owner']}";
+  $ownerQuery = "SELECT masked_email FROM users WHERE user_id = {$projectMetadata['owner']}";
   $ownerResult = run_database_query($ownerQuery);
   if ($ownerResult && $ownerResult->num_rows > 0) {
     $ownerArray = $ownerResult->fetch_assoc();

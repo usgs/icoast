@@ -24,15 +24,23 @@ if (isset($_POST['userId']) && is_numeric($_POST['userId'])) {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
+    <link rel="stylesheet" href="css/staticHeader.css">
     <link rel="stylesheet" href="css/login.css">
   </head>
-  <body id="wrapper">
-    <div id = "loginWrapper">
-      <h1>iCoast: Did it Change?</h1>
-      <h2>Logout</h2>
-      <p>You have successfully logged out of iCoast.</p>
-      <form method="post" action="login.php">
-        <input type="submit" class = "formButton" value="Log Back In To iCoast" />
-      </form>
+  <body id="body">
+    <div id="wrapper">
+      <?php
+      $pageName = "logout";
+      require("includes/header.php");
+      ?>
+      <div id = "loginWrapper">
+        <h1>iCoast - Did the Coast Change?</h1>
+        <h2>Logged Out of iCoast</h2>
+        <p>You have successfully logged out of iCoast</p>
+        <form method="post" action="login.php">
+          <input type="submit" class = "formButton" value="Login to iCoast" />
+        </form>
+      </div>
+    </div>
   </body>
 </html>

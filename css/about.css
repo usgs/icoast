@@ -1,31 +1,13 @@
 body {
-  padding: 5px;
+  /*padding: 5px;*/
   font-size: 14px;
 }
 
-#wrapper {
+#aboutWrapper {
+  margin-top: 72px;
   background-color: #C7DBCC;
   padding: 15px 15px;
   overflow: hidden;
-}
-
-#usgsColorBand {
-  width: 100%;
-  height: 5.14em;
-  background: #006633 url('../images/system/hurricaneBanner.jpg') 178px 0px no-repeat;
-  min-height: 72px;
-  border-radius: 5px;
-}
-
-#usgsIdentifier {
-  background-color: black;
-  width: 178px;
-  height: 5.14em;
-  float:left;
-}
-
-#usgsIdentifier img {
-  border-radius: 5px;
 }
 
 h1 {
@@ -48,7 +30,8 @@ h3 {
     clear: both;
 }
 
-p {
+#aboutWrapper p {
+  font-weight: bold;
     line-height: 1.2em;
     margin-bottom: 1em;
 }

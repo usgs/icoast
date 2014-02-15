@@ -32,10 +32,9 @@ $postDisplayImageURL = "images/datasets/{$postImageMetadata['dataset_id']}/main/
 $bodyHTML = "";
 $bodyHTML = <<<EOL
         <h1>iCoast - Did the Coast Change?</h1>
-        <h2>Choose your next photo location.</h2>
-        <p>A selection of coastal photos are available for you to annotate and a random photo has already been selected for you.
-          You have the option to either use this random photo or to pick one from a map.</p>
-          <p>Select a button below to make your choice.</p>
+        <h2>Choose a Photo to Tag</h2>
+        <p>Click the Random button to tag a random photo.<br>
+          Click the Map button to select a photo in a particular location.</p>
         <div class="buttonWrapper">
         <p>Random</p>
           <button class="formButton" type="button" id="randomButton"><img src="images/system/dice.png"></button>
@@ -58,104 +57,111 @@ EOL;
     <script src="scripts/markerClusterPlus.js"></script>
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
+    <link rel="stylesheet" href="css/staticHeader.css">
     <link rel="stylesheet" href="css/start2.css">
   </head>
-  <body id="wrapper">
-    <div id="startWrapper">
+  <body id="body">
+    <div id="wrapper">
+      <?php
+      $pageName = "start";
+      require("includes/header.php");
+      ?>
+      <div id="startWrapper">
 
-      <?php print $bodyHTML; ?>
+        <?php print $bodyHTML; ?>
 
-    </div>
-
-
-
-
-
-    <div id="mapWrapper">
-      <div id="mapContent">
-        <div>
-          <h1 id="mapHeader">iCoast Map Navigator
-            <button title="Click to exit from map view with no changes." id="mapHide" class="clickableButton">
-              X
-            </button>
-          </h1>
-
-        </div>
+      </div>
 
 
-        <div id="leftMapColumn" class="mapColumn">
 
-          <div id="mapcurrentImageHeader">
-            <p class="sectionHeader">Random Image Already Selected For You</p>
-          </div>
-          <div class="mapImageWrapper" id="mapCurrentImage">
-            <img class="mapImage"  src="<?php print $postDisplayImageURL ?>">
+
+
+      <div id="mapWrapper">
+        <div id="mapContent">
+          <div>
+            <h1 id="mapHeader">iCoast Map Navigator
+              <button title="Click to exit from map view with no changes." id="mapHide" class="clickableButton">
+                X
+              </button>
+            </h1>
+
           </div>
 
-          <div id="selectedMapImage">
-            <div id="mapSelectedImageHeader">
-              <p class="sectionHeader" id="selectedMapImageHeader"></p>
-            </div>
-            <div class="mapImageWrapper" >
-              <img class="mapImage" id="mapSelectedImage" src="">
-            </div>
-          </div>
-          <div id="mapDisplayControls">
-            <button title="Click to load the selected image into iCoast for annotation." id="mapLoadImageButton" class="clickableButton">
-              Choose this Photo to Tag
-            </button>
-          </div>
-        </div>
-        <div id="rightMapColumn" class="mapColumn">
-          <input id="pac-input" class="controls" type="text" placeholder="Search Box">
-          <div id="mapCanvas">
-          </div>
-          <img id="mapLoadingBar" class="loadingBar" title="Loading other available image data..." src="images/system/loading.gif">
 
-          <div id="mapLegend">
-            <div class="mapLegendRow">
-              <p id="mapInstruction">ZOOM-IN TO SELECT A POST-STORM PHOTO</p>
+          <div id="leftMapColumn" class="mapColumn">
+
+            <div id="mapcurrentImageHeader">
+              <p class="sectionHeader">Random Image Already Selected For You</p>
             </div>
-            <div class="mapLegendRow">
-              <div class="mapLegendRowIcon">
-                <img src="images/system/clusterLegendIcon.png" width="24" height="24">
-              </div>
-              <div class="mapLegendRowText">
-                <p>Clustering of Photos</p>
-              </div>
+            <div class="mapImageWrapper" id="mapCurrentImage">
+              <img class="mapImage"  src="<?php print $postDisplayImageURL ?>">
             </div>
-            <div class="mapLegendRow">
-              <div class="mapLegendRowIcon">
-                <img src="images/system/photo.png" width="20" height="24">
+
+            <div id="selectedMapImage">
+              <div id="mapSelectedImageHeader">
+                <p class="sectionHeader" id="selectedMapImageHeader"></p>
               </div>
-              <div class="mapLegendRowText">
-                <p>Post-Storm Photo</p>
+              <div class="mapImageWrapper" >
+                <img class="mapImage" id="mapSelectedImage" src="">
               </div>
             </div>
-            <div class="mapLegendRow">
-              <div class="mapLegendRowIcon">
-                <img src="images/system/photoCurrent.png" width="20" height="24">
-              </div>
-              <div class="mapLegendRowText">
-                <p>Randomly Selected Photo</p>
-              </div>
-            </div>
-            <div class="mapLegendRow">
-              <div class="mapLegendRowIcon">
-                <img src="images/system/photoSelected.png" width="20" height="24">
-              </div>
-              <div class="mapLegendRowText">
-                <p>Selected Post-Storm Photo</p>
-              </div>
+            <div id="mapDisplayControls">
+              <button title="Click to load the selected image into iCoast for annotation." id="mapLoadImageButton" class="clickableButton">
+                Choose this Photo to Tag
+              </button>
             </div>
           </div>
-          <div id="mapControls">
-            <button title="Click to jump the map to the currently displayed image lovation." id="centerMapButton" class="clickableButton">
-              Jump To Current Photo
-            </button>
-            <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton">
-              Hide Other Photos
-            </button>
+          <div id="rightMapColumn" class="mapColumn">
+            <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+            <div id="mapCanvas">
+            </div>
+            <img id="mapLoadingBar" class="loadingBar" title="Loading other available image data..." src="images/system/loading.gif">
+
+            <div id="mapLegend">
+              <div class="mapLegendRow">
+                <p id="mapInstruction">ZOOM-IN TO SELECT A POST-STORM PHOTO</p>
+              </div>
+              <div class="mapLegendRow">
+                <div class="mapLegendRowIcon">
+                  <img src="images/system/clusterLegendIcon.png" width="24" height="24">
+                </div>
+                <div class="mapLegendRowText">
+                  <p>Clustering of Photos</p>
+                </div>
+              </div>
+              <div class="mapLegendRow">
+                <div class="mapLegendRowIcon">
+                  <img src="images/system/photo.png" width="20" height="24">
+                </div>
+                <div class="mapLegendRowText">
+                  <p>Post-Storm Photo</p>
+                </div>
+              </div>
+              <div class="mapLegendRow">
+                <div class="mapLegendRowIcon">
+                  <img src="images/system/photoCurrent.png" width="20" height="24">
+                </div>
+                <div class="mapLegendRowText">
+                  <p>Randomly Selected Photo</p>
+                </div>
+              </div>
+              <div class="mapLegendRow">
+                <div class="mapLegendRowIcon">
+                  <img src="images/system/photoSelected.png" width="20" height="24">
+                </div>
+                <div class="mapLegendRowText">
+                  <p>Selected Post-Storm Photo</p>
+                </div>
+              </div>
+            </div>
+            <div id="mapControls">
+              <button title="Click to jump the map to the currently displayed image lovation." id="centerMapButton" class="clickableButton">
+                Jump To Current Photo
+              </button>
+              <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton">
+                Hide Other Photos
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -272,7 +278,7 @@ EOL;
       icon: mapCurrentIcon,
       //          icon: 'images/system/photoCurrent.png',
       clickable: false
-              //          title: 'Location of the currently displayed image. Taken near <?php print $markerToolTip; ?>'
+              //          title: 'Location of the currently displayed image. Taken near <?php // print $markerToolTip;    ?>'
     });
     google.maps.event.addListener(icMap, 'idle', function() {
       mapBoundsChanged();

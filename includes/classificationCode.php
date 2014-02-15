@@ -203,14 +203,6 @@ $markerToolTip = build_image_location_string($postImageMetadata);
 
 
 
-//--------------------------------------------------------------------------------------------------
-// Find image id's of next and previous post images
-$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId);
-$previousImageId = $postImageArray[0]['image_id'];
-$nextImageId = $postImageArray[2]['image_id'];
-
-
-
 
 
 //--------------------------------------------------------------------------------------------------
@@ -513,54 +505,7 @@ for ($i = 1; $i <= $taskCount; $i++) {
 EOT;
 }
 
-//--------------------------------------------------------------------------------------------------
-// Build next/previous post image buttons HTML
-$newRandomPostImageId = 0;
-while ($newRandomPostImageId == 0 || $newRandomPostImageId == $postImageId) {
-  $newRandomPostImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
-}
 
-$postImageNavigationHtml = '';
-
-if ($previousImageId != 0) {
-  $postImageNavigationHtml .= <<<EOT
-              <form class="postImageNavForm" method="get" action="classification.php">
-                 <input type="hidden" name="projectId" value="$projectId">
-                 <input type="hidden" name="imageId" value="$previousImageId">
-                <button title="Click to show the next POST-storm Photo along the LEFT of the coast." class="clickableButton postImageNavButton" type="submit">
-                  <span class="icon-left"></span>
-                </button>
-              </form>
-
-EOT;
-}
-
-$postImageNavigationHtml .= <<<EOT
-              <form class="postImageNavForm" method="get" action="classification.php">
-                 <input type="hidden" name="projectId" value="$projectId">
-                  <input type="hidden" name="imageId" value="$newRandomPostImageId">
-                <button title="Click to show a RANDOM POST-storm Photo and matching PRE-Storm Photo." class="clickableButton postImageNavButton" type="submit">
-                  <span class="icon-camera"></span>
-                </button>
-              </form>
-              <button title="Click to view the MAP NAVIGATOR to see the location of the current POST-STORM photo or to select another POST-STORM photo to Tag." id="mapLoad" class="clickableButton postImageNavButton">
-                <span class="icon-globe"></span>
-              </button>
-
-EOT;
-
-if ($nextImageId != 0) {
-  $postImageNavigationHtml .= <<<EOT
-              <form class="postImageNavForm" method="get" action="classification.php">
-                <input type="hidden" name="projectId" value="$projectId">
-                <input type="hidden" name="imageId" value="$nextImageId">
-                <button title="Click to show the next POST-storm Photo along the RIGHT of the coast." class="clickableButton postImageNavButton" type="submit">
-                  <span class="icon-right"></span>
-                </button>
-              </form>
-
-EOT;
-}
 
 //--------------------------------------------------------------------------------------------------
 // Build thumbnail HTML
@@ -1002,7 +947,7 @@ $jsAnnotationNavButtons .= <<<EOT
           formData += '&annotationComplete=1';
           console.log(formData);
           $.post('ajax/annotationLogger.php', formData, function() {
-            window.location.href = 'classification.php?projectId=$projectId';
+            window.location.href = 'complete.php?projectId=$projectId&imageId=$postImageId';
           });
         });
 

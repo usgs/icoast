@@ -50,7 +50,7 @@ if ($numberOfProjects >= 2) {
         <select id="projectIdSelect" name="projectId">
           $projectSelectOptionHTML
         </select><br>
-        <input type="submit" id="" class="formButton" value="Classify Chosen Project" />
+        <input type="submit" id="" class="formButton" value="Tag Chosen Project" />
       </form>
 EOL;
 } else if ($numberOfProjects == 1) {
@@ -59,7 +59,7 @@ EOL;
   $selectProjectButtonHTML = <<<EOL
       <form method="post" action="start.php" class="buttonForm">
         <input type="hidden" name="projectId" value="$onlyProjectId" />
-        <input type="submit" id="continueClassifyingButton" class="formButton" value="Start Classifying $onlyProjectName" />
+        <input type="submit" id="continueClassifyingButton" class="formButton" value="Start Tagging $onlyProjectName Project" />
       </form>
 EOL;
 } else {
@@ -71,13 +71,15 @@ EOL;
 }
 $bodyHTML .= <<<EOL
           <p>You are logged in as <span class="userData">{$userData['masked_email']}</span>.<br>
-           If this is not your login then please log out using the button below and then sign back in
-            with your own credentials.</p>
+           If this is not you, Logout then Login with your Google Account.</p>
 EOL;
 switch ($userType) {
   case 'new':
     $bodyHTML .= <<<EOL
-            <p>New user blurb</p>
+            <p>Thank you for your interest in signing up to iCoast. We are developing tutorials
+              and other instructional materials to make it easier to get started. In the meantime,
+                check out the first iCoast project showing aerial photographs taken after
+                  Hurricane Sandy.</p>
 
             $selectProjectButtonHTML
 EOL;
@@ -90,7 +92,7 @@ EOL;
 
 
 
-    $lastAnnotationQuery = "SELECT initial_session_end_time, project_id "
+    $lastAnnotationQuery = "SELECT annotation_id, initial_session_end_time, project_id "
             . "FROM annotations WHERE user_id = :userId AND annotation_completed = 1 "
             . "ORDER BY initial_session_end_time DESC";
     $lastAnnotationParams['userId'] = $userId;
@@ -102,7 +104,10 @@ EOL;
       }
       $numberOfAnnotations = count($annotations);
       $lastAnnotation = $annotations[0];
-      $lastAnnotationTime = $lastAnnotation['initial_session_end_time'];
+
+      $lastAnnotationTime = new DateTime($lastAnnotation['initial_session_end_time'], new DateTimeZone('UTC'));
+      $lastAnnotationTime->setTimezone(new DateTimeZone('America/New_York'));
+      $formattedLastAnnotationTime = $lastAnnotationTime->format('F j\, Y \a\t g:i A');
       $lastProjectId = $lastAnnotation['project_id'];
 
       if ($numberOfAnnotations != $userData['completed_annotation_count']) {
@@ -119,6 +124,16 @@ EOL;
           exit;
         }
       }
+
+      foreach ($annotations as $annotation) {
+        $annotationIdArray[] = $annotation['annotation_id'];
+      }
+      $whereInString = where_in_string_builder($annotationIdArray);
+      $numberOfTotalTagsQuery = "SELECT COUNT(*) FROM annotation_selections WHERE annotation_id"
+              . " IN ($whereInString)";
+      $numberOfTotalTagsParams = array();
+      $STH = run_prepared_query($DBH, $numberOfTotalTagsQuery, $numberOfTotalTagsParams);
+      $numberOfTotalTags = $STH->fetchColumn();
 
 
       $positionQuery = "SELECT completed_annotation_count FROM users WHERE completed_annotation_count > :numberOfAnnotations "
@@ -155,45 +170,58 @@ EOL;
       $bodyHTML.= <<<EOL
 
       <table>
-        <tr><td>Total number of complete annotations:</td><td class="userData">$numberOfAnnotations</td></tr>
-        <tr><td>Annotation Scoreboard Position:</td><td class="userData">
+        <tr><td>Scoreboard Position:</td><td class="userData">
 EOL;
+
+
+
+
       if ($positionInICoast == 1) {
         if ($jointPosition) {
-          $bodyHTML .= "Joint 1st!</td></tr>";
+          $bodyHTML .= "Joint 1st Place</td></tr>";
         } else {
-          $bodyHTML .= "1st! Great Job!</td></tr>";
+          $bodyHTML .= "1st Place - Top iCoast Tagger!</td></tr>";
         }
       } else if ($positionInICoast > 1) {
         if ($jointPosition) {
           $bodyHTML .= "Joint ";
         }
-        $bodyHTML .= "$ordinalPositionInICoast</td></tr>";
-
-        if ($positionInICoast == 2) {
-          $bodyHTML .= "<tr><td>Complete annotations required to become 1st:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
-        }
-
-        if ($positionInICoast > 2) {
-          $bodyHTML .= "<tr><td>Complete annotations required to move up a position:</td><td class=\"userData\">$annotationsToNext</td></tr>";
-          $bodyHTML .= "<tr><td>Complete annotations required to become 1st:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
-        }
+        $bodyHTML .= "$ordinalPositionInICoast Place</td></tr>";
       }
-      $bodyHTML .= "<tr><td>Date and time of last complete annotation:</td><td class=\"userData\">$lastAnnotationTime</td></tr>"
-              . "<tr><td>Last project annotated:</td><td class=\"userData\">$projectName</td></tr>"
+      $bodyHTML.= "<tr><td># of Photos Tagged:</td><td class=\"userData\">$numberOfAnnotations</td></tr>";
+      $bodyHTML.= "<tr><td># of Tags in Total:</td><td class=\"userData\">$numberOfTotalTags</td></tr>";
+
+
+
+      if ($positionInICoast == 2) {
+        $bodyHTML .= "<tr><td># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
+      }
+
+      if ($positionInICoast > 2) {
+        $bodyHTML .= "<tr><td># of Photos to Move up a Position:</td><td class=\"userData\">$annotationsToNext</td></tr>";
+        $bodyHTML .= "<tr><td># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
+      }
+
+
+
+
+
+      $bodyHTML .= "<tr><td>Most Recent Annotation:</td><td class=\"userData\">$formattedLastAnnotationTime</td></tr>"
+//              . "<tr><td>Last project annotated:</td><td class=\"userData\">$projectName</td></tr>"
               . "</table>";
       $bodyHTML .= <<<EOL
-            <h2>What would you like to do next?</h2>
  <form method="post" action="start.php" class="buttonForm">
               <input type="hidden" name="projectId" value="$lastProjectId" />
-              <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Classifying $projectName" />
+              <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Tagging $projectName Project" />
             </form>
 
  $selectProjectButtonHTML
 EOL;
     } else {
       $bodyHTML .= <<<EOL
-                <p>You have not yet annotated any images</p>
+                <p>You have not yet annotated any POST-storm photographs. Click the button below to
+                  Start Tagging aerial photographs taken after Hurricane Sandy. See if you can tag
+                    more photos than other iCoast users.</p>
 EOL;
       $bodyHTML .= <<<EOL
       $selectProjectButtonHTML
@@ -203,8 +231,6 @@ EOL;
 
     break;
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -214,11 +240,18 @@ EOL;
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
+    <link rel="stylesheet" href="css/staticHeader.css">
     <link rel="stylesheet" href="css/login.css">
   </head>
-  <body id="wrapper">
-    <div id = "loginWrapper">
-      <h1>iCoast: Did the Coast Change?</h1>
-      <?php print $bodyHTML; ?>
+  <body id="body">
+    <div id="wrapper">
+      <?php
+      $pageName = "welcome";
+      require("includes/header.php");
+      ?>
+      <div id = "loginWrapper">
+        <h1>iCoast - Did the Coast Change?</h1>
+        <?php print $bodyHTML; ?>
+      </div>
   </body>
 </html>

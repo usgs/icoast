@@ -19,25 +19,31 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
+    <link rel="stylesheet" href="css/staticHeader.css">
     <link rel="stylesheet" href="css/login.css">
   </head>
-  <body id="wrapper">
+  <body id="body">
+    <div id="wrapper">
+    <?php
+    $pageName = "login";
+    require("includes/header.php");
+    ?>
     <div id = "loginWrapper">
-      <h1>iCoast: Did it Change?</h1>
-      <h2>Welcome to iCoast.</h2>
+      <h1>iCoast - Did the Coast Change?</h1>
+      <h2>Welcome to iCoast!</h2>
       <div id="forms">
 
         <?php
-        $openid = new LightOpenID('http://'.$_SERVER['HTTP_HOST']);
+        $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
         if (!$openid->mode) {
           print <<<EOL
-          <p>Help scientists at the US Geological Survey look for changes to the coast before and
-            after extreme storms like Hurricane Sandy using aerial photographs. Computers cannot
-              automatically identify coastal changes from storms in aerial photographs. We need
-                your eyes to help us analyze how US coasts are changing from extreme storms.</p>
-          <p>Please click the button below to login or register using your Google Login</p>
+          <p>Help scientists at the U.S. Geological Survey annotate aerial photographs with keyword
+            tags to identify changes to the coast after extreme storms like Hurricane Sandy. We
+              need your eyes to help us understand how United States coastlines are changing from
+                extreme storms.</p>
+          <p>Click button below to Login or Register using a Google Account</p>
           <form action="?login" method="post">
-          <input type="submit" class="formButton" id="registerSubmitButton" value="Login or Register Using Google" />
+          <input type="submit" class="formButton" id="registerSubmitButton" value="Login or Register with Google" />
           </form>
                 </div>
 EOL;
@@ -123,5 +129,6 @@ EOL;
         }
         ?>
       </div>
+    </div>
   </body>
 </html>
