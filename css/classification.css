@@ -141,6 +141,7 @@ body {
 #mapInsert {
   height: 100%;
   width: 100%;
+  min-height: 181px;
   border-radius: 5px;
   box-shadow: 5px 5px 5px #666666;
 }

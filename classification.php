@@ -108,12 +108,6 @@ require_once('includes/classificationCode.php');
         };
         icMap = new google.maps.Map(document.getElementById("mapInsert"),
                 mapOptions);
-
-
-
-
-
-
 //        var markers = [];
         var input = (document.getElementById('pac-input'));
         icMap.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
@@ -382,8 +376,6 @@ require_once('includes/classificationCode.php');
           }
         }
         $('#task' + icDisplayedTask + ' h2').height(maxHeaderHeight);
-
-
         // Dynamically size the page;
         $('html').css('overflow', 'hidden');
         var windowHeight = $(window).height();
@@ -462,22 +454,22 @@ require_once('includes/classificationCode.php');
 
 
         // Calculate and set an image size that stops body exceeding viewport height.
-
         if (windowHeight >= 600) {
+
           var headerHeight = $('.imageColumnHeader').outerHeight();
           var annotationHeight = $('#annotationWrapper').outerHeight();
 //          var maxImageHeight = windowHeight - 25 - headerHeight - footerHeight - annotationHeight;
-          var maxImageHeight = windowHeight - 37 - headerHeight - annotationHeight;
-          var maxImageWidth = maxImageHeight / 0.65;
+          var maxImageHeightByY = windowHeight - 37 - headerHeight - annotationHeight;
+          var maxImageWidth = maxImageHeightByY / 0.65;
 //          thumbnailsWidth += 'px';
-          maxImageHeight += 'px'
+//          maxImageHeight += 'px';
           maxImageWidth += 'px';
         } else {
           var maxImageWidth = "278px";
+          var maxImageHeightByY = 181;
 //          var thumbnailsWidth = "470px";
         }
         $('.imageColumnContent').css('max-width', maxImageWidth);
-
 //        function setMapDivHeight() {
 //          var height = $('.imageColumnContent').height();
 ////          console.log(height);
@@ -489,11 +481,22 @@ require_once('includes/classificationCode.php');
 //        }
 //
 //        window.setTimeout(setMapDivHeight, 100000);
-        var mapInsertHeight = ((windowWidth * 0.43) - 15) * 0.65;
+        if (windowWidth >= 950) {
+          var maxImageHeightByX = ((windowWidth * 0.43) - 10) * 0.65;
+        } else {
+          var maxImageHeightByX = 257;
+        }
+        if (maxImageHeightByY < maxImageHeightByX) {
+          var mapInsertHeight = maxImageHeightByY + "px";
+        } else {
+          var mapInsertHeight = maxImageHeightByX + "px";
+        }
 //        console.log(mapInsertHeight);
+
+//      } else {
+//      var mapInsertHeight = "181px";
+//      }
         $('#mapInsert').css('height', mapInsertHeight);
-
-
 //          $('#rightImageColumnFooter').css('max-width', thumbnailsWidth);
 //        $('#rightImageColumnFooter, #trackNavFooter').css('max-width', thumbnailsWidth);
 //          $.removeData(image, 'elevateZoom');
@@ -776,8 +779,6 @@ print $jsProjectId;
         script.type = "text/javascript";
         script.src = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places&callback=initializeMaps";
         document.body.appendChild(script);
-
-
         $('#task1Breadcrumb').addClass('currentTaskBreadcrumb');
         $('#task1BreadcrumbContent').css('display', 'inline');
         $('#task1Header').css('display', 'block');
@@ -839,7 +840,6 @@ print $jsProjectId;
         var databaseAnnotationInitialization = 'loadEvent=True<?php print $annotationMetaDataQueryString ?>';
         console.log(databaseAnnotationInitialization);
         $.post('ajax/annotationLogger.php', databaseAnnotationInitialization);
-
         $(window).resize(function() {
           dynamicSizing(icDisplayedTask);
         });
