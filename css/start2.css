@@ -7,118 +7,104 @@ body {
     margin: auto;*/
 }
 
-html {
+/*html {
   position: relative;
   height: 100%;
   min-height: 100%;
   width: 100%;
   font-size: 14px;
-}
+}*/
 
-body{
+/*body{
   height: 100%;
   width: 100%;
-}
+}*/
 
-#wrapper {
+/*#wrapper {
   height: 100%;
   width: 100%;
   position: relative;
   box-shadow: none;
-}
+}*/
 
-#startWrapper {
+/*#startWrapper {
   position: fixed;
   top: 50%;
   left: 50%;
   margin-top: -150px;
   margin-left: -400px;
-  /*height: 430px;*/
+  height: 430px;
   width: 800px;
   overflow: hidden;
-  /*background: rgba(255, 255, 5255, 0.5);*/
+  background: rgba(255, 255, 5255, 0.5);
   background-color: #C7DBCC;
   text-align: center;
   border-radius: 10px;
-}
+}*/
 
-#annotationSummaryWrapper {
+/*#annotationSummaryWrapper {
   overflow: hidden;
   margin-bottom: 10px;
+}*/
+
+/*#annotationDetails {
+  overflow: hidden;
 }
 
-#annotationDetails {
-  width: 530px;
-  height: 130px;
-  float: left;
-  /*  border: black solid 1px;*/
-  margin: 5px 10px 10px 20px;
-}
-
-#annotatedImage {
+#annotationDetails img {
   width: 200px;
-  float: right;
-  margin: 5px 20px 10px 10px;
+  float: left;
+  margin: 0 20px 10px 20px;;
   border-radius: 5px;
   box-shadow: 5px 5px 5px #666666;
 }
 
-#chooseNextImageWrapper {
-  clear: both;
-}
+#annotationDetails table {
+  width: 530px;
+  height: 130px;
+  float: left;
+    border: black solid 1px;
+  margin: 0 20px;
+}*/
 
-.buttonWrapper {
+/*#chooseNextImageWrapper {
+  clear: both;
+}*/
+
+/*.squareButtonWrapper {
   position: relative;
   display: inline-block;
   font-size: 1.2em;
   font-weight: bold;
   margin-bottom: 10px;
-}
+}*/
 
-#coastalNavigationImage {
+/*#coastalNavigationImage {
   position: absolute;
   border: 1px solid black;
   bottom: 52px;
   left: 82px;
   height: 50px;
-  border-radius: 3px;
-}
+}*/
 
 
 
 
-.formButton {
-  position: relative;
-  /*top: -6px;*/
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  display: inline-block;
-  /*vertical-align: middle;*/
-
+/*.postNavButton {
   margin: 4px 8px;
-  border: 1px solid black;
-  border-radius: 5px;
   padding: 6px;
-
-  background: #FFFFFF;
-  font: inherit;
-  font-weight: bold;
-
-  box-shadow: 3px 3px 3px #888888;
-
 }
 
-.formButton:hover, .formButton:active {
+.postNavButton:hover, .postNavButton:active {
   margin: 1px 5px;
   border: 4px solid black;
-  box-shadow: 6px 6px 6px #888888
-}
+}*/
 
 /*#rightButton, #rightFakeButton {
   margin-left: 20px;
 }*/
 
-#rightFakeButton:hover, #rightFakeButton:active {
+/*#rightFakeButton:hover, #rightFakeButton:active {
   margin: 4px;
   border: 1px solid black;
   box-shadow: 3px 3px 3px #888888
@@ -128,36 +114,26 @@ body{
   margin: 4px;
   border: 1px solid black;
   box-shadow: 3px 3px 3px #888888
-}
+}*/
 
 
 /*#leftButton {
   margin-right: 20px;
 }*/
 
-.clickableButton {
+/*.clickableButton {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
-  display: inline-block;
   vertical-align: middle;
 
   margin: 4px;
   border: 1px solid black;
-  border-radius: 5px;
+  border-radius: 20px;
   padding: 6px 10px;
 
-  background: #DDDDDD;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #cccccc 70%, #bbbbbb 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#cccccc), color-stop(100%,#bbbbbb));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
+  background: #FFFFFF;
   font: inherit;
   font-weight: bold;
-  /*text-shadow: #666666 2px 2px 2px;*/
-
-
   box-shadow: 3px 3px 3px #888888;
 
 }
@@ -172,6 +148,7 @@ body{
   background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
   background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
   background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+  box-shadow: 6px 6px 6px #888888;
 }
 
 .clickableButtonToggled {
@@ -184,286 +161,19 @@ body{
   background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
   background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
   background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-}
+  box-shadow: 6px 6px 6px #888888;
+}*/
 
-.sectionHeader {
+/*.sectionHeader {
   font-size: 1.1em;
   font-weight: bold;
   margin-bottom: 3px;
-}
+}*/
 
 
 
-/*Map*/
 
-#mapWrapper {
-  display:none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 590px;
-  min-width: 940px;
-  z-index: 9999;
-  background: rgba(0, 0, 0, .6);
-  font-size: 12px;
-}
-
-#mapWrapper h1 {
-  margin: 0px;
-}
-
-#mapContent {
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width:80%;
-  height: 80%;
-  background-color: white;
-  border-radius: 5px;
-  text-align:center;
-  /*  background: -moz-linear-gradient(-45deg, rgba(235,241,246,1) 0%, rgba(171,211,238,1) 50%, rgba(137,195,235,1) 51%, rgba(213,235,251,1) 100%);
-    background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,rgba(235,241,246,1)), color-stop(50%,rgba(171,211,238,1)), color-stop(51%,rgba(137,195,235,1)), color-stop(100%,rgba(213,235,251,1)));
-    background: -webkit-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: -o-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: -ms-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: linear-gradient(135deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);*/
-
-
-
-}
-#mapHeader {
-  padding: 10px 10px 20px 10px;
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-#mapHide {
-  font-size: 0.5em;
-  float: right;
-  margin-right: 16px;
-  padding: 3px 10px;
-}
-
-#mapHide:hover, #mapHide:active {
-  margin-right: 15px;
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-}
-
-.mapColumn {
-  width: 50%;
-  overflow: hidden;
-}
-
-#leftMapColumn {
-  width: 46%;
-  height: 90%;
-  padding: 0 25px;
-  float: left;
-  text-align: center;
-}
-
-.mapImageWrapper {
-  position: relative;
-  margin: auto;
-  padding: 5px;
-}
-
-.mapImage {
-  display:block;
-  margin:auto;
-  max-width: 100%;
-  border-radius: 5px;
-}
-
-#mapSelectedImageHeader {
-  height:29px;
-  vertical-align: bottom;
-  position: relative;
-}
-
-#selectedMapImageHeader {
-  position: absolute;
-  width: 100%;
-  bottom: 0px;
-  left: 0px;
-}
-
-#selectedMapImage {
-  display:none;
-}
-
-#rightMapColumn {
-  position: relative;
-  height: 90%;
-  float: right;
-  padding-right: 25px;
-
-}
-
-#mapCanvas {
-  display: block;
-  margin-bottom: 5px;
-  border-radius: 5px;
-}
-
-#mapCanvas img {
-  max-width: none
-}
-
-#mapLoadingBar {
-  position: absolute;
-  display: none;
-  bottom: 80px;
-  left: 15px;
-}
-
-
-#mapMarkerToggle {
-
-}
-
-
-#mapLoadImageButton {
-  display: none;
-}
-
-#mapLegend {
-  position: absolute;
-  bottom: 65px;
-  right: 35px;
-  width: 200px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  font-weight: bold;
-  color: white;
-}
-.mapLegendRow {
-  overflow: hidden;
-  padding: 3px 2px 3px 2px;
-}
-.mapLegendRowIcon {
-  float: left;
-  width: 25px;
-  padding-right: 5px;
-}
-.mapLegendRowText {
-  float: left;
-  width: 165px;
-  text-align: left;
-  line-height: 24px;
-}
-
-#mapWrapper p {
-  font-size: 1em;
-  margin: 0px;
-}
-
-#mapInstruction {
-  text-align: left;
-  padding: 5px 5px 0 5px;
-}
-
-
-.controls {
-  margin-top: 16px;
-  border: 1px solid transparent;
-  border-radius: 2px 0 0 2px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-#pac-input {
-  background-color: #fff;
-  padding: 0 11px 0 13px;
-  width: 50%;
-  font-family: Roboto;
-  font-size: 15px;
-  font-weight: 300;
-  text-overflow: ellipsis;
-}
-
-#pac-input:focus {
-  border-color: #4d90fe;
-  margin-left: -1px;
-  padding-left: 14px;  /* Regular padding-left + 1. */
-  /*width: 401px;*/
-}
-
-.pac-container {
-  font-family: Roboto;
-  z-index: 10000;
-}
-
-#type-selector {
-  color: #fff;
-  background-color: #4d90fe;
-  padding: 5px 11px 0px 11px;
-}
-
-#type-selector label {
-  font-family: Roboto;
-  font-size: 13px;
-  font-weight: 300;
-}
-
-#target {
-  width: 345px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
 
 
 #forms {
@@ -494,7 +204,7 @@ form {
 .buttonForm {
   display: inline-block;
   height: 35px;
-  /*padding: 0 5px 0 0;*/
+  padding: 0 5px 0 0;
 }
 
 .formFieldRow {
@@ -544,7 +254,7 @@ h1 {
   text-align: center;
   margin: 20px 20px 10px 20px ;
   font-weight: bold;
-  /*text-shadow: #666666 2px 2px 2px;*/
+  text-shadow: #666666 2px 2px 2px;
 }
 
 h2 {
@@ -552,15 +262,15 @@ h2 {
   text-align: center;
   font-weight: bold;
   margin: 10px 10px;
-  /*text-shadow: #666666 2px 2px 2px;*/
+  text-shadow: #666666 2px 2px 2px;
 }
 
 h3 {
-  /*font-size: 1.3em;*/
+  font-size: 1.3em;
   text-align: center;
   font-weight: bold;
   margin: 8px 8px;
-  /*text-shadow: #666666 2px 2px 2px;*/
+  text-shadow: #666666 2px 2px 2px;
 }
 
 #startWrapper p {
@@ -604,13 +314,13 @@ td {
 
 
 
-/* Buttons */
+ Buttons
 
-/* Formatting for regular form buttons*/
+ Formatting for regular form buttons
 
 
 
-/* Formatting for form input buttons */
+ Formatting for form input buttons
 
 .labelButton, select {
   -moz-box-sizing: content-box;
@@ -658,9 +368,9 @@ td {
 
 .labelButtonInput[type="checkbox"], .labelButtonInput[type="radio"] {
   display: none;
-}
+}*/
 
-select {
+/*select {
   width: 161px;
 
-}
+}*/

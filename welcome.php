@@ -14,10 +14,10 @@ $authCheckCode = $_COOKIE['authCheckCode'];
 $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
 switch ($userType) {
   case 'new':
-    $bodyHTML = "<h2>Welcome to iCoast</h2>";
+    $bodyHTML = '<div id="contentWrapper"><h1>Welcome to iCoast</h1>';
     break;
   case 'existing':
-    $bodyHTML = "<h2>Welcome Back to iCoast</h2>";
+    $bodyHTML = '<div id="contentWrapper"><h1>Welcome Back to iCoast</h1>';
     break;
   default:
     header('Location: login.php');
@@ -42,14 +42,16 @@ if ($numberOfProjects >= 2) {
     $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>";
   }
   $selectProjectButtonHTML = <<<EOL
-      <form method="post" action="classification.php">
-        <input type="hidden" name="userId" value="$userId" />
-        <label for="projectIdSelect">
-          <p>Select a project to annotate:</p>
-        </label>
-        <select id="projectIdSelect" name="projectId">
-          $projectSelectOptionHTML
-        </select><br>
+      <form method="post" action="start.php">
+            <input type="hidden" name="userId" value="$userId" />
+            <label for="projectIdSelect">
+              <p>Select a project to annotate:</p>
+            </label>
+          <div class="formFieldRow standAloneFormElement">
+            <select id="projectIdSelect" name="projectId">
+              $projectSelectOptionHTML
+            </select>
+          </div>
         <input type="submit" id="" class="formButton" value="Tag Chosen Project" />
       </form>
 EOL;
@@ -214,8 +216,7 @@ EOL;
               <input type="hidden" name="projectId" value="$lastProjectId" />
               <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Tagging $projectName Project" />
             </form>
-
- $selectProjectButtonHTML
+              $selectProjectButtonHTML
 EOL;
     } else {
       $bodyHTML .= <<<EOL
@@ -223,14 +224,12 @@ EOL;
                   Start Tagging aerial photographs taken after Hurricane Sandy. See if you can tag
                     more photos than other iCoast users.</p>
 EOL;
-      $bodyHTML .= <<<EOL
-      $selectProjectButtonHTML
-
-EOL;
+      $bodyHTML .= $selectProjectButtonHTML;
     }
 
     break;
 }
+$bodyHTML .= '</div>'
 ?>
 
 <!DOCTYPE html>
@@ -241,17 +240,13 @@ EOL;
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
     <link rel="stylesheet" href="css/staticHeader.css">
-    <link rel="stylesheet" href="css/login.css">
   </head>
   <body id="body">
-    <div id="wrapper">
-      <?php
-      $pageName = "welcome";
-      require("includes/header.php");
-      ?>
-      <div id = "loginWrapper">
-        <h1>iCoast - Did the Coast Change?</h1>
-        <?php print $bodyHTML; ?>
-      </div>
+    <?php
+    $pageName = "welcome";
+    require("includes/header.php");
+    ?>
+      <?php print $bodyHTML; ?>
+
   </body>
 </html>

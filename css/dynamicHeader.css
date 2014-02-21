@@ -5,8 +5,9 @@
   width: 100%;
   height: 72px;
   vertical-align: bottom;
+  overflow: hidden;
 }
-#usgsColorBand > img {
+#headerImageWrapper {
   position: absolute;
   left: 252px;
 }

@@ -20,27 +20,14 @@ time, mark, audio, video {
   font: inherit;
   vertical-align: baseline;
 }
-/* HTML5 display-role reset for older browsers */
+
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
 }
 
-
 body {
-  min-height: 590px;
-  min-width: 940px;
-  max-width: 1650px;
-  /*padding: 5px;*/
-  margin: auto;
   line-height: 1;
-  background: #040535;
-}
-
-#wrapper {
-  position: relative;
-  border-radius: 5px;
-  overflow: hidden;
 }
 
 ol, ul {
@@ -58,26 +45,484 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 }
-hr {
-  background-color: #12155E;
-  color: #12155E;
-  padding: 0;
-  margin: 0;
-}
 
 
+/*All Pages*/
 
-/*Elements & Individual Components*/
+html {
+  height: 100%;
 
-strong {
+  background: #040535;
+
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 14px;
   font-weight: bold;
 }
+
+body {
+  position: relative;
+  height: 100%;
+  min-height: 600px;
+  width: 950px;/*
+  max-width: 1650px;*/
+  margin: auto;
+
+  /*overflow: hidden;*/
+}
+
+/*All Non-Classification Pages*/
+
+#contentWrapper {
+  background-color: #C7DBCC;
+  text-align: center;
+  border-radius: 0 0 10px 10px;
+  padding: 1px 20px 10px 20px;
+}
+
+#contentWrapper p {
+  /*font-weight: bold;*/
+  margin: 10px 20px;
+  line-height: 1.2em;
+}
+
+#contentWrapperFooter p {
+  text-align: left;
+  font-size: 0.8em;
+}
+
+h1 {
+  clear: both;
+  font-size: 2em;
+  margin: 20px 20px 10px 20px ;
+}
+
+h2 {
+  clear: both;
+  font-size: 1.3em;
+  margin: 10px 10px;
+}
+
+img {
+  border-radius: 5px;
+  max-width: 100%;
+}
+
+table {
+  margin: 10px auto 10px;;
+  text-align: left;
+}
+
+td {
+  padding: 3px 10px;
+}
+
+.userData {
+  color: #5384ed;
+}
+
+.clickableButton {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  vertical-align: middle;
+
+  margin: 4px;
+  border: 1px solid black;
+  border-radius: 20px;
+  padding: 6px 10px;
+
+  background: #FFFFFF;
+  font: inherit;
+  font-weight: bold;
+  box-shadow: 3px 3px 3px #888888;
+}
+
+.clickableButton:hover, .clickableButton:active {
+  margin: 3px;
+  border: 2px solid black;
+  background: #5384ED;
+  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #8fadea 70%, #5384ed 100%);
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#8fadea), color-stop(100%,#5384ed));
+  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+  background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+  box-shadow: 6px 6px 6px #888888;
+}
+
+.clickableButtonToggled {
+  margin: 3px;
+  border: 2px solid black;
+  background: #e56969;
+  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+  box-shadow: 6px 6px 6px #888888;
+}
+
+.formFieldRow {
+  min-height: 22px;
+  overflow: hidden;
+}
+
+.formFieldRow label,
+.formFieldRow input,
+.formFieldRow select {
+  float:left;
+}
+
+.formFieldRow label {
+  width: 40%;
+  margin-right: 5px;
+  line-height: 44px;
+  text-align: right;
+}
+
+.formFieldRow input,
+.formFieldRow select {
+  width: 230px;
+  text-align: center;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  background: #FFFFFF;
+  /*display: inline-table;*/
+  border: 1px solid black;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font: inherit;
+  font-weight: bold;
+  box-shadow: 3px 3px 3px #888888;
+  margin: 8px;
+}
+
+.standAloneFormElement select,
+.standAloneFormElement input {
+  position: relative;
+  left: -126px;
+  margin: 0 0 5px 50%;
+}
+
+#registerForm label.error {
+  line-height: 22px;
+  text-align: center;
+  color: red;
+  font-size: 0.8em;
+  width: 100%;
+}
+
+.formButton {
+  position: relative;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  margin: 8px 4px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 6px 10px;
+
+  background: #FFFFFF;
+  font: inherit;
+  font-weight: bold;
+
+  box-shadow: 3px 3px 3px #888888;
+
+}
+
+.formButton:hover, .formButton:active {
+  margin: 7px 4px;
+  border: 2px solid black;
+  box-shadow: 6px 6px 6px #888888
+}
+
+.disabledFormButton {
+  background: #BBBBBB;
+  opacity: 0.5;
+}
+
+.postNavButtonWrapper {
+  position: relative;
+  display: inline-block;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/*Builds on .formButton*/
+.postNavButtonWrapper .formButton {
+  margin: 4px 8px;
+  padding: 6px;
+}
+
+/*Builds on .formButton*/
+.postNavButtonWrapper .formButton:hover, .postNavButtonWrapper .formButton:active {
+  margin: 1px 5px;
+  border: 4px solid black;
+}
+
+.postNavButtonWrapper .disabledFormButton:hover,
+.postNavButtonWrapper disabledFormButton:active {
+  margin: 4px 8px;
+  border: 1px solid black;
+  box-shadow: 3px 3px 3px #888888
+}
+
+#annotationDetails {
+  overflow: hidden;
+}
+
+#annotationDetails img {
+  float: left;
+  margin: 0 20px 10px 20px;;
+  box-shadow: 5px 5px 5px #666666;
+}
+
+#annotationDetails table {
+  float: left;
+  margin: 0 20px;
+}
+
+#coastalNavigationImage {
+  position: absolute;
+  border: 1px solid black;
+  bottom: 52px;
+  left: 82px;
+  height: 50px;
+}
+
+
+
+
+/*Map*/
+
+#mapWrapper {
+  display:none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 590px;
+  min-width: 940px;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .6);
+  font-size: 12px;
+}
+
+#mapWrapper h1 {
+  margin: 10px 10px 20px 10px;
+  font-size: 1.5em;
+}
+
+#mapContent p {
+  margin: 5px 0px;
+}
+
+#mapContent {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width:80%;
+  height: 80%;
+  background-color: white;
+  border-radius: 5px;
+  text-align: center;
+  padding: 0 10px;
+}
+
+
+#mapHide {
+  background: #e56969;
+  font-size: 0.5em;
+  float: right;
+  margin-right: 5px;
+  padding: 3px 10px;
+}
+
+#mapHide:hover, #mapHide:active {
+  margin-right: 4px;
+}
+
+.mapColumn {
+  overflow: hidden;
+  margin: 0 15px;
+}
+
+#leftMapColumn {
+  width: 36%;
+  float: left;
+}
+
+#selectedMapImage {
+  display:none;
+}
+
+#selectedMapImage img {
+  margin-bottom: 5px;
+}
+
+#selectedMapImageHeader {
+  height: 34px;
+  position: relative;
+}
+
+#selectedMapImageHeader p {
+  position: absolute;
+  bottom: 0px;
+  width: 100%
+}
+
+#rightMapColumn {
+  position: relative;
+  float: right;
+}
+
+#mapCanvas {
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+#mapLoadingBar {
+  position: absolute;
+  display: none;
+  bottom: 80px;
+  left: 15px;
+}
+
+#mapLegend {
+  position: absolute;
+  bottom: 65px;
+  right: 10px;
+  width: 200px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  color: white;
+}
+.mapLegendRow {
+  overflow: hidden;
+  padding: 3px 2px 3px 2px;
+}
+.mapLegendRowIcon {
+  float: left;
+  width: 25px;
+  padding-right: 5px;
+}
+.mapLegendRowText {
+  float: left;
+  width: 165px;
+  text-align: left;
+  line-height: 14px;
+}
+
+/*Fix for Google Maps Zoom Control Display Bug*/
+#mapCanvas img {
+  max-width: none
+}
+
+/*Google Maps Search Box Styling*/
+.controls {
+  margin-top: 16px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  height: 32px;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/*Google Maps Search Box Styling*/
+#pac-input {
+  background-color: #fff;
+  padding: 0 11px 0 13px;
+  width: 50%;
+  font-family: Roboto;
+  font-size: 15px;
+  font-weight: 300;
+  text-overflow: ellipsis;
+}
+
+/*Google Maps Search Box Styling*/
+#pac-input:focus {
+  border-color: #4d90fe;
+  margin-left: -1px;
+  padding-left: 14px;  /* Regular padding-left + 1. */
+  /*width: 401px;*/
+}
+/*Google Maps Search Results Styling*/
+.pac-container {
+  font-family: Roboto;
+  z-index: 10000;
+}
+/*Google Maps Styling*/
+#type-selector {
+  color: #fff;
+  background-color: #4d90fe;
+  padding: 5px 11px 0px 11px;
+}
+/*Google Maps Styling*/
+#type-selector label {
+  font-family: Roboto;
+  font-size: 13px;
+  font-weight: 300;
+}
+/*Google Maps Styling*/
+#target {
+  width: 345px;
+}
+
+
+
 
 /*Fix FF Button Padding*/
 input::-moz-focus-inner {
   border: 0;
   padding: 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*hr {
+  background-color: #12155E;
+  color: #12155E;
+  padding: 0;
+  margin: 0;
+}*/
+
+
+
+/*Elements & Individual Components*/
+
+/*strong {
+  font-weight: bold;
+}*/
+
+
 
 /*body {
   background: -moz-linear-gradient(-45deg, rgba(235,241,246,1) 0%, rgba(171,211,238,1) 50%, rgba(137,195,235,1) 51%, rgba(213,235,251,1) 100%);
@@ -89,13 +534,15 @@ background: linear-gradient(135deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 5
 }*/
 
 
+/*form {
+  padding: 0 20px;
+}*/
+
+/*#wrapper {
+  position: relative;
+  border-radius: 5px;
+  overflow: hidden;
+}*/
 
 
 
-/*Base Structure*/
-
-html {
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 12px;
-  font-weight: normal;
-}

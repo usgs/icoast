@@ -88,11 +88,15 @@ body {
   max-width: 1650px;
   padding: 5px;
   margin: auto;*/
+font-size: 12px;
+  max-width: 1650px;
+  width: auto;
 }
 
-#wrapper {
+/*#wrapper {
   border-radius: 0 0 5px 5px;
-}
+  font-size: 12px;
+}*/
 
 
 
@@ -335,6 +339,7 @@ body {
   padding: 5px 10px 10px 10px;
   text-align: center;
   font-weight: bold;
+
 }
 
 .imageDetails {

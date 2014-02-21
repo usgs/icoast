@@ -20,18 +20,15 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
     <link rel="stylesheet" href="css/icoast.css">
     <link rel="stylesheet" href="css/staticHeader.css">
-    <link rel="stylesheet" href="css/login.css">
   </head>
   <body id="body">
-    <div id="wrapper">
     <?php
     $pageName = "login";
     require("includes/header.php");
     ?>
-    <div id = "loginWrapper">
-      <h1>iCoast - Did the Coast Change?</h1>
-      <h2>Welcome to iCoast!</h2>
-      <div id="forms">
+    <div id = "contentWrapper">
+      <h1>Welcome to iCoast!</h1>
+
 
         <?php
         $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
@@ -61,7 +58,7 @@ EOL;
           <p>Authentication process was cancelled. Click the button below to start the login'
             process again</p>
           <form action="?login" method="post">
-            <button>Login / Register using Google</button>
+            <button>Login or Register with Google</button>
           </form>
                 </div>
 EOL;
@@ -70,7 +67,7 @@ EOL;
             print <<<EOL
           <p>Authentication failed. Click the button below to try again.</p>
           <form action="?login" method="post">
-            <button>Login / Register using Google</button>
+            <button>Login or Register with Google</button>
           </form>
                   </div>
 EOL;
@@ -112,7 +109,7 @@ EOL;
                     print <<<EOL
           <p>Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
           <form action="?login" method="post">
-            <button>Login / Register using Google</button>
+            <button>Login or Register with Google</button>
           </form>
                   </div>
 EOL;
@@ -128,7 +125,5 @@ EOL;
           }
         }
         ?>
-      </div>
-    </div>
   </body>
 </html>

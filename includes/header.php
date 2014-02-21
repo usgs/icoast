@@ -81,108 +81,110 @@ EOL;
     break;
 }
 ?>
-    <script>
+<script>
 
-      var pageName = '<?php print $pageName ?>';
+  var pageName = '<?php print $pageName ?>';
 
-      $(document).ready(function() {
-        if (pageName === 'classify') {
-          $('#usgsColorBand').click(function() {
+  $(document).ready(function() {
+    if (pageName === 'classify') {
+      $('#usgsColorBand').click(function() {
 
-            $('#usgsColorBand').animate({
-              top: "0px"
-            }, 500, "swing");
+        $('#usgsColorBand').animate({
+          top: "0px"
+        }, 500, "swing");
 
-            $('#usgsColorBand img').animate({
-              left: "350px"
-            }, 500, "swing");
+        $('#headerImageWrapper').animate({
+          left: "350px"
+        }, 500, "swing");
 
-            $('#usgsIdentifier').animate({
-              width: "350px"
-            }, 500, "swing");
+        $('#usgsIdentifier').animate({
+          width: "350px"
+        }, 500, "swing");
 
-            $('#usgsIdentifier a').show(0, function() {
-              $('#usgsIdentifier a').animate({
-                opacity: 1
-              }, 500, "swing");
-            });
+        $('#usgsIdentifier a').show(0, function() {
+          $('#usgsIdentifier a').animate({
+            opacity: 1
+          }, 500, "swing");
+        });
 
-            $('#appTitle').animate({
-              left: "190px",
-              top: "7px",
-              margin: "0 0 0 0",
-              fontSize: "48px",
-              lineHeight: "48px"
-            }, 500, "swing");
+        $('#appTitle').animate({
+          left: "190px",
+          top: "7px",
+          margin: "0 0 0 0",
+          fontSize: "48px",
+          lineHeight: "48px"
+        }, 500, "swing");
 
-            $('#appSubtitle').animate({
-              left: "190px",
-              top: "52px"
-            }, 500, "swing");
+        $('#appSubtitle').animate({
+          left: "190px",
+          top: "52px"
+        }, 500, "swing");
 
-            $('#mainHeaderNavigation li').animate({
-              opacity: 1
-            }, 500, "swing");
-
-
+        $('#mainHeaderNavigation li').animate({
+          opacity: 1
+        }, 500, "swing");
 
 
-          }); // End header click (expand) function.
 
 
-          $('#usgsColorBand').mouseleave(function() {
-
-            $('#usgsColorBand').animate({
-              top: "-47px"
-            }, 500, "swing");
-
-            $('#usgsColorBand > img').animate({
-              left: "252px"
-            }, 500, "swing");
-
-            $('#usgsIdentifier').animate({
-              width: "252px"
-            }, 500, "swing");
-
-            $('#usgsIdentifier a').animate({
-              opacity: 0
-            }, 500, "swing", function() {
-              $('#usgsIdentifier a').hide(0);
-            });
-
-            $('#appTitle').animate({
-              left: "0px",
-              top: "47px",
-              margin: "0 0 0 15",
-              fontSize: "25px",
-              lineHeight: "25px"
-            }, 500, "swing");
-
-            $('#appSubtitle').animate({
-              left: "97px",
-              top: "56px"
-            }, 500, "swing");
-
-            $('#mainHeaderNavigation li').animate({
-              opacity: 0
-            }, 500, "swing");
-
-          }); // End header mouseleave (collapse) function.
-        }
-
-      }); // End Document Ready
-    </script>
+      }); // End header click (expand) function.
 
 
-    <div id="usgsColorBand">
-      <div id="usgsIdentifier">
-        <a href="http://www.usgs.gov">
-          <img src="images/system/usgsIdentifier.jpg" alt="USGS - science for a changing world" title="U.S. Geological Survey Home Page" width="178" height="72" />
-        </a>
-      </div>
-      <img src="images/system/hurricaneBanner.jpg" />
-      <p id="appTitle">iCoast</p>
-      <p id="appSubtitle">did the coast change?</p>
-      <?php print $mainNavHTML ?>
-    </div>
+      $('#usgsColorBand').mouseleave(function() {
+
+        $('#usgsColorBand').animate({
+          top: "-47px"
+        }, 500, "swing");
+
+        $('#headerImageWrapper').animate({
+          left: "252px"
+        }, 500, "swing");
+
+        $('#usgsIdentifier').animate({
+          width: "252px"
+        }, 500, "swing");
+
+        $('#usgsIdentifier a').animate({
+          opacity: 0
+        }, 500, "swing", function() {
+          $('#usgsIdentifier a').hide(0);
+        });
+
+        $('#appTitle').animate({
+          left: "0px",
+          top: "47px",
+          margin: "0 0 0 15",
+          fontSize: "25px",
+          lineHeight: "25px"
+        }, 500, "swing");
+
+        $('#appSubtitle').animate({
+          left: "97px",
+          top: "56px"
+        }, 500, "swing");
+
+        $('#mainHeaderNavigation li').animate({
+          opacity: 0
+        }, 500, "swing");
+
+      }); // End header mouseleave (collapse) function.
+    }
+
+  }); // End Document Ready
+</script>
+
+
+<div id="usgsColorBand">
+  <div id="usgsIdentifier">
+    <a href="http://www.usgs.gov">
+      <img src="images/system/usgsIdentifier.jpg" alt="USGS - science for a changing world" title="U.S. Geological Survey Home Page" width="178" height="72" />
+    </a>
+    <p id="appTitle">iCoast</p>
+    <p id="appSubtitle">did the coast change?</p>
+  </div>
+  <div id="headerImageWrapper">
+    <img src="images/system/hurricaneBanner.jpg" />
+  </div>
+  <?php print $mainNavHTML ?>
+</div>
 

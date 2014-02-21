@@ -1,101 +1,89 @@
-html {
-  position: relative;
-  height: 100%;
-  min-height: 100%;
-  width: 100%;
-  font-size: 14px;
-}
 
-body{
+/*#wrapper {
   height: 100%;
   width: 100%;
-}
+}*/
 
-#wrapper {
-  height: 100%;
-  width: 100%;
-}
-
-#loginWrapper {
+/*#loginWrapper {
   position: fixed;
   top: 50%;
   left: 50%;
   margin-top: -150px;
-  margin-left: -400px;
+  margin-left: -400px;*/
   /*height: 430px;*/
-  width: 800px;
-  overflow: hidden;
+  /*width: 800px;*/
+
   /*background: rgba(255, 255, 5255, 0.5);*/
-  background-color: #C7DBCC;
+/*  background-color: #C7DBCC;
   text-align: center;
-  border-radius: 10px;
-  padding: 0px 10px 10px 10px;
-}
+  border-radius: 0 0 10px 10px;
+  padding: 20px;
+}*/
 
-#forms {
+/*#forms {
   overflow: auto;
-}
+}*/
 
-#signInFormWrapper,
-#registerFormWrapper,
-.formFieldRow label,
+/*#signInFormWrapper,
+#registerFormWrapper,*/
+/*.formFieldRow label,
 .formFieldRow input,
 .formFieldRow select {
   float:left;
-}
+}*/
 
-#signInFormWrapper {
+/*#signInFormWrapper {
   width: 310px;
-}
+}*/
 
-#registerFormWrapper {
+/*#registerFormWrapper {
   width: 385px;
   border-left: grey solid 1px;
-}
+}*/
 
-form {
+/*form {
   padding: 0 20px;
-}
+}*/
 
-.buttonForm {
+/*.buttonForm {
   display: inline-block;
   height: 35px;
-  /*padding: 0 5px 0 0;*/
-}
+  padding: 0 5px 0 0;
+}*/
 
-.formFieldRow {
+/*.formFieldRow {
   text-align: right;
-  vertical-align: middle;
   min-hight: 22px;
   margin: 10px 0;
   overflow: hidden;
-}
+}*/
 
-.formFieldRow label {
+/*.formFieldRow label {
   height: 100%;
   width: 40%;
   margin-right: 5px;
   display: inline-block;
-  line-height: 22px;
-}
+  line-height: 44px;
+}*/
 
-#projectIdSelect {
-  margin: 0 0 10px 0;
-}
+/*.standAloneButton select,
+.standAloneButton input {
+  position: relative;
+  left: -115px;
+  margin: 0 50%
+}*/
 
-#registerFormWrapper label {
+/*#registerFormWrapper label {
   width: 140px;
-}
+}*/
 
-label.error {
-  margin: 0;
+/*#registerForm label.error {
+  line-height: 22px;
   text-align: center;
   color: red;
   font-size: 0.8em;
-  display: block;
-  clear: both;
   width: 100%;
-}
+}*/
 
 
 
@@ -105,58 +93,49 @@ label.error {
 
 
 
-h1 {
+/*h1 {
   font-size: 2em;
-  text-align: center;
   margin: 20px 20px 10px 20px ;
-  font-weight: bold;
-  /*text-shadow: #666666 2px 2px 2px;*/
-}
+}*/
 
-h2 {
+/*h2 {
   font-size: 1.3em;
-  text-align: center;
-  font-weight: bold;
   margin: 10px 10px;
-  /*text-shadow: #666666 2px 2px 2px;*/
-}
+}*/
 
 h3 {
-  /*font-size: 1.3em;*/
   text-align: center;
   font-weight: bold;
   margin: 8px 8px;
-  /*text-shadow: #666666 2px 2px 2px;*/
 }
 
-#loginWrapper p {
+/*#contentWrapper p {
   font-weight: bold;
   margin: 10px 20px;
   line-height: 1.2em;
-}
-table {
+}*/
+
+/*table {
   margin: 10px auto 10px;;
   text-align: left;
 }
 
 td {
   padding: 3px 10px;
-    font-weight: bold;
-}
+}*/
 
-#loginWrapperFooter p {
-  padding: 0 10px;
+/*#contentWrapperFooter p {
   text-align: left;
   font-size: 0.8em;
-}
+}*/
 
-.phpFormError {
+/*.phpFormError {
   color: #FF0000;
-}
+}*/
 
-.userData {
+/*.userData {
   color: #5384ed;
-}
+}*/
 
 
 
@@ -169,7 +148,7 @@ td {
 
 /* Formatting for regular form buttons*/
 
-.formButton {
+/*.formButton {
   position: relative;
   top: -6px;
   -moz-box-sizing: content-box;
@@ -193,11 +172,11 @@ td {
 .formButton:hover, .formButton:active {
   margin: 3px;
   border: 2px solid black;
-}
+}*/
 
 /* Formatting for form input buttons */
 
-.labelButton, select, input {
+/*.labelButton, select, input {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
   background: #FFFFFF;
@@ -209,14 +188,14 @@ td {
   font-weight: bold;
   box-shadow: 3px 3px 3px #888888;
   margin: 4px;
-}
+}*/
 
-.labelButton:hover, .labelButton:active {
+/*.labelButton:hover, .labelButton:active {
   margin: 3px;
   border: 2px solid black;
-}
+}*/
 
-.labelButtonText {
+/*.labelButtonText {
   line-height: 20px;
   display: table-cell;
   text-align: center;
@@ -243,8 +222,8 @@ td {
 
 .labelButtonInput[type="checkbox"], .labelButtonInput[type="radio"] {
   display: none;
-}
+}*/
 
-#registerCrowdType, #registerOther, #registerAffiliation {
+/*#registerCrowdType, #registerOther, #registerAffiliation {
   width: 230px;
-}
+}*/
