@@ -35,7 +35,7 @@ if (isset($_POST['userId']) && is_numeric($_POST['userId'])) {
       <h1>Logged Out of iCoast</h1>
       <p>You have successfully logged out of iCoast</p>
       <form method="post" action="login.php">
-        <input type="submit" class = "formButton" value="Login to iCoast" />
+        <input type="submit" class = "clickableButton formButton" value="Login to iCoast" />
       </form>
     </div>
   </body>

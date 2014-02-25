@@ -1,88 +1,28 @@
-body {
-  /*padding: 5px;*/
-  font-size: 14px;
-}
-
 #aboutWrapper {
-  margin-top: 72px;
-  background-color: #C7DBCC;
-  padding: 15px 15px;
-  overflow: hidden;
+    overflow: hidden;
+    text-align: left;
 }
 
-h1 {
-  font-size: 2.5em;
-  font-weight: bold;
-  margin: 10px 0;
-  text-shadow: 2px 2px 2px #666666;
+#aboutWrapper a {
+    color: #444444;
+    text-decoration: none;
 }
 
-h2 {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin: 20px 0 20px;
+#aboutWrapper a:hover {
+    color: #888888;
 }
 
-h3 {
-  margin: 10px 0;
-    font-size: 1.3em;
-  font-weight: bold;
-    clear: both;
+.teamColumn {
+    width: 50%;
+    float: left;
 }
 
-#aboutWrapper p {
-  font-weight: bold;
-    line-height: 1.2em;
-    margin-bottom: 1em;
+.teamColumn>div {
+    overflow: hidden;
 }
 
-a {
-  color: #444444;
-}
-
-a:hover {
-  color: #888888;
-}
-
-#team {
-  overflow: hidden;
-  width: 100%;
-}
-
-#teamLeftColumn {
-  width: 50%;
-  float: left;
-}
-
-#teamRightColumn {
-  width: 50%;
-  float: right;
-}
-
-.teamMember {
-  overflow: hidden;
-}
-
-.teamImageWrapper {
-  float: left;
-  width: 100px;
-  clear: both;
-  margin: 10px;
-}
-
-.teamImageWrapper img {
-  border-radius: 5px;
-}
-
-.teamDescriptionWrapper {
-
-  float: left;
-}
-
-.teamDescriptionWrapper p {
-}
-
-.teamPosition {
-  font-size: 1.1em;
-  font-weight: bold;
+.teamColumn img {
+    float: left;
+    border-radius: 5px;
+    margin: 10px;
 }

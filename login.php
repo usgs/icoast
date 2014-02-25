@@ -40,7 +40,7 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
                 extreme storms.</p>
           <p>Click button below to Login or Register using a Google Account</p>
           <form action="?login" method="post">
-          <input type="submit" class="formButton" id="registerSubmitButton" value="Login or Register with Google" />
+          <input type="submit" class="clickableButton formButton" id="registerSubmitButton" value="Login or Register with Google" />
           </form>
                 </div>
 EOL;

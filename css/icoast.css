@@ -1,3 +1,4 @@
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*CSS Reset*/
 
 html, body, div, span, applet, object, iframe,
@@ -13,528 +14,756 @@ article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
 }
 
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
-  display: block;
+    display: block;
 }
 
 body {
-  line-height: 1;
+    line-height: 1;
 }
 
 ol, ul {
-  list-style: none;
+    list-style: none;
 }
 blockquote, q {
-  quotes: none;
+    quotes: none;
 }
 blockquote:before, blockquote:after,
 q:before, q:after {
-  content: '';
-  content: none;
+    content: '';
+    content: none;
 }
 table {
-  border-collapse: collapse;
-  border-spacing: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
 }
 
 
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*All Pages*/
 
 html {
-  height: 100%;
-
-  background: #040535;
-
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 14px;
-  font-weight: bold;
+    height: 100%;
 }
 
 body {
-  position: relative;
-  height: 100%;
-  min-height: 600px;
-  width: 950px;/*
-  max-width: 1650px;*/
-  margin: auto;
+    position: relative;
+    height: 100%;
+    min-height: 600px;
+    min-width: 950px;
+    max-width: 1920px;
+    text-align: center;
+    font-family: 'Noto Sans', sans-serif;
+    font-weight: bold;
+    background: #040535;
 
-  /*overflow: hidden;*/
-}
-
-/*All Non-Classification Pages*/
-
-#contentWrapper {
-  background-color: #C7DBCC;
-  text-align: center;
-  border-radius: 0 0 10px 10px;
-  padding: 1px 20px 10px 20px;
-}
-
-#contentWrapper p {
-  /*font-weight: bold;*/
-  margin: 10px 20px;
-  line-height: 1.2em;
-}
-
-#contentWrapperFooter p {
-  text-align: left;
-  font-size: 0.8em;
+    /*overflow: hidden;*/
 }
 
 h1 {
-  clear: both;
-  font-size: 2em;
-  margin: 20px 20px 10px 20px ;
+    font-size: 2em;
+    margin: 20px 10px 10px 10px ;
 }
 
-h2 {
-  clear: both;
-  font-size: 1.3em;
-  margin: 10px 10px;
+h2, h3{
+    font-size: 1.3em;
+    margin: 10px 10px;
 }
 
 img {
-  border-radius: 5px;
-  max-width: 100%;
-}
-
-table {
-  margin: 10px auto 10px;;
-  text-align: left;
-}
-
-td {
-  padding: 3px 10px;
-}
-
-.userData {
-  color: #5384ed;
+    border-radius: 5px;
+    max-width: 100%;
 }
 
 .clickableButton {
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  vertical-align: middle;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    vertical-align: middle;
 
-  margin: 4px;
-  border: 1px solid black;
-  border-radius: 20px;
-  padding: 6px 10px;
+    margin: 4px;
+    border: 1px solid black;
+    border-radius: 20px;
+    padding: 6px 10px;
 
-  background: #FFFFFF;
-  font: inherit;
-  font-weight: bold;
-  box-shadow: 3px 3px 3px #888888;
+    background: #FFFFFF;
+    font: inherit;
+    font-weight: bold;
+    box-shadow: 3px 3px 3px #888888;
 }
 
 .clickableButton:hover, .clickableButton:active {
-  margin: 3px;
-  border: 2px solid black;
-  background: #5384ED;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #8fadea 70%, #5384ed 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#8fadea), color-stop(100%,#5384ed));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  box-shadow: 6px 6px 6px #888888;
+    margin: 3px;
+    border: 2px solid black;
+    /*    background: #5384ED;
+        background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #8fadea 70%, #5384ed 100%);
+        background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#8fadea), color-stop(100%,#5384ed));
+        background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+        background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+        background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
+        background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);*/
+    box-shadow: 6px 6px 6px #888888;
 }
 
-.clickableButtonToggled {
-  margin: 3px;
-  border: 2px solid black;
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  box-shadow: 6px 6px 6px #888888;
+/*Fix FF Button Padding*/
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/*Google Maps*/
+
+/*Fix for Google Maps Zoom Control Display Bug*/
+#mapCanvas img, #mapInsert img {
+    max-width: none
+}
+
+/*Google Maps Search Box Styling*/
+.controls {
+    margin-top: 16px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    height: 32px;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/*Google Maps Search Box Styling*/
+#pac-input {
+    background-color: #fff;
+    padding: 0 11px 0 13px;
+    width: 50%;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    text-overflow: ellipsis;
+}
+
+/*Google Maps Search Box Styling*/
+#pac-input:focus {
+    border-color: #4d90fe;
+    margin-left: -1px;
+    padding-left: 14px;  /* Regular padding-left + 1. */
+    /*width: 401px;*/
+}
+/*Google Maps Search Results Styling*/
+.pac-container {
+    font-family: Roboto;
+    z-index: 10000;
+}
+/*Google Maps Styling*/
+#type-selector {
+    color: #fff;
+    background-color: #4d90fe;
+    padding: 5px 11px 0px 11px;
+}
+/*Google Maps Styling*/
+#type-selector label {
+    font-family: Roboto;
+    font-size: 13px;
+    font-weight: 300;
+}
+/*Google Maps Styling*/
+#target {
+    width: 345px;
+}
+
+
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*All Pages except About and Classification*/
+
+#contentWrapper {
+    width: 910px;
+    margin: auto;
+    background-color: #C7DBCC;
+    font-size: 14px;
+    border-radius: 0 0 10px 10px;
+    padding: 1px 20px 10px 20px;
+}
+
+#contentWrapper p {
+    margin: 10px 20px;
+    line-height: 1.2;
+}
+
+#contentWrapperFooter p {
+    text-align: left;
+    font-size: 0.8em;
+}
+
+table {
+    margin: 10px auto 10px;;
+    text-align: left;
+}
+
+td {
+    padding: 3px 10px;
+}
+
+.userData {
+    color: #5384ed;
 }
 
 .formFieldRow {
-  min-height: 22px;
-  overflow: hidden;
+    min-height: 22px;
+    overflow: hidden;
 }
 
 .formFieldRow label,
 .formFieldRow input,
 .formFieldRow select {
-  float:left;
+    float:left;
 }
 
 .formFieldRow label {
-  width: 40%;
-  margin-right: 5px;
-  line-height: 44px;
-  text-align: right;
+    width: 40%;
+    margin-right: 5px;
+    line-height: 44px;
+    text-align: right;
 }
 
 .formFieldRow input,
 .formFieldRow select {
-  width: 230px;
-  text-align: center;
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  background: #FFFFFF;
-  /*display: inline-table;*/
-  border: 1px solid black;
-  padding: 6px 10px;
-  border-radius: 5px;
-  font: inherit;
-  font-weight: bold;
-  box-shadow: 3px 3px 3px #888888;
-  margin: 8px;
+    width: 230px;
+    text-align: center;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    background: #FFFFFF;
+    /*display: inline-table;*/
+    border: 1px solid black;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font: inherit;
+    font-weight: bold;
+    box-shadow: 3px 3px 3px #888888;
+    margin: 8px;
 }
 
 .standAloneFormElement select,
 .standAloneFormElement input {
-  position: relative;
-  left: -126px;
-  margin: 0 0 5px 50%;
+    position: relative;
+    left: -126px;
+    margin: 0 0 5px 50%;
 }
 
 #registerForm label.error {
-  line-height: 22px;
-  text-align: center;
-  color: red;
-  font-size: 0.8em;
-  width: 100%;
+    line-height: 22px;
+    text-align: center;
+    color: red;
+    font-size: 0.8em;
+    width: 100%;
 }
 
 .formButton {
-  position: relative;
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  margin: 8px 4px;
-  border: 1px solid black;
-  border-radius: 5px;
-  padding: 6px 10px;
-
-  background: #FFFFFF;
-  font: inherit;
-  font-weight: bold;
-
-  box-shadow: 3px 3px 3px #888888;
-
+    margin: 8px 4px;
+    border-radius: 5px;
 }
 
 .formButton:hover, .formButton:active {
-  margin: 7px 4px;
-  border: 2px solid black;
-  box-shadow: 6px 6px 6px #888888
+    margin: 7px 4px;
 }
 
 .disabledFormButton {
-  background: #BBBBBB;
-  opacity: 0.5;
+    background: #BBBBBB;
+    opacity: 0.5;
 }
 
 .postNavButtonWrapper {
-  position: relative;
-  display: inline-block;
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 10px;
+    position: relative;
+    display: inline-block;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 /*Builds on .formButton*/
 .postNavButtonWrapper .formButton {
-  margin: 4px 8px;
-  padding: 6px;
+    margin: 4px 8px;
+    padding: 6px;
 }
 
 /*Builds on .formButton*/
 .postNavButtonWrapper .formButton:hover, .postNavButtonWrapper .formButton:active {
-  margin: 1px 5px;
-  border: 4px solid black;
+    margin: 1px 5px;
+    border: 4px solid black;
 }
 
 .postNavButtonWrapper .disabledFormButton:hover,
 .postNavButtonWrapper disabledFormButton:active {
-  margin: 4px 8px;
-  border: 1px solid black;
-  box-shadow: 3px 3px 3px #888888
+    margin: 4px 8px;
+    border: 1px solid black;
+    box-shadow: 3px 3px 3px #888888
 }
 
 #annotationDetails {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 #annotationDetails img {
-  float: left;
-  margin: 0 20px 10px 20px;;
-  box-shadow: 5px 5px 5px #666666;
+    float: left;
+    margin: 0 20px 10px 20px;;
+    box-shadow: 5px 5px 5px #666666;
 }
 
 #annotationDetails table {
-  float: left;
-  margin: 0 20px;
+    float: left;
+    margin: 0 20px;
 }
 
 #coastalNavigationImage {
-  position: absolute;
-  border: 1px solid black;
-  bottom: 52px;
-  left: 82px;
-  height: 50px;
+    position: absolute;
+    border: 1px solid black;
+    bottom: 52px;
+    left: 82px;
+    height: 50px;
 }
-
-
-
 
 /*Map*/
 
 #mapWrapper {
-  display:none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 590px;
-  min-width: 940px;
-  z-index: 9999;
-  background: rgba(0, 0, 0, .6);
-  font-size: 12px;
+    display:none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 590px;
+    min-width: 940px;
+    z-index: 9999;
+    background: rgba(0, 0, 0, .6);
+    font-size: 12px;
 }
 
 #mapWrapper h1 {
-  margin: 10px 10px 20px 10px;
-  font-size: 1.5em;
+    margin: 10px 10px 20px 10px;
+    font-size: 1.5em;
 }
 
 #mapContent p {
-  margin: 5px 0px;
+    margin: 5px 0px;
 }
 
 #mapContent {
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width:80%;
-  height: 80%;
-  background-color: white;
-  border-radius: 5px;
-  text-align: center;
-  padding: 0 10px;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width:80%;
+    height: 80%;
+    background-color: white;
+    border-radius: 5px;
+    text-align: center;
+    padding: 0 10px;
 }
 
 
 #mapHide {
-  background: #e56969;
-  font-size: 0.5em;
-  float: right;
-  margin-right: 5px;
-  padding: 3px 10px;
+    background: #e56969;
+    font-size: 0.5em;
+    float: right;
+    margin-right: 5px;
+    padding: 3px 10px;
 }
 
 #mapHide:hover, #mapHide:active {
-  margin-right: 4px;
+    margin-right: 4px;
 }
 
 .mapColumn {
-  overflow: hidden;
-  margin: 0 15px;
+    overflow: hidden;
+    margin: 0 15px;
 }
 
 #leftMapColumn {
-  width: 36%;
-  float: left;
+    width: 36%;
+    float: left;
 }
 
 #selectedMapImage {
-  display:none;
+    display:none;
 }
 
 #selectedMapImage img {
-  margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 #selectedMapImageHeader {
-  height: 34px;
-  position: relative;
+    height: 34px;
+    position: relative;
 }
 
 #selectedMapImageHeader p {
-  position: absolute;
-  bottom: 0px;
-  width: 100%
+    position: absolute;
+    bottom: 0px;
+    width: 100%
 }
 
 #rightMapColumn {
-  position: relative;
-  float: right;
+    position: relative;
+    float: right;
 }
 
 #mapCanvas {
-  margin-bottom: 5px;
-  border-radius: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
 }
 
 #mapLoadingBar {
-  position: absolute;
-  display: none;
-  bottom: 80px;
-  left: 15px;
+    position: absolute;
+    display: none;
+    bottom: 80px;
+    left: 15px;
 }
 
 #mapLegend {
-  position: absolute;
-  bottom: 65px;
-  right: 10px;
-  width: 200px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  color: white;
+    position: absolute;
+    bottom: 65px;
+    right: 10px;
+    width: 200px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    color: white;
 }
 .mapLegendRow {
-  overflow: hidden;
-  padding: 3px 2px 3px 2px;
+    overflow: hidden;
+    padding: 3px 2px 3px 2px;
 }
 .mapLegendRowIcon {
-  float: left;
-  width: 25px;
-  padding-right: 5px;
+    float: left;
+    width: 25px;
+    padding-right: 5px;
 }
 .mapLegendRowText {
-  float: left;
-  width: 165px;
-  text-align: left;
-  line-height: 14px;
-}
-
-/*Fix for Google Maps Zoom Control Display Bug*/
-#mapCanvas img {
-  max-width: none
-}
-
-/*Google Maps Search Box Styling*/
-.controls {
-  margin-top: 16px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/*Google Maps Search Box Styling*/
-#pac-input {
-  background-color: #fff;
-  padding: 0 11px 0 13px;
-  width: 50%;
-  font-family: Roboto;
-  font-size: 15px;
-  font-weight: 300;
-  text-overflow: ellipsis;
-}
-
-/*Google Maps Search Box Styling*/
-#pac-input:focus {
-  border-color: #4d90fe;
-  margin-left: -1px;
-  padding-left: 14px;  /* Regular padding-left + 1. */
-  /*width: 401px;*/
-}
-/*Google Maps Search Results Styling*/
-.pac-container {
-  font-family: Roboto;
-  z-index: 10000;
-}
-/*Google Maps Styling*/
-#type-selector {
-  color: #fff;
-  background-color: #4d90fe;
-  padding: 5px 11px 0px 11px;
-}
-/*Google Maps Styling*/
-#type-selector label {
-  font-family: Roboto;
-  font-size: 13px;
-  font-weight: 300;
-}
-/*Google Maps Styling*/
-#target {
-  width: 345px;
+    float: left;
+    width: 165px;
+    text-align: left;
+    line-height: 14px;
 }
 
 
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*About Page*/
 
+#aboutWrapper {
+    overflow: hidden;
+    text-align: left;
+}
 
-/*Fix FF Button Padding*/
-input::-moz-focus-inner {
-  border: 0;
-  padding: 0;
+#aboutWrapper a {
+    color: #444444;
+    text-decoration: none;
+}
+
+#aboutWrapper a:hover {
+    color: #888888;
+}
+
+.teamColumn {
+    width: 50%;
+    float: left;
+}
+
+.teamColumn>div {
+    overflow: hidden;
+}
+
+.teamColumn img {
+    float: left;
+    border-radius: 5px;
+    margin: 10px;
 }
 
 
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Classification Page*/
+
+#classificationWrapper {
+    font-size: 12px;
+    line-height: 1.1;
+}
+
+/*Images Section*/
+
+#images {
+    padding-top: 25px;
+    overflow: hidden;
+    background-color: #DDDDDD;
+}
+
+.imageColumn {
+    width: 43%;
+    position: relative;
+    /*overflow: hidden;*/
+    float: left;
+}
+
+#images>div:nth-of-type(2) {
+    width: 14%;
+    padding-bottom: 5px;
+}
+
+#images>div:nth-of-type(2) img{
+    border-radius: 0;
+}
+
+/*Images Pictures*/
+
+.imageColumnContent {
+    position: relative;
+    clear:both;
+    padding: 5px;
+    margin: auto;
+}
+
+#preImage, #postImage {
+    display:block;
+    margin:auto;
+    box-shadow: #666666 5px 5px 5px;
+}
+
+.zoomLoadingIndicator {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+}
+
+.imageColumnTitle {
+    padding: 5px 10px 10px;
+}
+
+.imageColumnTitle p:first-child {
+    font-size: 1.2em;
+    line-height: 1.2;
+}
+
+#mapInsert {
+    width: 98%;
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px #666666;
+}
+
+/*Annotation Section*/
+
+#annotationWrapper {
+    min-height: 343px;
+    border-radius: 0 0 5px 5px;
+    border-top: 2px solid grey;
+    position: relative;
+    background-color: #C7DBCC;
+}
 
 
+/*Pre-image navigation*/
+#preNavigationCenteringWrapper {
+    position: absolute;
+    top: 90px;
+    width: 100%;
+}
+
+#preNavigationWrapper {
+    margin: 0 auto;
+    width: 700px;
+    overflow: hidden;
+}
+
+.navThumbnailWrapper {
+    float: left;
+    width: 19%;
+}
+
+.currentThumbnailWrapper {
+    width: 24%;
+}
+
+.navThumbnailWrapper img {
+    height: auto;
+    max-width: 90%;
+    margin: auto;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.navThumbnailWrapper img:hover {
+    border: 3px solid #5384ed;
+    padding: 0px;
+}
+
+#computerMatch {
+    padding: 0;
+    border: 3px solid #e56969;
+}
 
 
+/*Tasks*/
+.task {
+    display: none;
+}
 
+.task h1 {
+    display: none;
+    padding: 5px 10px 0px 30px;
+    text-align: left;
+    margin: 0;
+    font-size: 1.5em;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*hr {
-  background-color: #12155E;
-  color: #12155E;
-  padding: 0;
-  margin: 0;
+/* Task Text is currently removed from functionality. Possible removal of this CSS.
+.taskText {
+    text-align: left;
 }*/
 
-/*Elements & Individual Components*/
+.annotationForm {
+    padding-bottom: 44px;
+}
 
-/*strong {
-  font-weight: bold;
-}*/
+.groupWrapper {
+    display: inline-block;
+}
 
-/*body {
-  background: -moz-linear-gradient(-45deg, rgba(235,241,246,1) 0%, rgba(171,211,238,1) 50%, rgba(137,195,235,1) 51%, rgba(213,235,251,1) 100%);
-background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,rgba(235,241,246,1)), color-stop(50%,rgba(171,211,238,1)), color-stop(51%,rgba(137,195,235,1)), color-stop(100%,rgba(213,235,251,1)));
-background: -webkit-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-background: -o-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-background: -ms-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-background: linear-gradient(135deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-}*/
+.groupWrapper h2, .groupWrapper h3 {
+    font-size: 1.2em;
+    margin: 5px 5px 0px;
+}
 
-/*form {
-  padding: 0 20px;
-}*/
+.annotationGroup, .annotationGroupGroup, .annotationSubgroup {
+    margin: 5px;
+    float: left;
+    border-radius: 5px;
+}
 
-/*#wrapper {
-  position: relative;
-  border-radius: 5px;
-  overflow: hidden;
-}*/
+.annotationSubgroup {
+    margin: 0 10px;
+}
+
+.tagInstruction {
+    font-weight: normal;
+}
+
+
+/*Tags*/
+
+.tagColumn {
+    display: inline-block;
+    vertical-align: top;
+    min-width: 112px;
+}
+
+.tag {
+    background: #FFFFFF;
+    display: table;
+    border: 1px solid black;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    width: 90px;
+    height: 30px;
+    font-size:0.91em;
+    box-shadow: 3px 3px 3px #222222;
+}
+
+.tag:hover {
+    border-width: 2px;
+    padding: 4px;
+    box-shadow: 6px 6px 6px #222222;
+}
+
+input[type="checkbox"]:checked + .tag, input[type="radio"]:checked + .tag {
+    background: #e56969;
+    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    border-width: 3px;
+    padding: 3px;
+}
+
+input[type="checkbox"], input[type="radio"] {
+    display: none;
+}
+
+.tagText {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    /*Stop selection of text in button*/
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.tagToolTip img {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 0 5px 0;
+}
+
+#annotationControls {
+    position: absolute;
+    bottom: 5px;
+    width:90%;
+    margin: 0 5%;
+}
+
+#annotationControls input:first-of-type {
+    float:left;
+}
+
+#annotationControls input:last-of-type {
+    float:right;
+}
+
+#progressTrackerCenteringWrapper {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+}
+
+#progressTrackerItemWrapper {
+    margin: 4px 0 4px -50%;
+    height: 30px;
+}
+
+.progressTrackerItem {
+    display: inline-block;
+    vertical-align: middle;
+    width: 10px;
+    height:10px;
+    margin: 0 6px;
+    border: 2px solid black;
+    border-radius: 14px;
+    background: black;
+    text-align: center;
+}
+
+.progressTrackerItem p {
+    display: none;
+    line-height: 26px;
+}
+
+.currentProgressTrackerItem {
+    width: 26px;
+    height:26px;
+    margin: 0 5px;
+    background: #e56969;
+    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+}

@@ -1,6 +1,19 @@
 <?php
+define('STATIC_HEADER', '<link rel="stylesheet" href="css/staticHeader.css">');
+define('DYNAMIC_HEADER', '<link rel="stylesheet" href="css/dynamicHeader.css">');
+$headerCSSLink = STATIC_HEADER;
+
+$pageName = (!isset($pageName)) ? '' : $pageName;
+$pageSpecificExternalCSSLinkArray = (!isset($pageSpecificExternalCSSLinkArray)) ? array() : $pageSpecificExternalCSSLinkArray;
+$pageSpecificEmbeddedCSS = (!isset($pageSpecificEmbeddedCSS)) ? '' : $pageSpecificEmbeddedCSS;
+$pageSpecificJavaScriptLinkArray = (!isset($pageSpecificJavaScriptLinkArray)) ? array() : $pageSpecificJavaScriptLinkArray;
+$pageSpecificJavaScript = (!isset($pageSpecificJavaScript)) ? '' : $pageSpecificJavaScript;
+$pageSpecificJQueryDocumentReadyCode = (!isset($pageSpecificJQueryDocumentReadyCode)) ? '' : $pageSpecificJQueryDocumentReadyCode;
+$pageBodyHTML = (!isset($pageBodyHTML)) ? '' : $pageBodyHTML;
+
 switch ($pageName) {
     case "welcome":
+        $pageTitle = "iCoast: Welcome to iCoast";
         $mainNavHTML = <<<EOL
       <ul id="mainHeaderNavigation">
         <li id="activePageLink">Home</li>
@@ -12,13 +25,11 @@ switch ($pageName) {
 EOL;
         break;
     case "classify":
-        ?>
-        <script>
-
+        $pageTitle = "iCoast: Classification";
+        $headerCSSLink = DYNAMIC_HEADER;
+        $pageSpecificJavaScript .= <<<EOL
             var pageName = '<?php print $pageName ?>';
-
             $(document).ready(function() {
-                if (pageName === 'classify') {
                     $('#usgsColorBand').click(function() {
 
                         $('#usgsColorBand').animate({
@@ -100,13 +111,22 @@ EOL;
                         }, 500, "swing");
 
                     }); // End header mouseleave (collapse) function.
-                }
-
             }); // End Document Ready
-        </script>
-    <?php
+EOL;
     case "start":
+        $pageTitle = "iCoast: Choose Your Photo";
+        $mainNavHTML = <<<EOL
+            <ul id="mainHeaderNavigation">
+              <li><a href="welcome.php">Home</a></li>
+              <li class="missingPageLink">Help</a></li>
+              <li><a href="about.php">About</a></li>
+              <li class="missingPageLink">Profile</li>
+              <li><a href="logout.php">Logout</a></li>
+            </ul>
+EOL;
+        break;
     case "complete":
+        $pageTitle = "iCoast: Annotation Summary";
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -118,6 +138,7 @@ EOL;
 EOL;
         break;
     case "help":
+        $pageTitle = "iCoast: Help";
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -129,7 +150,7 @@ EOL;
 EOL;
         break;
     case "about":
-        $pageTitle = 'iCoast: About iCoast - Did the Coast Change';
+        $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -141,6 +162,7 @@ EOL;
 EOL;
         break;
     case "profile":
+        $pageTitle = "iCoast: User Profile";
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -152,6 +174,7 @@ EOL;
 EOL;
         break;
     case "logout":
+        $pageTitle = "iCoast - User Logout";
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -163,7 +186,7 @@ EOL;
 EOL;
         break;
     case "login":
-    case "registration":
+        $pageTitle = "iCoast - User Login";
         $mainNavHTML = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
@@ -173,22 +196,20 @@ EOL;
             </ul>
 EOL;
         break;
+    case "registration":
+        $pageTitle = "iCoast - User Registration";
+        $mainNavHTML = <<<EOL
+            <ul id="mainHeaderNavigation">
+              <li><a href="welcome.php">Home</a></li>
+              <li class="missingPageLink">Help</a></li>
+              <li><a href="about.php">About</a></li>
+              <li class="missingPageLink">Profile</li>
+            </ul>
+EOL;
+        break;
+    default:
+        header('Location: login.php');
+        break;
 }
-?>
 
-
-<div id = "usgsColorBand">
-    <div id = "usgsIdentifier">
-        <a href = "http://www.usgs.gov">
-            <img src = "images/system/usgsIdentifier.jpg" alt = "USGS - science for a changing world" title = "U.S. Geological Survey Home Page" width = "178" height = "72" />
-        </a>
-        <p id = "appTitle">iCoast</p>
-        <p id = "appSubtitle">did the coast change?</p>
-    </div>
-    <div id = "headerImageWrapper">
-        <img src = "images/system/hurricaneBanner.jpg" />
-    </div>
-    <?php print $mainNavHTML
-    ?>
-</div>
 

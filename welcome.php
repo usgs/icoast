@@ -52,7 +52,7 @@ if ($numberOfProjects >= 2) {
               $projectSelectOptionHTML
             </select>
           </div>
-        <input type="submit" id="" class="formButton" value="Tag Chosen Project" />
+        <input type="submit" id="" class="clickableButton formButton" value="Tag Chosen Project" />
       </form>
 EOL;
 } else if ($numberOfProjects == 1) {
@@ -61,7 +61,7 @@ EOL;
   $selectProjectButtonHTML = <<<EOL
       <form method="post" action="start.php" class="buttonForm">
         <input type="hidden" name="projectId" value="$onlyProjectId" />
-        <input type="submit" id="continueClassifyingButton" class="formButton" value="Start Tagging $onlyProjectName Project" />
+        <input type="submit" id="continueClassifyingButton" class="clickableButton formButton" value="Start Tagging $onlyProjectName Project" />
       </form>
 EOL;
 } else {
@@ -214,7 +214,7 @@ EOL;
       $bodyHTML .= <<<EOL
  <form method="post" action="start.php" class="buttonForm">
               <input type="hidden" name="projectId" value="$lastProjectId" />
-              <input type="submit" id="continueClassifyingButton" class="formButton" value="Continue Tagging $projectName Project" />
+              <input type="submit" id="continueClassifyingButton" class="clickableButton formButton" value="Continue Tagging $projectName Project" />
             </form>
               $selectProjectButtonHTML
 EOL;

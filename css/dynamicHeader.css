@@ -6,6 +6,7 @@
   height: 72px;
   vertical-align: bottom;
   overflow: hidden;
+  background-color: #040535;
 }
 #headerImageWrapper {
   position: absolute;
@@ -17,6 +18,7 @@
   height: 72px;
   width: 252px;
   float:left;
+  text-align: left;
 }
 
 #usgsIdentifier a {

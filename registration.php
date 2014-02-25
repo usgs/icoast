@@ -238,7 +238,7 @@ if (!isset($registerCrowdType) || is_null($registerCrowdType)) {
                  </div>
 
 
-                 <input type="submit" class="formButton" id="registerSubmitButton" value="Complete Registration" />
+                 <input type="submit" class="clickableButton formButton" id="registerSubmitButton" value="Complete Registration" />
                  </form>
           <div id="contentWrapperFooter">
             <?php

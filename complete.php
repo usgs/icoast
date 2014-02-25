@@ -141,14 +141,14 @@ $nextImageId = $postImageArray[2]['image_id'];
 
 $coastalNavigationButtonHTML = '';
 if ($previousImageId != 0) {
-  $coastalNavigationButtonHTML .= '<button class="formButton" type="button" title="Click to show the next POST-storm Photo along the LEFT of the coast." id="leftButton"><img src="images/system/leftArrow2.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="128" width="83"></button>';
+  $coastalNavigationButtonHTML .= '<button class="clickableButton formButton" type="button" title="Click to show the next POST-storm Photo along the LEFT of the coast." id="leftButton"><img src="images/system/leftArrow2.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="128" width="83"></button>';
 } else {
-  $coastalNavigationButtonHTML .= '<button class="formButton disabledFormButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/leftArrow2.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="128" width="83"></button>';
+  $coastalNavigationButtonHTML .= '<button class="clickableButton formButton disabledFormButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/leftArrow2.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="128" width="83"></button>';
 }
 if ($nextImageId != 0) {
-  $coastalNavigationButtonHTML .= '<button class="formButton" type="button" title="Click to show the next POST-storm Photo along the RIGHT of the coast." id="rightButton"><img src="images/system/rightArrow2.png" alt="Image of a right facing arrow. Used to navigate right along the coast"height="128" width="83"></button>';
+  $coastalNavigationButtonHTML .= '<button class="clickableButton formButton" type="button" title="Click to show the next POST-storm Photo along the RIGHT of the coast." id="rightButton"><img src="images/system/rightArrow2.png" alt="Image of a right facing arrow. Used to navigate right along the coast"height="128" width="83"></button>';
 } else {
-  $coastalNavigationButtonHTML .= '<button class="formButton disabledFormButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/rightArrow2.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="128" width="83"></button>';
+  $coastalNavigationButtonHTML .= '<button class="clickableButton formButton disabledFormButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/rightArrow2.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="128" width="83"></button>';
 }
 
 
@@ -175,11 +175,11 @@ $bodyHTML = <<<EOL
         <p>Choose a Random photo, select a photo in a specific location on the Map, or Move Along The Coast from the last photo you tagged.     </p>
         <div class="postNavButtonWrapper">
         <p>Random</p>
-          <button class="formButton" type="button" id="randomButton"><img src="images/system/dice.png" alt="Image of dice. Used to select a random photo" height="128" width="128"></button>
+          <button class="clickableButton formButton" type="button" id="randomButton"><img src="images/system/dice.png" alt="Image of dice. Used to select a random photo" height="128" width="128"></button>
         </div>
         <div class="postNavButtonWrapper">
           <p>Map</p>
-          <button class="formButton" type="button" id="mapButton"><img src="images/system/map.png" alt="Image of a map. Used to select a photo form a map" height="128" width="128"></button>
+          <button class="clickableButton formButton" type="button" id="mapButton"><img src="images/system/map.png" alt="Image of a map. Used to select a photo form a map" height="128" width="128"></button>
         </div>
         <div class="postNavButtonWrapper">
           <p>Move Along The Coast</p>

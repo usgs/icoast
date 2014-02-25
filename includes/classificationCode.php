@@ -8,8 +8,8 @@ function build_image_header($imageMetadata, $header) {
   $imageDate = utc_to_timezone($imageMetadata['image_time'], 'd M Y', $imageMetadata['longitude']);
   $imageLocation = build_image_location_string($imageMetadata);
   $imageHeader = <<<EOT
-            <h1 class="sectionHeader">$header</h1>
-            <p class="imageDetails">$imageDate at $imageLocalTime near $imageLocation</p>
+            <p>$header</p>
+            <p>$imageDate at $imageLocalTime near $imageLocation</p>
 
 EOT;
   return $imageHeader;
@@ -25,7 +25,6 @@ function build_group_contents($projectId, $tags) {
   }
   $tagCounter = 0;
   $tagString[0] = <<<EOT
-      <div class="tagWrapper">
         <div class="tagColumn">
 
 EOT;
@@ -68,7 +67,7 @@ EOT;
         $tagString[0] .= 'checked="checked" ';
       }
       $tagString[0] .= <<<EOT
-              id="$tagId" class="annotationInput" name="$radioButtonName" value="$tagId">
+              id="$tagId" name="$radioButtonName" value="$tagId">
               <label for="$tagId" id="tag$tagId" class="tag">
                 <span class="tagText">$tagText</span>
               </label>
@@ -80,7 +79,7 @@ EOT;
         $tagString[0] .= 'checked="checked" ';
       }
       $tagString[0] .= <<<EOT
-              id="$tagId" class="annotationInput" name="$tagId" value="$tagId">
+              id="$tagId" name="$tagId" value="$tagId">
               <label for="$tagId" id="tag$tagId" class="tag">
                 <span class="tagText">$tagText</span>
               </label>
@@ -106,7 +105,6 @@ EOT;
   }
   $tagString[0] .= <<<EOT
           </div>
-        </div>
 
 EOT;
   return $tagString;
@@ -190,11 +188,11 @@ $annotationMetaDataQueryString = "&annotationSessionId=$annotationSessionId&user
 // Build headers for images
 $postDetailedImageURL = $postImageMetadata['full_url'];
 $postDisplayImageURL = "images/datasets/{$postImageMetadata['dataset_id']}/main/{$postImageMetadata['filename']}";
-$postImageHeader = build_image_header($postImageMetadata, $projectMetadata['post_image_header']);
+$postImageTitle = build_image_header($postImageMetadata, $projectMetadata['post_image_header']);
 
 $preDetailedImageURL = $preImageMetadata['full_url'];
 $preDisplayImageURL = "images/datasets/{$preImageMetadata['dataset_id']}/main/{$preImageMetadata['filename']}";
-$preImageHeader = build_image_header($preImageMetadata, $projectMetadata['pre_image_header']);
+$preImageTitle = build_image_header($preImageMetadata, $projectMetadata['pre_image_header']);
 
 
 //--------------------------------------------------------------------------------------------------
@@ -495,13 +493,12 @@ if (count($taskMetadata) > 0) {
 //--------------------------------------------------------------------------------------------------
 // Build Task Navigation Buttons
 $taskCount = count($annotations);
-$taskBreadcrumbs = '';
+$progressTrackerItems = '';
 for ($i = 1; $i <= $taskCount; $i++) {
-  $taskBreadcrumbs .= <<<EOT
-                <div id="task{$i}Breadcrumb" class="taskBreadcrumb">
-                  <p id="task{$i}BreadcrumbContent" class="taskBreadcrumbContent">{$i}</p>
+  $progressTrackerItems .= <<<EOT
+                <div id="progressTrackerItem{$i}" class="progressTrackerItem">
+                  <p id="progressTrackerItem{$i}Content">{$i}</p>
                 </div>
-
 EOT;
 }
 
@@ -520,7 +517,7 @@ if ($thumbnailArray1[0]['image_id'] == $ComputerMatchImageId) {
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail1Link">
-                <img id="computerMatch" class="thumbnail" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle">
               </a>
           <p>Computer Match</p>
             </div>
@@ -530,7 +527,7 @@ EOT;
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail1Link">
-                <img class="thumbnail" src="$thumbnail1Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail1Url" height="93" width="140" title="$navThumbnailTitle">
               </a>
             </div>
 
@@ -538,7 +535,7 @@ EOT;
 } else {
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -549,7 +546,7 @@ if ($thumbnailArray2[0]['image_id'] == $ComputerMatchImageId) {
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail2Link">
-                <img id="computerMatch" class="thumbnail" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle">
               </a>
           <p>Computer Match</p>
             </div>
@@ -559,7 +556,7 @@ EOT;
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail2Link">
-                <img class="thumbnail" src="$thumbnail2Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail2Url" height="93" width="140" title="$navThumbnailTitle">
               </a>
             </div>
 
@@ -567,7 +564,7 @@ EOT;
 } else {
   $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -576,8 +573,8 @@ EOT;
 
 if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
   $currentThumbnailHtml .= <<<EOT
-            <div class="currentThumbnailWrapper">
-              <img id="computerMatch" class="thumbnail" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle">
+            <div class="navThumbnailWrapper currentThumbnailWrapper">
+              <img id="computerMatch" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle">
           <p>Computer Match &</p>
           <p>Currently Displayed Photo</p>
             </div>
@@ -585,8 +582,8 @@ if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
 EOT;
 } else {
   $currentThumbnailHtml .= <<<EOT
-            <div class="currentThumbnailWrapper">
-              <img class="thumbnail" src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle">
+            <div class="navThumbnailWrapper currentThumbnailWrapper">
+              <img src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -597,7 +594,7 @@ if ($thumbnailArray2[2]['image_id'] == $ComputerMatchImageId) {
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail4Link">
-                <img id="computerMatch" class="thumbnail" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle">
               </a>
           <p>Computer Match</p>
             </div>
@@ -607,7 +604,7 @@ EOT;
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail4Link">
-                <img class="thumbnail" src="$thumbnail4Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail4Url" height="93" width="140" title="$navThumbnailTitle">
               </a>
             </div>
 
@@ -615,7 +612,7 @@ EOT;
 } else {
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -626,7 +623,7 @@ if ($thumbnailArray3[2]['image_id'] == $ComputerMatchImageId) {
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail5Link">
-                <img id="computerMatch" class="thumbnail" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle">
               </a>
           <p>Computer Match</p>
             </div>
@@ -636,7 +633,7 @@ EOT;
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail5Link">
-                <img class="thumbnail" src="$thumbnail5Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail5Url" height="93" width="140" title="$navThumbnailTitle">
               </a>
             </div>
 
@@ -644,7 +641,7 @@ EOT;
 } else {
   $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img class="thumbnail" src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -685,7 +682,7 @@ foreach ($annotations as $task) {
 //EOT;
   $taskHtmlString .= <<<EOT
         <div id = "task$taskCounter" class="task">
-          <h1 id = "task{$taskCounter}Header"class="taskTitle">$taskTitle</h1>
+          <h1 id = "task{$taskCounter}Header">$taskTitle</h1>
           <form class="annotationForm" method="post" action="classification.php">
             $hiddenDataHTML
             <div class="groupWrapper">
@@ -716,7 +713,7 @@ EOT;
 
     if (count($groupGroups) > 0) {
       $taskHtmlString .= <<<EOT
-              <div style="$borderHtml $colorHtml" class="annotationGroupGroup">
+              <div style="$borderHtml $colorHtml" class="annotationGroup">
                 <h2 class="groupText">$groupText</h2>
 
 EOT;
@@ -798,19 +795,19 @@ EOT;
 EOT;
   If ($taskCounter > 1) {
     $taskHtmlString .= <<<EOT
-              <input id="task{$taskCounter}PreviousButton" class="clickableButton annotationButton leftAnnotationButton" type="button" value="Previous Task" title="Click to go to the PREVIOUS task.">
+              <input id="task{$taskCounter}PreviousButton" class="clickableButton" type="button" value="Previous Task" title="Click to go to the PREVIOUS task.">
 
 EOT;
   }
 
   if ($taskCounter < count($annotations)) {
     $taskHtmlString .= <<<EOT
-              <input id="task{$taskCounter}NextButton" class="clickableButton annotationButton rightAnnotationButton" type="button" value="Next Task" title="Click to go to the NEXT task.">
+              <input id="task{$taskCounter}NextButton" class="clickableButton" type="button" value="Next Task" title="Click to go to the NEXT task.">
 
 EOT;
   } else {
     $taskHtmlString .= <<<EOT
-              <input id="submitButton" class="clickableButton annotationButton rightAnnotationButton" type="button" value="Done" title="Click once you have completed annotating this image set and are happy with your selections.">
+              <input id="submitButton" class="clickableButton" type="button" value="Done" title="Click once you have completed annotating this image set and are happy with your selections.">
 
 EOT;
   }
@@ -851,12 +848,12 @@ for ($i = 1; $i <= $taskCount; $i++) {
           console.log(formData);
           $.post('ajax/annotationLogger.php', formData);
           $('#task{$i}').css('display', 'none');
-          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
-          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#progressTrackerItem{$i}').removeClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$i}Content').css('display', 'none');
           $('#task{$i}Header').css('display', 'none');
           $('#task{$j}').css('display', 'block');
-          $('#task{$j}Breadcrumb').addClass('currentTaskBreadcrumb');
-          $('#task{$j}BreadcrumbContent').css('display', 'inline');
+          $('#progressTrackerItem{$j}').addClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$j}Content').css('display', 'inline');
           $('#task{$j}Header').css('display', 'block');
           $('#preNavigationCenteringWrapper').css('display', 'none');
           icDisplayedTask++;
@@ -874,12 +871,12 @@ EOT;
           console.log(formData);
           $.post('ajax/annotationLogger.php', formData);
           $('#task{$i}').css('display', 'none');
-          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
-          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#progressTrackerItem{$i}').removeClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$i}Content').css('display', 'none');
           $('#task{$i}Header').css('display', 'none');
           $('#task{$j}').css('display', 'block');
-          $('#task{$j}Breadcrumb').addClass('currentTaskBreadcrumb');
-          $('#task{$j}BreadcrumbContent').css('display', 'inline');
+          $('#progressTrackerItem{$j}').addClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$j}Content').css('display', 'inline');
           $('#task{$j}Header').css('display', 'block');
           icDisplayedTask++;
           setMinGroupHeaderWidth(icDisplayedTask);
@@ -901,12 +898,12 @@ EOT;
           console.log(formData);
           $.post('ajax/annotationLogger.php', formData);
           $('#task{$i}').css('display', 'none');
-          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
-          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#progressTrackerItem{$i}').removeClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$i}Content').css('display', 'none');
           $('#task{$i}Header').css('display', 'none');
           $('#task{$h}').css('display', 'block');
-          $('#task{$h}Breadcrumb').addClass('currentTaskBreadcrumb');
-          $('#task{$h}BreadcrumbContent').css('display', 'inline');
+          $('#progressTrackerItem{$h}').addClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$h}Content').css('display', 'inline');
           $('#task{$h}Header').css('display', 'block');
           $('#preNavigationCenteringWrapper').css('display', 'block');
           icDisplayedTask--;
@@ -923,12 +920,12 @@ EOT;
           console.log(formData);
           $.post('ajax/annotationLogger.php', formData);
           $('#task{$i}').css('display', 'none');
-          $('#task{$i}Breadcrumb').removeClass('currentTaskBreadcrumb');
-          $('#task{$i}BreadcrumbContent').css('display', 'none');
+          $('#progressTrackerItem{$i}').removeClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$i}Content').css('display', 'none');
           $('#task{$i}Header').css('display', 'none');
           $('#task{$h}').css('display', 'block');
-          $('#task{$h}Breadcrumb').addClass('currentTaskBreadcrumb');
-          $('#task{$h}BreadcrumbContent').css('display', 'inline');
+          $('#progressTrackerItem{$h}').addClass('currentProgressTrackerItem');
+          $('#progressTrackerItem{$h}Content').css('display', 'inline');
           $('#task{$h}Header').css('display', 'block');
           icDisplayedTask--;
           setMinGroupHeaderWidth(icDisplayedTask);
@@ -961,8 +958,8 @@ $jsProjectId = "icProjectId = $projectId;";
 //for ($i = 1; $i <= $taskCount; $i++) {
 //  $jsLoadScript .= <<<EOT
 //        var task{$i}Div = document.getElementById('task$i');
-//        var task{$i}Breadcrumb = document.getElementById('task{$i}Breadcrumb');
-//        var task{$i}BreadcrumbContent = document.getElementById('task{$i}BreadcrumbContent');
+//        var progressTrackerItem{$i} = document.getElementById('progressTrackerItem{$i}');
+//        var progressTrackerItem{$i}Content = document.getElementById('progressTrackerItem{$i}Content');
 //        var task{$i}Header = document.getElementById('task{$i}Header');
 //
 //EOT;

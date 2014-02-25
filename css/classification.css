@@ -1,861 +1,276 @@
-.sectionHeader {
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 3px;
+#classificationWrapper {
+    font-size: 12px;
+    line-height: 1.1;
 }
-
-/*Clickable Buttons*/
-
-.clickableButton {
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  display: inline-block;
-  vertical-align: middle;
-
-  margin: 4px;
-  border: 1px solid black;
-  border-radius: 5px;
-  padding: 6px 10px;
-
-  background: #DDDDDD;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #cccccc 70%, #bbbbbb 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#cccccc), color-stop(100%,#bbbbbb));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  font: inherit;
-  font-weight: bold;
-  text-shadow: #666666 2px 2px 2px;
-
-
-  box-shadow: 3px 3px 3px #888888;
-
-}
-
-.clickableButton:hover, .clickableButton:active {
-  margin: 3px;
-  border: 2px solid black;
-  background: #5384ED;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #8fadea 70%, #5384ed 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#8fadea), color-stop(100%,#5384ed));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-}
-
-.clickableButtonToggled {
-  margin: 3px;
-  border: 2px solid black;
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-}
-
-.mainNavButton {
-  display: inline;
-  font-size: 20px;
-}
-
-/*.clickableButton:active {
-  margin: 3px;
-  border: 2px solid black;
-
-    background: #5FA6C6;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #74ccf2 70%, #5fa6c6 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#74ccf2), color-stop(100%,#5fa6c6));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#74ccf2 70%,#5fa6c6 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#74ccf2 70%,#5fa6c6 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#74ccf2 70%,#5fa6c6 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#74ccf2 70%,#5fa6c6 100%);
-
-
-}*/
-
-
-
-/*Base Structure*/
-
-body {
-
-/*  min-height: 590px;
-  min-width: 940px;
-  max-width: 1650px;
-  padding: 5px;
-  margin: auto;*/
-font-size: 12px;
-  max-width: 1650px;
-  width: auto;
-}
-
-/*#wrapper {
-  border-radius: 0 0 5px 5px;
-  font-size: 12px;
-}*/
-
-
-
-
-
 
 /*Images Section*/
 
 #images {
-  padding-top: 25px;
-  position:relative;
-  overflow: hidden;
-  /*background-color: #C7DBCC;*/
-  background-color: #DDDDDD;
-  /*border-radius: 5px 5px 0 0 ;*/
+    padding-top: 25px;
+    overflow: hidden;
+    background-color: #DDDDDD;
 }
 
 .imageColumn {
-  width: 43%;
-  position: relative;
-  overflow: hidden;
+    width: 43%;
+    position: relative;
+    /*overflow: hidden;*/
+    float: left;
 }
 
-#imageColumnLeft {
-  position: relative;
-  /*  background-color: #DDDDDD;*/
-  float: left;
-  /*border-radius: 5px 0 5px 0;*/
-
+#images>div:nth-of-type(2) {
+    width: 14%;
+    padding-bottom: 5px;
 }
-
-#imageColumnRight {
-  float: right;
-  position: relative;
-}
-
-#imageColumnMiddle {
-  float: left;
-  position: relative;
-  width: 14%;
-  height: 100%;
-  /*max-width: 225px;*/
-  /*margin-top: 50px;*/
-}
-
-#mapInsert {
-  height: 100%;
-  width: 100%;
-  min-height: 181px;
-  border-radius: 5px;
-  box-shadow: 5px 5px 5px #666666;
-}
-
-
-
-/**Images Footer*/
-
-.imageColumnFooter {
-  position: relative;
-  width: 100%;
-  /*overflow: hidden;*/
-  margin: auto;
-  text-align: center;
-}
-
-/*#preNavigationHeader {
-  width: 250px;
-  height: 25px;
-  border-radius: 0px 0 5px 0;
-  background-color: #aaaaaa;
-  background-color: #040535;
-  color: white;
-  text-align: center;
-  font-weight: bold;
-  line-height: 25px;
-  text-shadow: #666666 2px 2px 2px;
-
-}
-#preNavigationHeader p {
-  width: 185px;
-  text-align: center;
-  padding-left: 5px;
-  margin-right: 25px;
-  float: right;
-}*/
-
-
-#preNavigationCenteringWrapper {
-  position: absolute;
-  top: 90px;
-  width: 100%;
-}
-
-#preNavigationWrapper {
-  margin-left: auto;
-  margin-right: auto;
-  min-height: 77px;
-  width: 700px;
-  overflow: hidden;
-  /*display: none;*/
-  /*z-index: 100;*/
-  /*background-color: #040535;*/
-  border-radius: 0 0 5px 5px;
-}
-
-#preNavigationWrapper p {
-  line-height: 1.2em;
-  font-weight: bold;
-}
-
-.leftDropArrow {
-  float: left;
-  margin: 0 0 0 25px;
-  line-height: 27px !important;
-}
-
-.rightDropArrow {
-  line-height: 27px !important;
-}
-
-#postNavigationHeader {
-  float: right;
-  width: 250px;
-  height: 25px;
-  border-radius: 0 0px 0 5px;
-  /*background-color: #aaaaaa;*/
-    background-color: #040535;
-  color: white;
-  line-height: 25px;
-  /*text-shadow: #666666 2px 2px 2px;*/
-
-}
-
-#postNavigationHeader p {
-  float: left;
-  width: 185px;
-  text-align: center;
-  margin-left: 25px;
-  font-weight: bold;
-}
-
-#postNavigationWrapper {
-  position: absolute;
-  display: none;;
-  right: 0px;
-  top: 25px;
-  z-index: 100;
-  width: 175px;
-  background-color: #040535;
-  border-radius: 0 0 0 5px;
-  text-align: center;
-}
-
-.postImageNavButton {
-  border-color: #12155E;;
-  height: 26px;
-  width: 26px;
-  line-height: 22px;
-  margin: 2px;
-  padding: 0px;
-  font-size: 16px;
-  text-shadow: 2px 2px 2px #666666;
-  box-shadow: 2px 2px 2px #030426;
-}
-
-.postImageNavButton:hover {
-  margin: 1px;
-}
-
-.currentNavButton {
-
-}
-
-
-#coastalNavigationButtonWrapper {
-  height: 34px;
-}
-
-.postImageNavForm {
-  display: inline;
-  overflow: hidden;
-}
-
-#taskTitleWrapper {
-  /*overflow: hidden;*/
-
-}
-
-.taskTitle {
-  /*position: absolute;*/
-  /*  bottom: 0px;*/
-  display: none;
-  clear: both;
-  padding: 5px 10px 5px 10px;
-  /*width: 100%;*/
-  text-align: left;
-  margin-left: 20px;
-  font-size: 1.5em;
-  font-weight: bold;
-  /*text-shadow: #666666 2px 2px 2px;*/
-}
-
-.currentThumbnailWrapper {
-  float: left;
-  width: 24%;
-  overflow: hidden;
-  text-align: center;
-
-}
-
-.navThumbnailWrapper {
-  float: left;
-  width: 19%;
-  overflow: hidden;
-  text-align: center;
-
-}
-
-.thumbnail {
-  height: auto;
-  max-width: 90%;
-  margin: auto;
-  padding: 3px;
-  border-radius: 10px;
-}
-
-.thumbnail:hover {
-  border: 3px solid #5384ed;
-  padding: 0px;
-}
-
-#computerMatch {
-  padding: 0;
-  border: 3px solid #e56969;
-}
-
-/*Images Header*/
-
-.imageColumnHeader {
-  padding: 5px 10px 10px 10px;
-  text-align: center;
-  font-weight: bold;
-
-}
-
-.imageDetails {
-  /*font-size: 0.8em;*/
-}
-
-
-
 
 /*Images Pictures*/
 
 .imageColumnContent {
-  position: relative;
-  clear:both;
-  padding: 5px;
-  margin: auto;
+    position: relative;
+    clear:both;
+    padding: 5px;
+    margin: auto;
 }
 
-.loadingBar {
-  position: absolute;
-  bottom: 5%;
-  left: 5%;
+#preImage, #postImage {
+    display:block;
+    margin:auto;
+    box-shadow: #666666 5px 5px 5px;
 }
 
-.coastalImage {
-  display:block;
-  margin:auto;
-  max-width: 100%;
-  border-radius: 5px;
-  /*border: 3px black solid;*/
-  box-shadow: #666666 5px 5px 5px;
+.zoomLoadingIndicator {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
 }
 
+.imageColumnTitle {
+    padding: 5px 10px 10px;
+}
 
+.imageColumnTitle p:first-child {
+    font-size: 1.2em;
+    line-height: 1.2;
+}
+
+#mapInsert {
+    width: 98%;
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px #666666;
+}
 
 /*Annotation Section*/
 
 #annotationWrapper {
-  min-height: 340px;
-  border-radius: 0 0 5px 5px;
-  border-top: 2px solid grey;
-  position: relative;
-  background-color: #C7DBCC;
-  /*background: rgba(199, 219, 204, 0.7);*/
-  /*border-radius: 5px;*/
-  /*min-height: 233px;*/
+    min-height: 343px;
+    border-radius: 0 0 5px 5px;
+    border-top: 2px solid grey;
+    position: relative;
+    background-color: #C7DBCC;
 }
 
+
+/*Pre-image navigation*/
+#preNavigationCenteringWrapper {
+    position: absolute;
+    top: 90px;
+    width: 100%;
+}
+
+#preNavigationWrapper {
+    margin: 0 auto;
+    width: 700px;
+    overflow: hidden;
+}
+
+.navThumbnailWrapper {
+    float: left;
+    width: 19%;
+}
+
+.currentThumbnailWrapper {
+    width: 24%;
+}
+
+.navThumbnailWrapper img {
+    height: auto;
+    max-width: 90%;
+    margin: auto;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.navThumbnailWrapper img:hover {
+    border: 3px solid #5384ed;
+    padding: 0px;
+}
+
+#computerMatch {
+    padding: 0;
+    border: 3px solid #e56969;
+}
+
+
+/*Tasks*/
 .task {
-  display: none;
-  clear: both;
-  /*padding-top: 5px;*/
-  text-align: center;
+    display: none;
 }
 
+.task h1 {
+    display: none;
+    padding: 5px 10px 0px 30px;
+    text-align: left;
+    margin: 0;
+    font-size: 1.5em;
+}
 
+/* Task Text is currently removed from functionality. Possible removal of this CSS.
 .taskText {
-  text-align: left;
-}
+    text-align: left;
+}*/
 
 .annotationForm {
-  margin-bottom: 39px;
-  /*margin-top: 5px;*/
+    padding-bottom: 44px;
 }
 
 .groupWrapper {
-  display: inline-block;
-  /*  margin-bottom: 31px;*/
+    display: inline-block;
 }
 
-.groupText, .subGroupText {
-  font-size: 1.2em;
-  margin: 5px;
-
-  text-align: center;
-  font-weight: bold;
-}
-.subGroupText {
-
+.groupWrapper h2, .groupWrapper h3 {
+    font-size: 1.2em;
+    margin: 5px 5px 0px;
 }
 
-.tagInstruction {
-  font-size: 1em;
-  font-weight: normal;
-}
-
-
-.tagColumn {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.annotationGroup, .annotationSubgroup {
-  overflow: hidden;
-  /*  width: auto;*/
-  height: 100%;
-  /*padding: 5px;*/
-  margin: 5px;
-  float: left;
-  border-radius: 5px;
-  text-align: center;
+.annotationGroup, .annotationGroupGroup, .annotationSubgroup {
+    margin: 5px;
+    float: left;
+    border-radius: 5px;
 }
 
 .annotationSubgroup {
-  margin: 0 10px;
-
+    margin: 0 10px;
 }
 
-.annotationGroupGroup {
-  overflow: hidden;
-  /*width: auto;*/
-  height: 100%;
-  padding: 5px;
-  /*margin: 5px;*/
-  float: left;
-  border-radius: 5px;
-  text-align: center;
+.tagInstruction {
+    font-weight: normal;
 }
-
-#annotationControls {
-  position: absolute;
-  bottom: 5px;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  width:90%;
-  margin: 0 5%;
-  overflow: hidden;
-}
-
-.annotationButton {
-  text-shadow: none;
-  border-radius: 20px;
-  background: #FFFFFF;
-}
-
-#taskProgressTrackerWrapper {
-
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-}
-
-#breadcrumbWrapper {
-
-  margin: 4px 0 4px -50%;
-  height: 31px;
-}
-
-.taskBreadcrumb {
-  display: inline-block;
-  vertical-align: middle;
-  width: 12px;
-  height:12px;
-  margin: 2px 6px;
-  border: 1px solid black;
-  border-radius: 8px;
-  background: black;
-/*  background: #DDDDDD;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #cccccc 70%, #bbbbbb 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#cccccc), color-stop(100%,#bbbbbb));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);*/
-  text-align: center;
-
-}
-
-.currentTaskBreadcrumb {
-  width: 26px;
-  height:26px;
-  border: 2px solid black;
-  border-radius: 14px;
-  margin: 1px 5px;
-  background: #5baf5c;
-  /*  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #72db72 70%, #5baf5c 100%);
-    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#72db72), color-stop(100%,#5baf5c));
-    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#72db72 70%,#5baf5c 100%);
-    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#72db72 70%,#5baf5c 100%);
-    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#72db72 70%,#5baf5c 100%);
-    background: radial-gradient(ellipse at center, #eeeeee 0%,#72db72 70%,#5baf5c 100%);*/
-  /* background: -moz-radial-gradient(center, ellipse cover, #e8e8e8 0%, #c3d8c8 70%, #c7dbcc 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#e8e8e8), color-stop(70%,#c3d8c8), color-stop(100%,#c7dbcc));
-  background: -webkit-radial-gradient(center, ellipse cover, #e8e8e8 0%,#c3d8c8 70%,#c7dbcc 100%);
-  background: -o-radial-gradient(center, ellipse cover, #e8e8e8 0%,#c3d8c8 70%,#c7dbcc 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #e8e8e8 0%,#c3d8c8 70%,#c7dbcc 100%);
-  background: radial-gradient(ellipse at center, #e8e8e8 0%,#c3d8c8 70%,#c7dbcc 100%); */
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-}
-
-.taskBreadcrumbContent {
-  display: none;
-  line-height: 26px;
-  vertical-align: middle;
-  font-weight: 700;
-}
-
-
-.leftAnnotationButton {
-  /*  position: absolute;
-    left: 0px;*/
-  float:left;
-}
-
-.rightAnnotationButton {
-  /*    position: absolute;
-    right: 0px;*/
-  float:right;
-}
-
-#submitButton {
-  /*display: none;*/
-}
-
-
-
-
 
 
 /*Tags*/
 
 .tagColumn {
-  min-width: 112px;
-
-}
-
-.tagWrapper {
-  display:inline-block;
+    display: inline-block;
+    vertical-align: top;
+    min-width: 112px;
 }
 
 .tag {
-  /*  background: #DDDDDD;
-    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #cccccc 70%, #bbbbbb 100%);
-    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#cccccc), color-stop(100%,#bbbbbb));
-    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);
-    background: radial-gradient(ellipse at center, #eeeeee 0%,#cccccc 70%,#bbbbbb 100%);*/
-  background: #FFFFFF;
-  display: table;
-  border: 1px solid black;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 5px;
-  width: 90px;
-  height: 30px;
-  font-size:0.91em;
-  font-weight:bold;
-  box-shadow: 3px 3px 3px #222222;
-  /*text-shadow: #888888 1px 1px 1px;*/
-
-
+    background: #FFFFFF;
+    display: table;
+    border: 1px solid black;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    width: 90px;
+    height: 30px;
+    font-size:0.91em;
+    box-shadow: 3px 3px 3px #222222;
 }
 
 .tag:hover {
-  border-width: 3px;
-  padding: 3px;
+    border-width: 2px;
+    padding: 4px;
+    box-shadow: 6px 6px 6px #222222;
 }
 
-.tag .tagText {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+input[type="checkbox"]:checked + .tag, input[type="radio"]:checked + .tag {
+    background: #e56969;
+    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    border-width: 3px;
+    padding: 3px;
 }
 
-.annotationInput[type="checkbox"]:checked + .tag, .annotationInput[type="radio"]:checked + .tag {
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  font-size:0.91em;
-  border-width: 3px;
-  padding: 3px;
-  /*  margin:3px;*/
-  font-weight: bold;
+input[type="checkbox"], input[type="radio"] {
+    display: none;
 }
 
-.annotationInput[type="checkbox"], .annotationInput[type="radio"] {
-  display: none;
+.tagText {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    /*Stop selection of text in button*/
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .tagToolTip img {
-  max-width: 100%;
-  width: 100%;
-  margin: 0 0 5px 0;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 0 5px 0;
 }
 
-
-
-/*Map*/
-
-#mapWrapper {
-  display:none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 590px;
-  min-width: 940px;
-  z-index: 9999;
-  background: rgba(0, 0, 0, .6);
+#annotationControls {
+    position: absolute;
+    bottom: 5px;
+    width:90%;
+    margin: 0 5%;
 }
 
-#mapContent {
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width:80%;
-  height: 80%;
-  background-color: white;
-  border-radius: 5px;
-  text-align:center;
-  /*  background: -moz-linear-gradient(-45deg, rgba(235,241,246,1) 0%, rgba(171,211,238,1) 50%, rgba(137,195,235,1) 51%, rgba(213,235,251,1) 100%);
-    background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,rgba(235,241,246,1)), color-stop(50%,rgba(171,211,238,1)), color-stop(51%,rgba(137,195,235,1)), color-stop(100%,rgba(213,235,251,1)));
-    background: -webkit-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: -o-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: -ms-linear-gradient(-45deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);
-    background: linear-gradient(135deg, rgba(235,241,246,1) 0%,rgba(171,211,238,1) 50%,rgba(137,195,235,1) 51%,rgba(213,235,251,1) 100%);*/
-
-
-
-}
-#mapHeader {
-  padding: 10px 10px 20px 10px;
-  font-size: 1.5em;
-  font-weight: bold;
+#annotationControls input:first-of-type {
+    float:left;
 }
 
-#mapHide {
-  font-size: 0.5em;
-  float: right;
-  margin-right: 16px;
-  padding: 3px 10px;
+#annotationControls input:last-of-type {
+    float:right;
 }
 
-#mapHide:hover, #mapHide:active {
-  margin-right: 15px;
-  background: #e56969;
-  background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
-  background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-  background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+#progressTrackerCenteringWrapper {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
 }
 
-.mapColumn {
-  width: 50%;
-  overflow: hidden;
+#progressTrackerItemWrapper {
+    margin: 4px 0 4px -50%;
+    height: 30px;
 }
 
-#leftMapColumn {
-  width: 46%;
-  height: 90%;
-  padding: 0 25px;
-  float: left;
-  text-align: center;
+.progressTrackerItem {
+    display: inline-block;
+    vertical-align: middle;
+    width: 10px;
+    height:10px;
+    margin: 0 6px;
+    border: 2px solid black;
+    border-radius: 14px;
+    background: black;
+    text-align: center;
 }
 
-.mapImageWrapper {
-  position: relative;
-  margin: auto;
-  padding: 5px;
+.progressTrackerItem p {
+    display: none;
+    line-height: 26px;
 }
 
-.mapImage {
-  display:block;
-  margin:auto;
-  max-width: 100%;
-  border-radius: 5px;
-}
-
-#mapSelectedImageHeader {
-  height:29px;
-  vertical-align: bottom;
-  position: relative;
-}
-
-#selectedMapImageHeader {
-  position: absolute;
-  width: 100%;
-  bottom: 0px;
-  left: 0px;
-}
-
-#selectedMapImage {
-  display:none;
-}
-
-#rightMapColumn {
-  position: relative;
-  height: 90%;
-  float: right;
-  padding-right: 25px;
-
-}
-
-#mapCanvas {
-  display: block;
-  margin-bottom: 5px;
-  border-radius: 5px;
-}
-
-#mapCanvas img {
-  max-width: none
-}
-
-#mapLoadingBar {
-  display: none;
-  bottom: 80px;
-  left: 15px;
-}
-
-
-#mapMarkerToggle {
-
-}
-
-
-#mapLoadImageButton {
-  display: none;
-}
-
-#mapLegend {
-  position: absolute;
-  bottom: 65px;
-  right: 35px;
-  width: 200px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  font-weight: bold;
-  color: white;
-}
-.mapLegendRow {
-  overflow: hidden;
-  padding: 3px 2px 3px 2px;
-}
-.mapLegendRowIcon {
-  float: left;
-  width: 25px;
-  padding-right: 5px;
-}
-.mapLegendRowText {
-  float: left;
-  width: 165px;
-  text-align: left;
-  line-height: 24px;
-
-}
-#mapInstruction {
-  text-align: left;
-  padding: 5px 5px 0 5px;
-}
-
-
-.controls {
-  margin-top: 16px;
-  border: 1px solid transparent;
-  border-radius: 2px 0 0 2px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-#pac-input {
-  background-color: #fff;
-  padding: 0 11px 0 13px;
-  width: 50%;
-  font-family: Roboto;
-  font-size: 15px;
-  font-weight: 300;
-  text-overflow: ellipsis;
-}
-
-#pac-input:focus {
-  border-color: #4d90fe;
-  margin-left: -1px;
-  padding-left: 14px;  /* Regular padding-left + 1. */
-  /*width: 401px;*/
-}
-
-.pac-container {
-  font-family: Roboto;
-  z-index: 10000;
-}
-
-#type-selector {
-  color: #fff;
-  background-color: #4d90fe;
-  padding: 5px 11px 0px 11px;
-}
-
-#type-selector label {
-  font-family: Roboto;
-  font-size: 13px;
-  font-weight: 300;
-}
-
-#target {
-  width: 345px;
+.currentProgressTrackerItem {
+    width: 26px;
+    height:26px;
+    margin: 0 5px;
+    background: #e56969;
+    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
 }
