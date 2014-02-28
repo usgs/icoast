@@ -1,11 +1,9 @@
-        <?php
-        $pageName = "about";
-        $pageSpecificExternalCSSLinks = '';
-        $pageSpecificEmbeddedCSS = '';
-        $pageSpecificJavaScriptLinks = '';
-        $pageSpecificJavaScript = '';
-        $pageSpecificJQueryDocumentReadyCode = '';
-        $pageBodyHTML = <<<EOL
+<?php
+
+ob_start();
+require("includes/pageCode/aboutCode.php");
+
+$pageBody = <<<EOL
         <div id="contentWrapper">
             <div id="aboutWrapper">
 
@@ -146,4 +144,5 @@
             </div>
         </div>
 EOL;
+
 require("includes/template.php");

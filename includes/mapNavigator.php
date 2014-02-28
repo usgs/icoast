@@ -368,14 +368,13 @@ $mapHTML = <<<EOL
                 </div>
               </div>
             </div>
-              <button title="Click to jump the map to the currently displayed image lovation." id="centerMapButton" class="clickableButton">
+              <button title="Click to jump the map to the currently displayed image lovation." id="centerMapButton" class="clickableButton formButton">
                 Jump To Current Photo
               </button>
-              <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton">
+              <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton formButton">
                 Hide Other Photos
               </button>
           </div>
         </div>
       </div>
 EOL;
-?>

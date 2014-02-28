@@ -1,20 +1,37 @@
 <?php
-define('STATIC_HEADER', '<link rel="stylesheet" href="css/staticHeader.css">');
-define('DYNAMIC_HEADER', '<link rel="stylesheet" href="css/dynamicHeader.css">');
-$headerCSSLink = STATIC_HEADER;
 
-$pageName = (!isset($pageName)) ? '' : $pageName;
-$pageSpecificExternalCSSLinkArray = (!isset($pageSpecificExternalCSSLinkArray)) ? array() : $pageSpecificExternalCSSLinkArray;
-$pageSpecificEmbeddedCSS = (!isset($pageSpecificEmbeddedCSS)) ? '' : $pageSpecificEmbeddedCSS;
-$pageSpecificJavaScriptLinkArray = (!isset($pageSpecificJavaScriptLinkArray)) ? array() : $pageSpecificJavaScriptLinkArray;
-$pageSpecificJavaScript = (!isset($pageSpecificJavaScript)) ? '' : $pageSpecificJavaScript;
-$pageSpecificJQueryDocumentReadyCode = (!isset($pageSpecificJQueryDocumentReadyCode)) ? '' : $pageSpecificJQueryDocumentReadyCode;
-$pageBodyHTML = (!isset($pageBodyHTML)) ? '' : $pageBodyHTML;
+if (!isset($pageName)) {
+    header('Location: login.php');
+}
+if (!isset($cssLinkArray)) {
+    $cssLinkArray = array();
+}
+if (!isset($embeddedCSS)) {
+    $embeddedCSS = '';
+}
+if (!isset($javaScriptLinkArray)) {
+    $javaScriptLinkArray = array();
+}
+if (!isset($javaScript)) {
+    $javaScript = '';
+}
+if (!isset($jQueryDocumentDotReadyCode)) {
+    $jQueryDocumentDotReadyCode = '';
+}
+if (!isset($pageBody)) {
+    $pageBody = '';
+}
+$cssLinks = '';
+$javaScriptLinks = '';
+
+define('STATIC_HEADER', 'css/staticHeader.css');
+define('DYNAMIC_HEADER', 'css/dynamicHeader.css');
 
 switch ($pageName) {
     case "welcome":
         $pageTitle = "iCoast: Welcome to iCoast";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
       <ul id="mainHeaderNavigation">
         <li id="activePageLink">Home</li>
         <li class="missingPageLink">Help</a></li>
@@ -26,10 +43,17 @@ EOL;
         break;
     case "classify":
         $pageTitle = "iCoast: Classification";
-        $headerCSSLink = DYNAMIC_HEADER;
-        $pageSpecificJavaScript .= <<<EOL
-            var pageName = '<?php print $pageName ?>';
-            $(document).ready(function() {
+        $cssLinkArray[] = DYNAMIC_HEADER;
+        $mainNav = <<<EOL
+            <ul id="mainHeaderNavigation">
+              <li><a href="welcome.php">Home</a></li>
+              <li class="missingPageLink">Help</a></li>
+              <li><a href="about.php">About</a></li>
+              <li class="missingPageLink">Profile</li>
+              <li><a href="logout.php">Logout</a></li>
+            </ul>
+EOL;
+        $jQueryDocumentDotReadyCode .= <<<EOL
                     $('#usgsColorBand').click(function() {
 
                         $('#usgsColorBand').animate({
@@ -111,11 +135,12 @@ EOL;
                         }, 500, "swing");
 
                     }); // End header mouseleave (collapse) function.
-            }); // End Document Ready
 EOL;
+        break;
     case "start":
         $pageTitle = "iCoast: Choose Your Photo";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
@@ -127,7 +152,8 @@ EOL;
         break;
     case "complete":
         $pageTitle = "iCoast: Annotation Summary";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
@@ -139,7 +165,8 @@ EOL;
         break;
     case "help":
         $pageTitle = "iCoast: Help";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li id="activePageLink">Help</li>
@@ -151,7 +178,8 @@ EOL;
         break;
     case "about":
         $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
@@ -163,7 +191,8 @@ EOL;
         break;
     case "profile":
         $pageTitle = "iCoast: User Profile";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
@@ -175,35 +204,40 @@ EOL;
         break;
     case "logout":
         $pageTitle = "iCoast - User Logout";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
               <li class="missingPageLink">Profile</li>
-              <li id="activePageLink">Logout</a></li>
+              <li><a href="login.php">Login</a></li>
             </ul>
 EOL;
         break;
     case "login":
         $pageTitle = "iCoast - User Login";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
               <li class="missingPageLink">Profile</li>
+              <li id="activePageLink">Login</li>
             </ul>
 EOL;
         break;
     case "registration":
         $pageTitle = "iCoast - User Registration";
-        $mainNavHTML = <<<EOL
+        $cssLinkArray[] = STATIC_HEADER;
+        $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
-              <li class="missingPageLink">Help</a></li>
+              <li class="missingPageLink">Help</li>
               <li><a href="about.php">About</a></li>
               <li class="missingPageLink">Profile</li>
+              <li id="activePageLink">Login</li>
             </ul>
 EOL;
         break;
@@ -211,5 +245,31 @@ EOL;
         header('Location: login.php');
         break;
 }
+
+
+
+
+
+if (count($cssLinkArray) > 0) {
+    foreach ($cssLinkArray as $link) {
+        $cssLinks .= "<link rel='stylesheet' href='$link'>\n\r";
+    }
+}
+
+if (count($javaScriptLinkArray) > 0) {
+    foreach ($javaScriptLinkArray as $link) {
+        $javaScriptLinks .= "<script src='$link'></script>\n\r";
+    }
+}
+
+if (!empty($jQueryDocumentDotReadyCode)) {
+    $tempCode = $jQueryDocumentDotReadyCode;
+    $jQueryDocumentDotReadyCode = <<<EOL
+        $(document).ready(function() {
+        $tempCode
+        });
+EOL;
+}
+
 
 

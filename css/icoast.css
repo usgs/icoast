@@ -65,8 +65,6 @@ body {
     font-family: 'Noto Sans', sans-serif;
     font-weight: bold;
     background: #040535;
-
-    /*overflow: hidden;*/
 }
 
 h1 {
@@ -82,38 +80,41 @@ h2, h3{
 img {
     border-radius: 5px;
     max-width: 100%;
+    display: block;
 }
 
-.clickableButton {
+.clickableButton,
+.formFieldRow input,
+.formFieldRow select {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
     vertical-align: middle;
 
-    margin: 4px;
+    margin: 8px;
     border: 1px solid black;
-    border-radius: 20px;
+    border-radius: 5px;
     padding: 6px 10px;
 
     background: #FFFFFF;
     font: inherit;
+    line-height: 20px;
     font-weight: bold;
     box-shadow: 3px 3px 3px #888888;
 }
 
 .clickableButton:hover, .clickableButton:active {
-    margin: 3px;
+    margin: 7px;
     border: 2px solid black;
-    /*    background: #5384ED;
-        background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #8fadea 70%, #5384ed 100%);
-        background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#8fadea), color-stop(100%,#5384ed));
-        background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-        background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-        background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#8fadea 70%,#5384ed 100%);
-        background: radial-gradient(ellipse at center, #eeeeee 0%,#8fadea 70%,#5384ed 100%);*/
     box-shadow: 6px 6px 6px #888888;
 }
 
-/*Fix FF Button Padding*/
+option {
+    padding-left: 10px;
+}
+
+/*Fix FF Button Padding
+http://christophzillgens.com/en/articles/equal-height-input-and-button-elements-in-firefox-and-safari*/
+button::-moz-focus-inner,
 input::-moz-focus-inner {
     border: 0;
     padding: 0;
@@ -123,7 +124,9 @@ input::-moz-focus-inner {
 
 /*Fix for Google Maps Zoom Control Display Bug*/
 #mapCanvas img, #mapInsert img {
-    max-width: none
+    border-radius: 0;
+    max-width: none;
+    display: inline;
 }
 
 /*Google Maps Search Box Styling*/
@@ -216,7 +219,6 @@ td {
 }
 
 .formFieldRow {
-    min-height: 22px;
     overflow: hidden;
 }
 
@@ -229,32 +231,19 @@ td {
 .formFieldRow label {
     width: 40%;
     margin-right: 5px;
-    line-height: 44px;
+    line-height: 50px;
     text-align: right;
 }
 
-.formFieldRow input,
-.formFieldRow select {
+#registerCrowdType,
+#registerOther,
+#registerAffiliation {
     width: 230px;
-    text-align: center;
-    -moz-box-sizing: content-box;
-    box-sizing: content-box;
-    background: #FFFFFF;
-    /*display: inline-table;*/
-    border: 1px solid black;
-    padding: 6px 10px;
-    border-radius: 5px;
-    font: inherit;
-    font-weight: bold;
-    box-shadow: 3px 3px 3px #888888;
-    margin: 8px;
 }
 
 .standAloneFormElement select,
 .standAloneFormElement input {
-    position: relative;
-    left: -126px;
-    margin: 0 0 5px 50%;
+float: none;
 }
 
 #registerForm label.error {
@@ -263,15 +252,6 @@ td {
     color: red;
     font-size: 0.8em;
     width: 100%;
-}
-
-.formButton {
-    margin: 8px 4px;
-    border-radius: 5px;
-}
-
-.formButton:hover, .formButton:active {
-    margin: 7px 4px;
 }
 
 .disabledFormButton {
@@ -287,20 +267,19 @@ td {
     margin-bottom: 10px;
 }
 
-/*Builds on .formButton*/
-.postNavButtonWrapper .formButton {
+.postNavButtonWrapper .clickableButton {
     margin: 4px 8px;
-    padding: 6px;
+    padding: 8px;
 }
 
-/*Builds on .formButton*/
-.postNavButtonWrapper .formButton:hover, .postNavButtonWrapper .formButton:active {
+.postNavButtonWrapper .clickableButton:hover,
+.postNavButtonWrapper .clickableButton:active {
     margin: 1px 5px;
     border: 4px solid black;
 }
 
-.postNavButtonWrapper .disabledFormButton:hover,
-.postNavButtonWrapper disabledFormButton:active {
+.postNavButtonWrapper .disabledClickableButton:hover,
+.postNavButtonWrapper disabledClickableButton:active {
     margin: 4px 8px;
     border: 1px solid black;
     box-shadow: 3px 3px 3px #888888
@@ -366,17 +345,18 @@ td {
     padding: 0 10px;
 }
 
-
 #mapHide {
+    line-height: inherit;
     background: #e56969;
     font-size: 0.5em;
     float: right;
-    margin-right: 5px;
     padding: 3px 10px;
+    border-radius: 5px;
+    margin: 8px 5px;
 }
 
 #mapHide:hover, #mapHide:active {
-    margin-right: 4px;
+    margin: 7px 4px;
 }
 
 .mapColumn {
@@ -427,8 +407,8 @@ td {
 
 #mapLegend {
     position: absolute;
-    bottom: 65px;
-    right: 10px;
+    bottom: 75px;
+    right: 8px;
     width: 200px;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 5px;
@@ -478,8 +458,8 @@ td {
 }
 
 .teamColumn img {
+    box-shadow: 3px 3px 3px #666666;
     float: left;
-    border-radius: 5px;
     margin: 10px;
 }
 
@@ -503,7 +483,6 @@ td {
 .imageColumn {
     width: 43%;
     position: relative;
-    /*overflow: hidden;*/
     float: left;
 }
 
@@ -512,11 +491,7 @@ td {
     padding-bottom: 5px;
 }
 
-#images>div:nth-of-type(2) img{
-    border-radius: 0;
-}
-
-/*Images Pictures*/
+/*Images Div Pictures*/
 
 .imageColumnContent {
     position: relative;
@@ -679,11 +654,8 @@ td {
 
 input[type="checkbox"]:checked + .tag, input[type="radio"]:checked + .tag {
     background: #e56969;
-    background: -moz-radial-gradient(center, ellipse cover, #eeeeee 0%, #ffa3a3 70%, #e56969 100%);
-    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#eeeeee), color-stop(70%,#ffa3a3), color-stop(100%,#e56969));
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-    background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     border-width: 3px;
     padding: 3px;
@@ -719,6 +691,10 @@ input[type="checkbox"], input[type="radio"] {
     margin: 0 5%;
 }
 
+#annotationControls input {
+    border-radius: 20px;
+}
+
 #annotationControls input:first-of-type {
     float:left;
 }
@@ -733,8 +709,11 @@ input[type="checkbox"], input[type="radio"] {
     left: 50%;
 }
 
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Width needs to be altered to be dynamic!*/
 #progressTrackerItemWrapper {
-    margin: 4px 0 4px -50%;
+    width: 160px;
+    margin: 8px 0 8px -50%;
     height: 30px;
 }
 
