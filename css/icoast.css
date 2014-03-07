@@ -67,6 +67,9 @@ body {
     background: #040535;
 }
 
+/*Remove halo effect from some form elements in webkit browsers*/
+*:focus { outline: none; }
+
 h1 {
     font-size: 2em;
     margin: 20px 10px 10px 10px ;
@@ -83,9 +86,22 @@ img {
     display: block;
 }
 
+a {
+    color: #444444;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #888888;
+}
+
 .clickableButton,
 .formFieldRow input,
-.formFieldRow select {
+.formFieldRow select,
+#profileAnnotationListControls input,
+#profileAnnotationListControls select,
+#profileTableWrapper select,
+#profileSettingsWrapper input {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
     vertical-align: middle;
@@ -102,10 +118,28 @@ img {
     box-shadow: 3px 3px 3px #888888;
 }
 
-.clickableButton:hover, .clickableButton:active {
+.clickableButton:hover, .clickableButton:active,
+.formFieldRow input:hover, .formFieldRow input:active,
+.formFieldRow select:hover, .formFieldRow select:active,
+#profileAnnotationListControls input:hover, #profileAnnotationListControls input:active,
+#profileAnnotationListControls select:hover, #profileAnnotationListControls select:active,
+#profileTableWrapper select:hover, #profileTableWrapper select:active,
+#profileSettingsWrapper input:hover, #profileSettingsWrapper input:active {
     margin: 7px;
     border: 2px solid black;
     box-shadow: 6px 6px 6px #888888;
+}
+
+.disabledClickableButton {
+    background: #BBBBBB;
+    opacity: 0.5;
+}
+
+.disabledClickableButton:hover,
+.disabledClickableButton:active {
+    margin: 8px;
+    border: 1px solid black;
+    box-shadow: 3px 3px 3px #888888;
 }
 
 option {
@@ -193,6 +227,7 @@ input::-moz-focus-inner {
     font-size: 14px;
     border-radius: 0 0 10px 10px;
     padding: 1px 20px 10px 20px;
+    overflow: hidden;
 }
 
 #contentWrapper p {
@@ -200,22 +235,117 @@ input::-moz-focus-inner {
     line-height: 1.2;
 }
 
-#contentWrapperFooter p {
+.footer {
     text-align: left;
     font-size: 0.8em;
+    margin: 10px 0 !important;
 }
 
+#profileSettingsWrapper {
+    position: relative;
+    border-bottom: 2px solid grey;
+}
+
+#profileAnnotationListControls {
+    position: relative;
+}
+
+#userAnnotationHistory {
+    overflow: hidden;
+    position: relative;
+    display: none;
+    border-top: 2px solid grey;
+}
+#profileTableWrapper {
+    width: 60%;
+    float: left;
+    padding-right: 10px;
+}
+
+#historyTableWrapper {
+    background: #FFFFFF;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+#profileMapWrapper {
+    float: left;
+    padding-left: 10px;
+}
+
+#profileMapWrapper #mapCanvas {
+    height: 470px;
+    width: 312px;
+}
+
+.incompleteAnnotation a {
+    color: #E56969 !important;
+}
+
+#historyTableWrapper a {
+    color: black;
+}
+
+#historyHideButton {
+    top: 7px
+}
+
+.hideProfilePanelButton {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    line-height: inherit;
+    font-size: 0.8em;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin: 1px 1px;
+}
+
+#profileSettingsWrapper .formFieldRow label {
+    width: 50%;
+}
+
+#profileSettingsWrapper input {
+    width: 210px;
+}
+
+.hideProfilePanelButton:hover {
+    margin: 0;
+}
+
+.profileUpdateForm {
+    display: none;
+}
+
+.highlightedText {
+    color: #E56969;
+}
+
+#profileMapWrapper #pac-input {
+    width: 70%
+}
 table {
     margin: 10px auto 10px;;
     text-align: left;
 }
 
-td {
+/*#profileTableWrapper div:first-of-type {
+    min-height: 405px;
+}*/
+
+th, td {
     padding: 3px 10px;
 }
 
+#profileTableWrapper tr {
+    border-bottom: 1px solid black;
+}
+
+#profileTableWrapper tbody tr:last-of-type {
+    border-bottom: none;
+}
+
 .userData {
-    color: #5384ed;
+    color: #040535;
 }
 
 .formFieldRow {
@@ -235,6 +365,7 @@ td {
     text-align: right;
 }
 
+#registerTimeZone,
 #registerCrowdType,
 #registerOther,
 #registerAffiliation {
@@ -243,20 +374,15 @@ td {
 
 .standAloneFormElement select,
 .standAloneFormElement input {
-float: none;
+    float: none;
 }
 
-#registerForm label.error {
+label.error {
     line-height: 22px;
     text-align: center;
     color: red;
     font-size: 0.8em;
-    width: 100%;
-}
-
-.disabledFormButton {
-    background: #BBBBBB;
-    opacity: 0.5;
+    width: 100% !important;
 }
 
 .postNavButtonWrapper {
@@ -282,7 +408,7 @@ float: none;
 .postNavButtonWrapper disabledClickableButton:active {
     margin: 4px 8px;
     border: 1px solid black;
-    box-shadow: 3px 3px 3px #888888
+    box-shadow: 3px 3px 3px #888888;
 }
 
 #annotationDetails {
@@ -439,15 +565,6 @@ float: none;
     text-align: left;
 }
 
-#aboutWrapper a {
-    color: #444444;
-    text-decoration: none;
-}
-
-#aboutWrapper a:hover {
-    color: #888888;
-}
-
 .teamColumn {
     width: 50%;
     float: left;
@@ -587,7 +704,6 @@ float: none;
 .task h1 {
     display: none;
     padding: 5px 10px 0px 30px;
-    text-align: left;
     margin: 0;
     font-size: 1.5em;
 }
@@ -695,11 +811,11 @@ input[type="checkbox"], input[type="radio"] {
     border-radius: 20px;
 }
 
-#annotationControls input:first-of-type {
+#annotationControls input:first-of-type, #firstPageButton, #previousPageButton {
     float:left;
 }
 
-#annotationControls input:last-of-type {
+#annotationControls input:last-of-type, #lastPageButton, #nextPageButton {
     float:right;
 }
 

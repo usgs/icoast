@@ -86,7 +86,7 @@ if ($jointPosition) {
 }
 
 $annotationsToNextHTML = "";
-if ($positionInICoast > 1 || $jointPosition) {
+if ($positionInICoast > 1) {
   $annotationsToFirst = $annotaionPositions[0]['completed_annotation_count'] - $numberOfAnnotations + 1;
   $nextPosition = ordinal_suffix($positionInICoast - 1);
 $annotationsToNextHTML = "<tr><td class=\"rowTitle\"># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td></tr>";
@@ -100,24 +100,18 @@ $annotationsToNextHTML = "<tr><td class=\"rowTitle\"># of Photos to Reach 1st Pl
 // Retreive annotation data for the last annotated image.
 $lastAnnotationQuery = "SELECT * FROM annotations WHERE user_id = :userId AND "
         . "project_id = :projectId AND image_id = :postImageId";
-$$lastAnnotationParams = array(
+$lastAnnotationParams = array(
     'userId' => $userId,
     'projectId' => $projectId,
     'postImageId' => $postImageId
 );
-$STH = run_prepared_query($DBH, $lastAnnotationQuery, $$lastAnnotationParams);
+$STH = run_prepared_query($DBH, $lastAnnotationQuery, $lastAnnotationParams);
 $lastAnnotation = $STH->fetch(PDO::FETCH_ASSOC);
 $annotationId = $lastAnnotation['annotation_id'];
-$startDateTime = new DateTime($lastAnnotation['initial_session_start_time']);
-$endDateTime = new DateTime($lastAnnotation['initial_session_end_time']);
-$annotationInterval = $startDateTime->diff($endDateTime);
-$lastAnnotationTime = $annotationInterval->format("%i min(s) %s sec(s)");
 
-$tagCountQuery = "SELECT COUNT(*) FROM annotation_selections WHERE annotation_id = :annotationId";
-$tagCountParams['annotationId'] = $annotationId;
-$STH = run_prepared_query($DBH, $tagCountQuery, $tagCountParams);
-$tagCount = $STH->fetchColumn();
-
+$lastAnnotationTime = timeDifference($lastAnnotation['initial_session_start_time'],
+                                     $lastAnnotation['initial_session_end_time']);
+$tagCount = tagsInAnnotation($DBH, $annotationId);
 
 
 // Determine the new Random Image for next annotation.

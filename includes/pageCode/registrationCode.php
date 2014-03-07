@@ -16,6 +16,32 @@ if (!isset($_COOKIE['registrationEmail'])) {
     $userEmail = $_COOKIE['registrationEmail'];
 }
 
+$timeZone1HTML = '';
+$timeZone2HTML = '';
+$timeZone3HTML = '';
+$timeZone4HTML = '';
+$timeZone5HTML = '';
+$timeZone6HTML = '';
+$timeZone7HTML = '';
+$crowdType1HTML = '';
+$crowdType2HTML = '';
+$crowdType3HTML = '';
+$crowdType4HTML = '';
+$crowdType5HTML = '';
+$crowdType6HTML = '';
+$crowdType7HTML = '';
+$crowdType8HTML = '';
+$crowdType9HTML = '';
+$crowdType10HTML = '';
+$timeZoneError = '';
+$crowdTypeError = '';
+$otherCrowdTypeError = '';
+$registerAffiliationError = '';
+$registerOtherContent = '';
+$registerAffiliationContent = '';
+
+
+
 if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     $registerEmail = (isset($_POST['registerEmail'])) ? strtolower(trim($_POST['registerEmail'])) : null;
     $registerEmail = filter_var($registerEmail, FILTER_VALIDATE_EMAIL);
@@ -24,12 +50,21 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         print 'Error. Invalid eMail Address.<br>';
         exit;
     }
+    $registerTimeZone = (isset($_POST['registerTimeZone'])) ? trim($_POST['registerTimeZone']) : null;
     $registerCrowdType = (isset($_POST['registerCrowdType'])) ? trim($_POST['registerCrowdType']) : null;
-    $registerOtherContent = (isset($_POST['registerOther'])) ? trim($_POST['registerOther']) : '';
-    $registerAffiliationContent = (isset($_POST['registerAffiliation'])) ? trim($_POST['registerAffiliation']) : '';
+    $registerOtherContent = (!empty($_POST['registerOther'])) ? trim($_POST['registerOther']) : '';
+    $registerAffiliationContent = (!empty($_POST['registerAffiliation'])) ? trim($_POST['registerAffiliation']) : '';
+
+    if (empty($registerTimeZone)) {
+        $errorMessage['timeZone'] = 'You must select your time zone to complete registration.';
+    } else {
+        if ($registerTimeZone < 1 || $registerTimeZone > 7) {
+            $errorMessage['timeZone'] = 'The specified time zone is invalid.';
+        }
+    }
 
     if (empty($registerCrowdType)) {
-        $errorMessage['crowdType'] = 'You must select your "Crowd Type" to complete registration.';
+        $errorMessage['crowdType'] = 'You must select your crowd type to complete registration.';
     } else {
         if ($registerCrowdType < 0 || $registerCrowdType > 10) {
             $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
@@ -37,72 +72,86 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 
     if ($registerCrowdType == 10 && empty($registerOtherContent)) {
-        $errorMessage['otherCrowdType'] = 'You must specify your "Other Crowd Type" if "Other" is selected in the crowd type list.';
+        $errorMessage['otherCrowdType'] = 'You must specify your other crowd type if "Other" is selected in the crowd type list.';
     } elseif (!empty($registerOtherContent) && strlen($registerOtherContent) > 255) {
-        $errorMessage['otherCrowdType'] = 'Your specified "Other Crowd Type" is too long for registration (max 255 characters).';
+        $errorMessage['otherCrowdType'] = 'Your specified other crowd type is too long for registration (max 255 characters).';
     }
 
     if (!empty($registerAffiliationContent)) {
         if (strlen($registerAffiliationContent) > 255) {
-            $errorMessage[affiliation] = 'Your specified "Affiliation" is too long (max 255 characters).';
+            $errorMessage['affiliation'] = 'Your specified affiliation is too long (max 255 characters).';
         }
     }
 
-    $crowdTypeError = '';
+    if (isset($errorMessage['timeZone'])) {
+        $timeZoneError = '<label class="error" for="registerTimeZone">' . $errorMessage['timeZone'] . '</label>';
+    }
+
     if (isset($errorMessage['crowdType'])) {
         $crowdTypeError = '<label class="error" for="registerCrowdType">' . $errorMessage['crowdType'] . '</label>';
     }
 
-    $otherCrowdTypeError = '';
     if (isset($errorMessage['otherCrowdType'])) {
         $otherCrowdTypeError = '<label class="error" for="registerCrowdType">' . $errorMessage['otherCrowdType'] . '</label>';
     }
 
-    $registerAffiliationError = '';
     if (isset($errorMessage['affiliation'])) {
         $registerAffiliationError = '<label class="error" for="registerCrowdType">' . $errorMessage['affiliation'] . '</label>';
     }
 
 
-    $select1HTML = '';
-    $select2HTML = '';
-    $select3HTML = '';
-    $select4HTML = '';
-    $select5HTML = '';
-    $select6HTML = '';
-    $select7HTML = '';
-    $select8HTML = '';
-    $select9HTML = '';
-    $select10HTML = '';
+    if (isset($registerTimeZone) && $registerTimeZone == 1) {
+        $timeZone1HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 2) {
+        $timeZone2HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 3) {
+        $timeZone3HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 4) {
+        $timeZone4HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 5) {
+        $timeZone5HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 6) {
+        $timeZone6HTML = 'selected="selected"';
+    }
+    if (isset($registerTimeZone) && $registerTimeZone == 7) {
+        $timeZone7HTML = 'selected="selected"';
+    }
+
+
     if (isset($registerCrowdType) && $registerCrowdType == 1) {
-        $select1HTML = 'selected="selected"';
+        $crowdType1HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 2) {
-        $select2HTML = 'selected="selected"';
+        $crowdType2HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 3) {
-        $select3HTML = 'selected="selected"';
+        $crowdType3HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 4) {
-        $select4HTML = 'selected="selected"';
+        $crowdType4HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 5) {
-        $select5HTML = 'selected="selected"';
+        $crowdType5HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 6) {
-        $select6HTML = 'selected="selected"';
+        $crowdType6HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 7) {
-        $select7HTML = 'selected="selected"';
+        $crowdType7HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 8) {
-        $select8HTML = 'selected="selected"';
+        $crowdType8HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 9) {
-        $select9HTML = 'selected="selected"';
+        $crowdType9HTML = 'selected="selected"';
     }
     if (isset($registerCrowdType) && $registerCrowdType == 10) {
-        $select10HTML = 'selected="selected"';
+        $crowdType10HTML = 'selected="selected"';
     }
 
     if (!isset($errorMessage)) {
@@ -110,9 +159,9 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         setType($registerCrowdType, "int");
         $authCheckCode = md5(rand());
         $queryStatement = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
-                . "account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
+                . "time_zone, account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
                 . ":encryptedRegisterEmailIV, :authCheckCode, :registerCrowdType, "
-                . ":registerOther, :registerAffiliation, NOW( ), NOW( ))";
+                . ":registerOther, :registerAffiliation, :timeZone, NOW( ), NOW( ))";
         $queryParams = array(
             'maskedEmail' => mask_email($registerEmail),
             'encryptedRegisterEmail' => $encryptedEmailData[0],
@@ -120,7 +169,8 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
             'authCheckCode' => $authCheckCode,
             'registerCrowdType' => $registerCrowdType,
             'registerOther' => $registerOtherContent,
-            'registerAffiliation' => $registerAffiliationContent
+            'registerAffiliation' => $registerAffiliationContent,
+            'timeZone' => $registerTimeZone
         );
         $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
         if ($STH->rowCount() > 0) {
@@ -135,7 +185,10 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
 }
 
 $jQueryDocumentDotReadyCode = '';
-if (!isset($registerCrowdType)) {
+if (empty($registerTimeZone)) {
+    $jQueryDocumentDotReadyCode .= "$('#registerTimeZone').prop('selectedIndex', -1);\r\n";
+}
+if (empty($registerCrowdType)) {
     $jQueryDocumentDotReadyCode .= "$('#registerCrowdType').prop('selectedIndex', -1);\r\n";
 }
 $jQueryDocumentDotReadyCode .= <<<EOL
@@ -153,24 +206,31 @@ $('#registerCrowdType').change(function() {
 });
 $('#registerForm').validate({
   rules: {
-    registerCrowdType: {required: true
+    registerTimeZone: {
+        required: true
+    },
+    registerCrowdType: {
+        required: true
     },
     registerOther: {
-      maxlength: 255
+        maxlength: 255
     },
     registerAffiliation: {
-      maxlength: 255
+        maxlength: 255
     }
   },
   messages: {
+    registerTimeZone: {
+        required: 'You must select your time zone to complete registration.'
+    },
     registerCrowdType: {
-      required: 'You must select your "Crowd Type" to complete registration.'
+        required: 'You must select your crowd type to complete registration.'
     },
     registerOther: {
-      maxlength: 'Your specified other "Crowd Type" is too long for registration (max 255 characters).'
+        maxlength: 'Your specified other crowd type is too long for registration (max 255 characters).'
     },
     registerAffiliation: {
-      maxlength: 'Your specified "Affiliation" is too long for registration (max 255 characters).'
+        maxlength: 'Your specified affiliation is too long for registration (max 255 characters).'
     }
   }
 });

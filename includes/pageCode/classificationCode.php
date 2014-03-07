@@ -1015,6 +1015,7 @@ $javaScript = <<<EOL
             lensFadeOut: 400,
             containLensZoom: 'true',
             scrollZoomIncrement: 0.2,
+            borderColour: '#040535',
             onZoomedImageLoaded: function() {
                 hideLoader(true);
             }
@@ -1028,6 +1029,7 @@ $javaScript = <<<EOL
             lensFadeOut: 400,
             containLensZoom: 'true',
             scrollZoomIncrement: 0.2,
+            borderColour: '#040535',
             onZoomedImageLoaded: function() {
                 hideLoader(false);
             }

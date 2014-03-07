@@ -34,9 +34,10 @@ switch ($pageName) {
         $mainNav = <<<EOL
       <ul id="mainHeaderNavigation">
         <li id="activePageLink">Home</li>
+        <li><a href="profile.php">Profile</a></li>
         <li class="missingPageLink">Help</a></li>
         <li><a href="about.php">About</a></li>
-        <li class="missingPageLink">Profile</li>
+
         <li><a href="logout.php">Logout</a></li>
       </ul>
 EOL;
@@ -47,9 +48,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -143,9 +144,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -156,9 +157,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -169,9 +170,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li id="activePageLink">Help</li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -182,9 +183,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li id="activePageLink">About</li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -195,9 +196,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li id="activePageLink">Profile</li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li id="activePageLink">Profile</li>
               <li><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
@@ -208,9 +209,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li><a href="login.php">Login</a></li>
             </ul>
 EOL;
@@ -221,9 +222,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+               <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li id="activePageLink">Login</li>
             </ul>
 EOL;
@@ -234,9 +235,9 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
+              <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</li>
               <li><a href="about.php">About</a></li>
-              <li class="missingPageLink">Profile</li>
               <li id="activePageLink">Login</li>
             </ul>
 EOL;

@@ -109,7 +109,6 @@ $mapScript = <<<EOL
       icon: mapCurrentIcon,
       //          icon: 'images/system/photoCurrent.png',
       clickable: false
-              //          title: 'Location of the currently displayed image. Taken near $markerToolTip'
     });
     google.maps.event.addListener(icMap, 'idle', function() {
       mapBoundsChanged();
@@ -172,6 +171,7 @@ $mapScript = <<<EOL
           });
           //              }
           icMarkers.push(thisMarker);
+
           google.maps.event.addListener(thisMarker, 'click', (function(marker) {
             return function() {
               $('#mapSelectedImage').attr("src", imageData.image_url);
@@ -179,7 +179,7 @@ $mapScript = <<<EOL
               $('#selectedMapImageHeaderText').text('Post-Storm Photo Selected on Map near ' + imageData.location_string);
               $('#selectedMapImage').css('display', 'block');
 //              $("#mapLoadImageButton").css('display', 'inline-block');
-              dynamicSizing(icDisplayedTask);
+              dynamicSizing();
               google.maps.event.trigger(icMap, "resize");
               for (var i = 0; i < icMarkers.length; i++) {
                 //                    if (icMarkers[i].collation > 1) {

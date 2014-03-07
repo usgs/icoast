@@ -1,5 +1,9 @@
 <?php
-
+ob_start();
+?>
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+PHP Code file contents (PHP Generated Output)-->
+<?php
 $pageName = "profile";
 $cssLinkArray = array();
 $embeddedCSS = '#historyControlWrapper p:first-of-type {margin-top: 0px; padding-top: 10px;}';
@@ -50,11 +54,6 @@ $confirmNewEmail = '';
 $otherCrowdType = '';
 $affiliationContent = '';
 $updateAck = '';
-$stickyCrowdType = FALSE;
-$crowdTypeReset = '';
-$stickyTimeZone = FALSE;
-$timeZoneReset = '';
-$profileFormErrorControl = '';
 
 
 if (isset($_POST['formSubmission'])) {
@@ -107,7 +106,7 @@ if (isset($_POST['formSubmission'])) {
                     );
                     $STH = run_prepared_query($DBH, $profileUpdateQuery, $profileUpdateParams);
                     if ($STH->rowCount() == 1) {
-                        header('Location: profile.php?update=email');
+                        header('Location: profileDev.php?update=email');
                         exit;
                     } else {
                         print $STH->rowCount();
@@ -155,15 +154,6 @@ if (isset($_POST['formSubmission'])) {
             }
 
             if (!isset($errorMessage)) {
-                $existingCrowdType = $userData['crowd_type'];
-                $existingOtherCrowdType = $userData['other_crowd_type'];
-                print $crowdType;
-                print $existingCrowdType;
-                if (($crowdType != 10 && $crowdType == $existingCrowdType) ||
-                        ($crowdType == 10 && strcomp($crowdType, $existingCrowdType == 0))) {
-                    header('Location: profile.php?update=crowd');
-                    exit;
-                }
                 $profileUpdateQuery = "UPDATE users SET crowd_type = :crowdType, other_crowd_type = :otherCrowdType "
                         . "WHERE user_id = :userId LIMIT 1";
                 $profileUpdateParams = array(
@@ -173,8 +163,7 @@ if (isset($_POST['formSubmission'])) {
                 );
                 $STH = run_prepared_query($DBH, $profileUpdateQuery, $profileUpdateParams);
                 if ($STH->rowCount() == 1) {
-                    header('Location: profile.php?update=crowd');
-                    exit;
+                    header('Location: profileDev.php?update=crowd');
                 } else {
                     //  Placeholder for error management
                     print 'Error. Account update failed. No details have been changed.<br>';
@@ -186,50 +175,36 @@ if (isset($_POST['formSubmission'])) {
                 $otherCrowdTypeError = '<label class="error" for="otherCrowdType">' . $errorMessage['otherCrowdType'] . '</label>';
             }
 
-
             if (isset($crowdType) && $crowdType == 1) {
                 $crowdType1HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 2) {
                 $crowdType2HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 3) {
                 $crowdType3HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 4) {
                 $crowdType4HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 5) {
                 $crowdType5HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 6) {
                 $crowdType6HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 7) {
                 $crowdType7HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 8) {
                 $crowdType8HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 9) {
                 $crowdType9HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
             if (isset($crowdType) && $crowdType == 10) {
                 $crowdType10HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
             }
-
-
-
             $otherCrowdType = htmlEntities($otherCrowdType);
             break;
 
@@ -247,11 +222,6 @@ if (isset($_POST['formSubmission'])) {
                 }
             }
             if (!isset($errorMessage)) {
-                $existingAffiliation = $userData['affiliation'];
-                if (strcomp($affiliationContent, $existingAffiliation) == 0) {
-                    header('Location: profile.php?update=affiliation');
-                    exit;
-                }
                 $profileUpdateQuery = "UPDATE users SET affiliation = :affiliation "
                         . "WHERE user_id = :userId LIMIT 1";
                 $profileUpdateParams = array(
@@ -260,8 +230,7 @@ if (isset($_POST['formSubmission'])) {
                 );
                 $STH = run_prepared_query($DBH, $profileUpdateQuery, $profileUpdateParams);
                 if ($STH->rowCount() == 1) {
-                    header('Location: profile.php?update=affiliation');
-                    exit;
+                    header('Location: profileDev.php?update=affiliation');
                 } else {
                     //  Placeholder for error management
                     print 'Error. Account update failed. No details have been changed.<br>';
@@ -291,11 +260,6 @@ if (isset($_POST['formSubmission'])) {
                 }
             }
             if (!isset($errorMessage)) {
-                $existingTimeZone = $userData['time_zone'];
-                if ($existingTimeZone == $timeZone) {
-                    header('Location: profile.php?update=timeZone');
-                    exit;
-                }
                 $profileUpdateQuery = "UPDATE users SET time_zone = :timeZone "
                         . "WHERE user_id = :userId LIMIT 1";
                 $profileUpdateParams = array(
@@ -304,8 +268,7 @@ if (isset($_POST['formSubmission'])) {
                 );
                 $STH = run_prepared_query($DBH, $profileUpdateQuery, $profileUpdateParams);
                 if ($STH->rowCount() == 1) {
-                    header('Location: profile.php?update=timeZone');
-                    exit;
+                    header('Location: profileDev.php?update=timeZone');
                 } else {
                     //  Placeholder for error management
                     print 'Error. Account update failed. No details have been changed.<br>';
@@ -315,60 +278,30 @@ if (isset($_POST['formSubmission'])) {
                 $timeZoneError = '<label class="error" for="registerTimeZone">' . $errorMessage['timeZone'] . '</label>';
             }
 
-
             if (isset($timeZone) && $timeZone == 1) {
                 $timeZone1HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 2) {
                 $timeZone2HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 3) {
                 $timeZone3HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 4) {
                 $timeZone4HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 5) {
                 $timeZone5HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 6) {
                 $timeZone6HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             if (isset($timeZone) && $timeZone == 7) {
                 $timeZone7HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
             }
             break;
     }
-
-    if (!empty($newEmailError) || !empty($confirmNewEmailError)) {
-        $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
-        $profileFormErrorControl .= "$('#changeEmailFormWrapper').css('display', 'block');";
-    } else if (!empty($crowdTypeError) || !empty($otherCrowdTypeError)) {
-        $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
-        $profileFormErrorControl .= "$('#changeCrowdFormWrapper').css('display', 'block');";
-    } else if (!empty($affiliationError)) {
-        $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
-        $profileFormErrorControl .= "$('#changeAffiliationFormWrapper').css('display', 'block');";
-    } else if (!empty($timeZoneError)) {
-        $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
-        $profileFormErrorControl .= "$('#changeTimeZoneFormWrapper').css('display', 'block');";
-    }
 }
-
-if (!$stickyCrowdType) {
-    $crowdTypeReset = "$('#crowdType').prop('selectedIndex', -1);";
-}
-if (!$stickyTimeZone) {
-    $timeZoneReset = "$('#timeZone').prop('selectedIndex', -1);";
-}
-
 
 if (isset($_GET['update'])) {
     $updateAck = '<p class="highlightedText">Your ';
@@ -418,18 +351,25 @@ if (count($projectMetadata) > 0) {
         $projectSelectionOptions .= "<option value=\"$projectId\">$projectName</option>\n\r";
     }
 }
+?>
 
 
 
-
-
-
-
-
-
-$javaScript = <<<EOT
-    var userId = $userId;
-    var timeZone = {$userData['time_zone']};
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+Javascript Code File Contents-->
+<?php
+$javaScriptLinks = '';
+if (count($javaScriptLinkArray) > 0) {
+    foreach ($javaScriptLinkArray as $link) {
+        $javaScriptLinks .= "<script src='$link'></script>\n\r";
+    }
+}
+print $javaScriptLinks;
+?>
+<script>
+//  Content Start         ##############################
+    var userId = <?php print $userId ?>;
+    var timeZone = <?php print $userData['time_zone'] ?>;
     var startingRow = 0;
     var rowsPerPage = 10;
     var displayedRows;
@@ -452,14 +392,14 @@ $javaScript = <<<EOT
         if (startingRow < 0) {
             startingRow = 0;
         }
-        ajaxData = {
+        $ajaxData = {
             userId: userId,
             userTimeZone: timeZone,
             projectId: searchedProject,
             startingRow: startingRow,
             rowsPerPage: rowsPerPage
         };
-        $.post('ajax/userHistory.php', ajaxData, displayUserHistory, 'json');
+        $.post('ajax/userHistory.php', $ajaxData, displayUserHistory, 'json');
     }
 
     function displayUserHistory(history) {
@@ -487,13 +427,9 @@ $javaScript = <<<EOT
                     $('tr').css('background-color', '#FFFFFF');
                     $('td').each(function() {
                         if ($(this).text() == annotation.image_id) {
-                            $(this).parent().css('background-color', '#5384ed');
+                            $(this).parent().css('background-color', '#C7DBCC');
                         }
                     });
-                    for (var i = 0; i < icMarkers.length; i++) {
-                        icMarkers[i].setIcon('images/system/photo.png');
-                    }
-                    marker.setIcon('images/system/photoSelected.png');
                 };
             })(thisMarker));
 
@@ -583,69 +519,20 @@ $javaScript = <<<EOT
         };
         icMap = new google.maps.Map(document.getElementById("mapCanvas"),
                 mapOptions);
-
-        var markers = [];
-        var input = (document.getElementById('pac-input'));
-        icMap.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-        var searchBox = new google.maps.places.SearchBox((input));
-        // [START region_getplaces]
-        // Listen for the event fired when the user selects an item from the
-        // pick list. Retrieve the matching places for that item.
-        google.maps.event.addListener(searchBox, 'places_changed', function() {
-          var places = searchBox.getPlaces();
-          for (var i = 0, marker; marker = markers[i]; i++) {
-            marker.setMap(null);
-          }
-          // For each place, get the icon, place name, and location.
-          markers = [];
-          var bounds = new google.maps.LatLngBounds();
-          for (var i = 0, place; place = places[i]; i++) {
-            var image = {
-              url: place.icon,
-              size: new google.maps.Size(71, 71),
-              origin: new google.maps.Point(0, 0),
-              anchor: new google.maps.Point(17, 34),
-              scaledSize: new google.maps.Size(25, 25)
-            };
-
-            // Create a marker for each place.
-            var marker = new google.maps.Marker({
-              map: icMap,
-              icon: image,
-              title: place.name,
-              position: place.geometry.location
-            });
-
-            markers.push(marker);
-
-            bounds.extend(place.geometry.location);
-          }
-          icMap.fitBounds(bounds);
-          var zoom = icMap.getZoom();
-          console.log(zoom);
-          if (zoom > 13) {
-            icMap.setZoom(13);
-          }
-        });
-
-        // [END region_getplaces]
-
-        // Bias the SearchBox results towards places that are within the bounds of the
-        // current map's viewport.
-        google.maps.event.addListener(icMap, 'bounds_changed', function() {
-          var bounds = icMap.getBounds();
-          searchBox.setBounds(bounds);
-        });
-
     } // End function initializeMaps
 
-EOT;
 
-$jQueryDocumentDotReadyCode = <<<EOT
+//  Content End           ##############################
+</script>
 
-        $crowdTypeReset
-        $timeZoneReset
 
+
+
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+Javascript Document.Ready Code File Contents-->
+<script>
+    $(document).ready(function() {
+//  Content Start     ##############################
         $('#emailChangeButton').click(function() {
             $('.profileUpdateField').slideUp();
             $('#changeEmailFormWrapper').slideDown();
@@ -671,7 +558,6 @@ $jQueryDocumentDotReadyCode = <<<EOT
             $('.profileUpdateField').slideDown();
         });
 
-        $profileFormErrorControl
 
         $('#historyHideButton').click(function() {
             $('#userAnnotationHistory').slideUp(function() {
@@ -679,6 +565,18 @@ $jQueryDocumentDotReadyCode = <<<EOT
                 $('#resultSizeSelect').prop('selectedIndex', 0);
             });
         });
+
+        <?php
+        if (!empty($newEmailError) || !empty($confirmNewEmailError)) {
+            print "$('#emailChangeButton').trigger('click');";
+        } else if (!empty($crowdTypeError) || !empty($otherCrowdTypeError)) {
+            print "$('#crowdTypeChangeButton').trigger('click');";
+        } else if (!empty($affiliationError)) {
+            print "$('#affiliationChangeButton').trigger('click');";
+        } else if (!empty($timeZoneError)) {
+            print "$('#timeZoneChangeButton').trigger('click');";
+        }
+        ?>
 
         $('#profileHideButton').click(function() {
             if ($('#profileDetailsWrapper').css('display') === 'none') {
@@ -735,7 +633,7 @@ $jQueryDocumentDotReadyCode = <<<EOT
             if (!$('#previousPageButton').hasClass('disabledClickableButton')) {
                 startingRow -= parseInt(rowsPerPage);
                 runAjaxAnnotationQuery();
-                $.post('ajax/userHistory.php', ajaxData, displayUserHistory, 'json');
+                $.post('ajax/userHistory.php', $ajaxData, displayUserHistory, 'json');
             }
 
         });
@@ -831,5 +729,274 @@ $jQueryDocumentDotReadyCode = <<<EOT
                 $('#otherCrowdType').val('');
             }
         });
-EOT;
+//  Content End       ##############################
+    }
+    );</script>
+
+
+
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Template - DO NOT ALTER OUTSIDE OF PAGE BODY-->
+<?php
+require("includes/templateCode.php");
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><?php print $pageTitle ?></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>
+        <link rel="stylesheet" href="css/header.css">
+        <link rel="stylesheet" href="css/icoast.css">
+        <?php
+        print $cssLinks;
+        ?>
+        <style>
+<?php print $embeddedCSS; ?>
+        </style>
+
+        <?php // print $javaScriptLinks;     ?>
+        <script>
+<?php
+//          print $javaScript . "\n\r";
+//          print $jQueryDocumentDotReadyCode;
+?>
+        </script>
+    </head>
+    <body>
+        <!--Header-->
+        <div id="usgsColorBand">
+            <div id="usgsIdentifier">
+                <a href="http://www.usgs.gov">
+                    <img src="images/system/usgsIdentifier.jpg" alt="USGS - science for a changing world"
+                         title="U.S. Geological Survey Home Page" width="178" height="72" />
+                </a>
+                <p id="appTitle">iCoast</p>
+                <p id="appSubtitle">did the coast change?</p>
+            </div>
+            <div id="headerImageWrapper">
+                <img src="images/system/hurricaneBanner.jpg" alt="An image from Space of a hurricane approaching the Florida coastline." />
+            </div>
+            <?php print $mainNav ?>
+        </div>
+
+        <!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Load file contents (HTML Page Body)-->
+        <div id="contentWrapper">
+            <h1>Your iCoast Profile and Tagging History</h1>
+            <div id="profileSettingsWrapper">
+                <button id="profileHideButton" class="clickableButton hideProfilePanelButton">Hide Profile Details</button>
+                <h2>Profile Details</h2>
+                <div id="profileDetailsWrapper">
+                    <?php print $updateAck ?>
+
+
+
+
+
+                    <div class="formFieldRow profileUpdateField">
+                        <label for="emailChangeButton">E-Mail: <span class="userData"><?php print $maskedEmail ?></span></label>
+                        <input type="button" id="emailChangeButton" value="Change Email Address">
+                    </div>
+                    <div id="changeEmailFormWrapper" class="profileUpdateForm">
+                        <h3>Change Your eMail Address</h3>
+                        <p>Your current eMail address is <span class="userData"><?php print $maskedEmail ?></span></p>
+                        <p>IMPORTANT: This option provides the ability for you to associate your iCoast account with a
+                            different Google account. You should not change your address here unless you already have
+                            already created and tested your new Google account. Upon clicking the button below you
+                            will be logged out of iCoast but will still need to also log out of Google before re-accessing
+                            iCoast. Type your new address carefully or your iCoast account could become permanently disassociated
+                            with a working Google account. At this time iCoast only accepts Google Accounts. Do not specify
+                            an address from any other entity.</p>
+                        <form method="post" action="" id="eMailForm">
+                            <input type="hidden" name="formSubmission" value="email" />
+                            <div class="formFieldRow">
+                                <label for="newEmail">New eMail Address:</label>
+                                <input type="text" id="newEmail" name="newEmail" value="<?php print $newEmail ?>">
+                                <?php print $newEmailError ?>
+                            </div>
+                            <div class="formFieldRow">
+                                <label for="confirmNewEmail">Confirm New eMail Address:</label>
+                                <input type="text" id="confirmNewEmail" name="confirmNewEmail"
+                                       value="<?php print $confirmNewEmail ?>">
+                                       <?php print $confirmEmailError ?>
+                            </div>
+                            <input type="submit" class="clickableButton" value="Change E-Mail">
+                            <input type="button" class="clickableButton cancelUpdateButton" value="Cancel">
+                        </form>
+                    </div>
+
+
+
+
+
+
+                    <div class="formFieldRow profileUpdateField">
+                        <label for="crowdTypeChangeButton">Crowd Type: <span class="userData"><?php print $crowdType ?></span></label>
+                        <input type="button" id="crowdTypeChangeButton" value="Change Crowd Type">
+                    </div>
+                    <div id="changeCrowdFormWrapper" class="profileUpdateForm">
+                        <h3>Change Your Crowd Type</h3>
+                        <p>Your current crowd type is <span class="userData"><?php print $crowdType ?></span></p>
+                        <form method="post" id="crowdForm">
+                            <input type="hidden" name="formSubmission" value="crowd" />
+                            <div class="formFieldRow">
+                                <label for="crowdType">Crowd Type:</label>
+                                <select id="crowdType" name="crowdType" >
+                                    <option value="1" <?php print $crowdType1HTML ?>>Coastal Science Researcher</option>
+                                    <option value="2" <?php print $crowdType2HTML ?>>Coastal Manager or Planner</option>
+                                    <option value="3" <?php print $crowdType3HTML ?>>Coastal Resident</option>
+                                    <option value="4" <?php print $crowdType4HTML ?>>Coastal Recreational User</option>
+                                    <option value="5" <?php print $crowdType5HTML ?>>Marine Science Student</option>
+                                    <option value="6" <?php print $crowdType6HTML ?>>Emergency Manager</option>
+                                    <option value="7" <?php print $crowdType7HTML ?>>Policy Maker</option>
+                                    <option value="8" <?php print $crowdType8HTML ?>>Digital Crisis Volunteer (VTC)</option>
+                                    <option value="9" <?php print $crowdType9HTML ?>>Interested Public</option>
+                                    <option value="10" <?php print $crowdType10HTML ?>>Other (Please specify below)</option>
+                                </select>
+                                <?php print $crowdTypeError ?>
+                            </div>
+                            <div class="formFieldRow" id="profileOtherRow">
+                                <label for="otherCrowdType">Other Crowd Type: </label>
+                                <input type="text" id="otherCrowdType" name="otherCrowdType" value="<?php print $otherCrowdType ?>"/>
+                                <?php print $otherCrowdTypeError ?>
+                            </div>
+                            <input type="submit" class="clickableButton" value="Change Crowd Type">
+                            <input type="button" class="clickableButton cancelUpdateButton" value="Cancel">
+                        </form>
+                    </div>
+
+
+
+
+
+
+                    <div class="formFieldRow profileUpdateField">
+                        <label for="affiliationChangeButton">Expertise or Affiliation: <span class="userData"><?php print $affiliation ?></span></label>
+                        <input type="button" id="affiliationChangeButton" value="Change Expertise/Affiliation">
+                    </div>
+                    <div id="changeAffiliationFormWrapper" class="profileUpdateForm">
+                        <h3>Change Your Expertise or Affiliation</h3>
+                        <p>Your current Expertise or Affiliation is <span class="userData"><?php print $affiliation ?></span></p>
+                        <form method="post" id="affiliationForm">
+                            <input type="hidden" name="formSubmission" value="affiliation" />
+                            <div class="formFieldRow">
+                                <label for="affiliation">Coastal Expertise or Affiliation (optional): </label>
+                                <input type="text" id="affiliation" name="affiliation" value="<?php print $affiliationContent ?>" />
+                                <?php print $affiliationError ?>
+                            </div>
+                            <input type="submit" class="clickableButton" value="Change Affiliation">
+                            <input type="button" class="clickableButton cancelUpdateButton" value="Cancel">
+                        </form>
+                    </div>
+
+
+
+
+
+
+                    <div class="formFieldRow profileUpdateField">
+                        <label for="timeZoneChangeButton">Time Zone: <span class="userData"><?php print $timeZone ?></span></label>
+                        <input type="button" id="timeZoneChangeButton" value="Change Time Zone">
+                    </div>
+                    <div id="changeTimeZoneFormWrapper" class="profileUpdateForm">
+                        <h3>Change Your Expertise or Affiliation</h3>
+                        <p>Your current Expertise or Affiliation is <span class="userData"><?php print $affiliation ?></span></p>
+                        <form method="post" id="timeZoneForm">
+                            <input type="hidden" name="formSubmission" value="timeZone" />
+                            <div class="formFieldRow">
+                                <label for="timeZone">Time Zone:</label>
+                                <select id="timeZone" name="timeZone" >
+                                    <option value="1" $timeZone1HTML>Eastern</option>
+                                    <option value="2" $timeZone2HTML>Central</option>
+                                    <option value="3" $timeZone3HTML>Mountain</option>
+                                    <option value="4" $timeZone3HTML>Mountain (Arizona)</option>
+                                    <option value="5" $timeZone4HTML>Pacific</option>
+                                    <option value="6" $timeZone5HTML>Alaskan</option>
+                                    <option value="7" $timeZone6HTML>Hawaiian</option>
+                                </select>
+                                <?php print $timeZoneError ?>
+                            </div>
+                            <input type="submit" class="clickableButton" value="Change Time Zone">
+                            <input type="button" class="clickableButton cancelUpdateButton" value="Cancel">
+                        </form>
+                    </div>
+
+
+
+
+
+
+                </div>
+
+
+            </div>
+            <div id="profileAnnotationListControls">
+                <button id="controlHideButton" class="clickableButton hideProfilePanelButton">Hide History Controls</button>
+                <h2>View Your iCoast Tagging History</h2>
+                <div id="historyControlWrapper">
+                    <p>Choose from the options below to view either your complete tagging history across all of iCoast's projects...</p>
+                    <input type="button" id="allPhotoButton" value="Complete History"><br>
+                    <p>...or your specific history for a particular project</p>
+                    <select id="projectSelection">
+                        <?php print $projectSelectionOptions ?>
+                    </select>
+                    <input type="button" id="projectPhotoButton" value="Specific Project History">
+                </div>
+            </div>
+            <div id="userAnnotationHistory">
+                <button id="historyHideButton" class="clickableButton hideProfilePanelButton">Hide History Panel</button>
+                <div id="profileTableWrapper">
+                    <h2>Photos You Have Tagged</h2>
+                    <div id="historyTableWrapper">
+                        <div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Image ID</th>
+                                        <th>Location</th>
+                                        <th>Annotation Time</th>
+                                        <th>Time Spent</th>
+                                        <th># of Tags</th>
+                                        <th>Project</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="annotationTableControls">
+                            <input type="button" id="firstPageButton" class="clickableButton disabledClickableButton" value="<<">
+                            <input type="button" id="previousPageButton" class="clickableButton disabledClickableButton" value="<">
+                            <select id="resultSizeSelect" class="disabledClickableButton" disabled>
+                                <option value="10">10 Results Per Page</option>
+                                <option value="20">20 Results Per Page</option>
+                                <option value="30">30 Results Per Page</option>
+                                <option value="50">50 Results Per Page</option>
+                                <option value="100">100 Results Per Page</option>
+                            </select>
+                            <input type="button" id="lastPageButton" class="clickableButton disabledClickableButton" value=">>">
+                            <input type="button" id="nextPageButton" class="clickableButton disabledClickableButton" value=">">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profileMapWrapper">
+                    <h2>Map of Photos You Have Tagged</h2>
+                    <div id="mapCanvas"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!--//////////////////////////////////////////////////////////////////////////////////////////////////////////
+        END Load file contents (HTML Page Body)-->
+
+    </body>
+</html>
+
 

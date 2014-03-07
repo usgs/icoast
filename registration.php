@@ -1,4 +1,5 @@
 <?php
+
 ob_start();
 require('includes/pageCode/registrationCode.php');
 
@@ -13,16 +14,16 @@ $pageBody = <<<EOL
             <div class="formFieldRow">
                 <label for="registerCrowdType">Crowd Type: *</label>
                 <select id="registerCrowdType" name="registerCrowdType" >
-                    <option class="selectOption" value="1" $select1HTML>Coastal Science Researcher</option>
-                    <option value="2" $select2HTML>Coastal Manager or Planner</option>
-                    <option value="3" $select3HTML>Coastal Resident</option>
-                    <option value="4" $select4HTML>Coastal Recreational User</option>
-                    <option value="5" $select5HTML>Marine Science Student</option>
-                    <option value="6" $select6HTML>Emergency Manager</option>
-                    <option value="7" $select7HTML>Policy Maker</option>
-                    <option value="8" $select8HTML>Digital Crisis Volunteer (VTC)</option>
-                    <option value="9" $select9HTML>Interested Public</option>
-                    <option value="10" $select10HTML>Other (Please specify below)</option>
+                    <option value="1" $crowdType1HTML>Coastal Science Researcher</option>
+                    <option value="2" $crowdType2HTML>Coastal Manager or Planner</option>
+                    <option value="3" $crowdType3HTML>Coastal Resident</option>
+                    <option value="4" $crowdType4HTML>Coastal Recreational User</option>
+                    <option value="5" $crowdType5HTML>Marine Science Student</option>
+                    <option value="6" $crowdType6HTML>Emergency Manager</option>
+                    <option value="7" $crowdType7HTML>Policy Maker</option>
+                    <option value="8" $crowdType8HTML>Digital Crisis Volunteer (VTC)</option>
+                    <option value="9" $crowdType9HTML>Interested Public</option>
+                    <option value="10" $crowdType10HTML>Other (Please specify below)</option>
                 </select>
                 $crowdTypeError
             </div>
@@ -32,17 +33,28 @@ $pageBody = <<<EOL
                 $otherCrowdTypeError
             </div>
             <div class="formFieldRow">
-                <label for="registerAffiliation">Affiliation: </label>
+                <label for="registerAffiliation">Coastal Expertise or Affiliation (optional): </label>
                 <input type="text" id="registerAffiliation" name="registerAffiliation" value="$registerAffiliationContent" />
                 $registerAffiliationError
+            </div>
+            <div class="formFieldRow">
+                <label for="registerTimeZone">Time Zone: *</label>
+                <select id="registerTimeZone" name="registerTimeZone" >
+                    <option value="1" $timeZone1HTML>Eastern</option>
+                    <option value="2" $timeZone2HTML>Central</option>
+                    <option value="3" $timeZone3HTML>Mountain</option>
+                    <option value="4" $timeZone3HTML>Mountain (Arizona)</option>
+                    <option value="5" $timeZone4HTML>Pacific</option>
+                    <option value="6" $timeZone5HTML>Alaskan</option>
+                    <option value="7" $timeZone6HTML>Hawaiian</option>
+                </select>
+                $timeZoneError
             </div>
             <div class="formFieldRow standAloneFormElement">
                 <input type="submit" class="clickableButton formButton" id="registerSubmitButton" value="Complete Registration" />
             </div>
         </form>
-        <div id="contentWrapperFooter">
-            <p>* indicates the field is required.</p>
-        </div>
+        <p class="footer">* indicates the field is required.</p>
     </div>
 EOL;
 

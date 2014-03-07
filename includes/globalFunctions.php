@@ -1,6 +1,7 @@
 <?php
 
-error_reporting(0);
+//error_reporting(0);
+date_default_timezone_set('UTC');
 $dbmsConnectionPath = '../secureData/icoast/DBMSConnection.php';
 $dbmsConnectionPathDeep = '../../secureData/icoast/DBMSConnection.php';
 
@@ -55,7 +56,7 @@ function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirec
     $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
     if (count($userData) == 0) {
         if ($redirect) {
-//            header('Location: login.php');
+            header('Location: login.php');
         } else {
             return FALSE;
         }
@@ -403,10 +404,12 @@ function retrieve_image_metadata($imageIds) {
  *
  * @param array $imageMetadata A 1D associative array containing feature, city and state keys
  * derived from the image table of the iCoast DB.
+ * @param boolean (Optional) $shortResult Default: FALSE. If set to true returns just the nearest City and State.
+ * Default FALSE option includes details of the nearest feature if one is recorded.
  * @return string|boolean On success returns a formatted string <b>OR</b><br>
  * On failure returns boolean FALSE.
  */
-function build_image_location_string($imageMetadata) {
+function build_image_location_string($imageMetadata, $shortResult=FALSE) {
     /* print "<p><b>In build_image_location_string function.</b><br>Arguments:<br><pre>";
       print_r($imageMetadata);
       print "</pre></p>"; */
@@ -416,7 +419,7 @@ function build_image_location_string($imageMetadata) {
 
     if (is_array($imageMetadata)) {
 // If no feature data is available then skip inclusion.
-        if (!empty($imageMetadata['feature'])) {
+        if (!empty($imageMetadata['feature']) && !$shortResult) {
             $imageLocation .= $imageMetadata['feature'] . ', ';
         }
         $imageLocation .= $imageMetadata['city'] . ', ' . $imageMetadata['state'];
