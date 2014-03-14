@@ -23,6 +23,7 @@ $timeZone4HTML = '';
 $timeZone5HTML = '';
 $timeZone6HTML = '';
 $timeZone7HTML = '';
+$timeZone8HTML = '';
 $crowdType1HTML = '';
 $crowdType2HTML = '';
 $crowdType3HTML = '';
@@ -58,7 +59,7 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     if (empty($registerTimeZone)) {
         $errorMessage['timeZone'] = 'You must select your time zone to complete registration.';
     } else {
-        if ($registerTimeZone < 1 || $registerTimeZone > 7) {
+        if ($registerTimeZone < 1 || $registerTimeZone > 8) {
             $errorMessage['timeZone'] = 'The specified time zone is invalid.';
         }
     }
@@ -100,26 +101,39 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 
 
-    if (isset($registerTimeZone) && $registerTimeZone == 1) {
-        $timeZone1HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 2) {
-        $timeZone2HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 3) {
-        $timeZone3HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 4) {
-        $timeZone4HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 5) {
-        $timeZone5HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 6) {
-        $timeZone6HTML = 'selected="selected"';
-    }
-    if (isset($registerTimeZone) && $registerTimeZone == 7) {
-        $timeZone7HTML = 'selected="selected"';
+    switch ($timeZone) {
+        case 1;
+            $timeZone1HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 2;
+            $timeZone2HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 3;
+            $timeZone3HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 4;
+            $timeZone4HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 5;
+            $timeZone5HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 6;
+            $timeZone6HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 7;
+            $timeZone7HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
+        case 8;
+            $timeZone8HTML = 'selected="selected"';
+            $stickyTimeZone = TRUE;
+            break;
     }
 
 

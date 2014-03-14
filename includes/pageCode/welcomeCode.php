@@ -43,7 +43,7 @@ if ($numberOfProjects > 1) {
       <form method="post" action="start.php">
           <input type="hidden" name="userId" value="$userId" />
           <label for="projectIdSelect">
-              <p>Select a project to annotate:</p>
+              <h2>Select a Project to Annotate:</h2>
           </label>
           <div class="formFieldRow standAloneFormElement">
             <select id="projectIdSelect" name="projectId">
@@ -51,7 +51,7 @@ if ($numberOfProjects > 1) {
             </select>
           </div>
           <div class="formFieldRow standAloneFormElement">
-            <input type="submit" id="" class="clickableButton formButton" value="Tag Chosen Project" />
+            <input type="submit" id="" class="clickableButton formButton" value="Start Tagging!" />
           </div>
       </form>
 EOL;
@@ -79,8 +79,9 @@ switch ($userType) {
     case 'new':
         $welcomeBackHTML = '';
         $variableContent = <<<EOL
-        <p>Thank you for your interest in signing up to iCoast. We are developing tutorials
-          and other instructional materials to make it easier to get started. In the meantime,
+        <h2>Thanks for joining iCoast</h2>
+        <p>Thank you for your interest in signing up to iCoast.<br>We are developing tutorials
+          and other instructional materials to make it easier to get started.<br>In the meantime,
             check out the first iCoast project showing aerial photographs taken after
               Hurricane Sandy.</p>
 
@@ -100,9 +101,6 @@ EOL;
         $STH = run_prepared_query($DBH, $annotationQuery, $annotationParams);
         $annotations = $STH->fetchAll(PDO::FETCH_ASSOC);
         if (count($annotations) > 0) {
-            if ($numberOfProjects <= 1) {
-                $selectProjectButtonHTML = '';
-            }
 
             $numberOfAnnotations = count($annotations);
             $lastAnnotation = $annotations[0];
@@ -174,7 +172,7 @@ EOL;
                 $positionHTML .= "$ordinalPositionInICoast Place";
             }
             if ($positionInICoast == 2) {
-                $advancementHTML = "<tr><td># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
+                $advancementHTML = "<tr><td># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
             }
 
             if ($positionInICoast > 2) {
@@ -192,25 +190,21 @@ EOL;
 
 
             $variableContent.= <<<EOL
-                <table>
-                    <tr><td>Scoreboard Position:</td><td class="userData">$positionHTML</td></tr>
+                <table class="statisticsTable">
+                    <tr><td>Leaderboard Position:</td><td class="userData">$positionHTML</td></tr>
                     <tr><td># of Photos Tagged:</td><td class="userData">$numberOfAnnotations</td></tr>
-                    <tr><td># of Tags in Total:</td><td class="userData">$numberOfTotalTags</td></tr>
+
                     $advancementHTML
-                    <tr><td>Most Recent Annotation:</td><td class="userData">$formattedLastAnnotationTime</td></tr>
+                    <tr><td># of Tags in Total:</td><td class="userData">$numberOfTotalTags</td></tr>
+                    <tr><td>Last Project Annotated:</td><td class="userData">$projectName</td></tr>
+                    <tr><td>Last Annotation:</td><td class="userData">$formattedLastAnnotationTime</td></tr>
                 </table>
-                <form method="post" action="start.php" class="buttonForm">
-                    <input type="hidden" name="projectId" value="$lastProjectId" />
-                    <div class="formFieldRow standAloneFormElement">
-                        <input type="submit" id="continueClassifyingButton" class="clickableButton formButton" value="Continue Tagging $projectName Project" />
-                    </div>
-                </form>
               $selectProjectButtonHTML
 EOL;
         } else {
             $variableContent .= <<<EOL
-                <p>You have not yet annotated any POST-storm photographs. Click the button below to
-                  Start Tagging aerial photographs taken after Hurricane Sandy. See if you can tag
+                <p>You have not yet annotated any POST-storm photographs.<br>Click the button below to
+                  Start Tagging aerial photographs taken after Hurricane Sandy.<br>See if you can tag
                   more photos than other iCoast users.</p>
                 $selectProjectButtonHTML
 EOL;

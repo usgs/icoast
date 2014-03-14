@@ -6,6 +6,9 @@ $pageBody = <<<EOL
     <div id="classificationWrapper">
         <div id="images">
             <div class="imageColumn">
+                <div class="imageColumnTitle">
+                    $preImageTitle
+                </div>
                 <div class="imageColumnContent">
                     <img id="preImageZoomLoadingIndicator" class="zoomLoadingIndicator"
                          src="images/system/loading.gif"
@@ -13,27 +16,26 @@ $pageBody = <<<EOL
                     <img id="preImage" src="$preDisplayImageURL"
                          data-zoom-image="$preDetailedImageURL" />
                 </div>
-                <div class="imageColumnTitle">
-                    $preImageTitle
-                </div>
             </div>
 
             <div class="imageColumn">
+						    <div class="imageColumnTitle" id="mapColumnTitle">
+                </div>
                 <div class="imageColumnContent">
                     <div id="mapInsert"></div>
                 </div>
             </div>
 
             <div class="imageColumn">
+						    <div class="imageColumnTitle">
+                    $postImageTitle
+                </div>
                 <div class="imageColumnContent">
                     <img id="postImageZoomLoadingIndicator" class="zoomLoadingIndicator"
                          src="images/system/loading.gif"
                          title="Loading high resolution zoom tool..." />
                     <img id="postImage" src="$postDisplayImageURL"
                          data-zoom-image="$postDetailedImageURL" />
-                </div>
-                <div class="imageColumnTitle">
-                    $postImageTitle
                 </div>
             </div>
         </div>

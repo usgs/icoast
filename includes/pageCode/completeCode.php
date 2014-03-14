@@ -89,7 +89,7 @@ $annotationsToNextHTML = "";
 if ($positionInICoast > 1) {
   $annotationsToFirst = $annotaionPositions[0]['completed_annotation_count'] - $numberOfAnnotations + 1;
   $nextPosition = ordinal_suffix($positionInICoast - 1);
-$annotationsToNextHTML = "<tr><td class=\"rowTitle\"># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td></tr>";
+$annotationsToNextHTML = "<tr><td class=\"rowTitle\"># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td></tr>";
 }
 
 

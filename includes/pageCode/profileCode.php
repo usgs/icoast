@@ -29,6 +29,7 @@ $timeZone4HTML = '';
 $timeZone5HTML = '';
 $timeZone6HTML = '';
 $timeZone7HTML = '';
+$timeZone8HTML = '';
 $crowdType1HTML = '';
 $crowdType2HTML = '';
 $crowdType3HTML = '';
@@ -55,6 +56,8 @@ $crowdTypeReset = '';
 $stickyTimeZone = FALSE;
 $timeZoneReset = '';
 $profileFormErrorControl = '';
+$hideHistoryPanelJavaScript = '';
+$projectSelectionOptions = '';
 
 
 if (isset($_POST['formSubmission'])) {
@@ -286,7 +289,7 @@ if (isset($_POST['formSubmission'])) {
             if (empty($timeZone)) {
                 $errorMessage['timeZone'] = 'You must select your time zone to complete registration.';
             } else {
-                if ($timeZone < 1 || $timeZone > 7) {
+                if ($timeZone < 1 || $timeZone > 8) {
                     $errorMessage['timeZone'] = 'The specified time zone is invalid.';
                 }
             }
@@ -315,34 +318,39 @@ if (isset($_POST['formSubmission'])) {
                 $timeZoneError = '<label class="error" for="registerTimeZone">' . $errorMessage['timeZone'] . '</label>';
             }
 
-
-            if (isset($timeZone) && $timeZone == 1) {
-                $timeZone1HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 2) {
-                $timeZone2HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 3) {
-                $timeZone3HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 4) {
-                $timeZone4HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 5) {
-                $timeZone5HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 6) {
-                $timeZone6HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
-            }
-            if (isset($timeZone) && $timeZone == 7) {
-                $timeZone7HTML = 'selected="selected"';
-                $stickyTimeZone = TRUE;
+            switch ($timeZone) {
+                case 1;
+                    $timeZone1HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 2;
+                    $timeZone2HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 3;
+                    $timeZone3HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 4;
+                    $timeZone4HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 5;
+                    $timeZone5HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 6;
+                    $timeZone6HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 7;
+                    $timeZone7HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
+                case 8;
+                    $timeZone8HTML = 'selected="selected"';
+                    $stickyTimeZone = TRUE;
+                    break;
             }
             break;
     }
@@ -411,12 +419,15 @@ while ($project = $STH->fetch(PDO::FETCH_ASSOC)) {
 }
 
 if (count($projectMetadata) > 0) {
-    $projectSelectionOptions = '';
     foreach ($projectMetadata as $singleProject) {
         $projectId = $singleProject['project_id'];
         $projectName = $singleProject['name'];
         $projectSelectionOptions .= "<option value=\"$projectId\">$projectName</option>\n\r";
     }
+} else {
+    $hideHistoryPanelJavaScript = "$('#profileAnnotationListControls').css('display', 'none');";
+    $hideHistoryPanelJavaScript .= "$('#profileSettingsWrapper').css('border-bottom-width', '0px');";
+    $hideHistoryPanelJavaScript .= "$('#profileHideButton').css('display', 'none');";
 }
 
 
@@ -445,8 +456,6 @@ $javaScript = <<<EOT
     icMap = null;
     icMarkers = null;
     icMarkerClusterer = null;
-
-
 
     function runAjaxAnnotationQuery() {
         if (startingRow < 0) {
@@ -511,20 +520,21 @@ $javaScript = <<<EOT
             }
 
             displayedRows++;
+            var classificationLink = '<td><a href="classification.php?projectId=' + annotation.project_id +
+                        '&imageId=' + annotation.image_id + '">';
+
             tableContents += '<tr>';
 
             if (annotation.annotation_completed == 1) {
-                var classificationLink = '<td><a href="classification.php?projectId=' + annotation.project_id +
-                        '&imageId=' + annotation.image_id + '">';
+                tableContents += '<tr>';
             } else {
-                var classificationLink = '<td class="incompleteAnnotation"><a href="classification.php?projectId=' + annotation.project_id +
-                        '&imageId=' + annotation.image_id + '">';
+                tableContents += '<tr class="incompleteAnnotation">';
             }
-            tableContents += classificationLink + annotation.image_id + '</a></td>';
-            tableContents += classificationLink + annotation.location + '</a></td>';
             tableContents += classificationLink + annotation.annotation_time + '</a></td>';
             tableContents += classificationLink + annotation.time_spent + '</a></td>';
             tableContents += classificationLink + annotation.number_of_tags + '</a></td>';
+            tableContents += classificationLink + annotation.location + '</a></td>';
+            tableContents += classificationLink + annotation.image_id + '</a></td>';
             tableContents += classificationLink + annotation.project_name + '</a></td>';
             tableContents += '</tr>';
         });
@@ -555,22 +565,28 @@ $javaScript = <<<EOT
         var totalPages = Math.ceil(resultCount / rowsPerPage);
         var currentPage = Math.ceil(topRow / rowsPerPage);
 
-        $('#profileTableWrapper p').remove();
-        $('#profileTableWrapper').append('<p class="footer">Page ' + currentPage + ' of ' + totalPages +
+        $('#profileTableWrapper p:nth-of-type(2)').remove();
+        $('#profileTableWrapper').append('<p>Page ' + currentPage + ' of ' + totalPages +
                 '. Displaying rows ' + topRow + ' - ' + bottomRow +
                 ' of ' + resultCount + ' total results (' + totalRows + ' rows shown)</p>');
 
         if ($('#userAnnotationHistory').css('display') === 'none') {
-            $('#userAnnotationHistory').slideDown();
+            $('#feedbackWrapper').hide();
+            $('#userAnnotationHistory').slideDown(positionFeedbackDiv);
         }
         google.maps.event.trigger(icMap, "resize");
         icMap.setZoom(20);
         icMap.fitBounds(resultSetMapBounds);
+        if (icMap.getZoom() > 15) {
+        icMap.setZoom(15);
+      }
 
         if ($('#profileDetailsWrapper').css('display') !== 'none') {
-            $('#profileDetailsWrapper').slideUp();
+            $('#feedbackWrapper').hide();
+            $('#profileDetailsWrapper').slideUp(positionFeedbackDiv);
             $('#profileHideButton').text('Show Profile Details');
         }
+
     }
 
 
@@ -647,38 +663,39 @@ $jQueryDocumentDotReadyCode = <<<EOT
         $timeZoneReset
 
         $('#emailChangeButton').click(function() {
-            $('.profileUpdateField').slideUp();
-            $('#changeEmailFormWrapper').slideDown();
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+            $('#changeEmailFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#crowdTypeChangeButton').click(function() {
-            $('.profileUpdateField').slideUp();
-            $('#changeCrowdFormWrapper').slideDown();
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+            $('#changeCrowdFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#affiliationChangeButton').click(function() {
-            $('.profileUpdateField').slideUp();
-            $('#changeAffiliationFormWrapper').slideDown();
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+            $('#changeAffiliationFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#timeZoneChangeButton').click(function() {
-            $('.profileUpdateField').slideUp();
-            $('#changeTimeZoneFormWrapper').slideDown();
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+            $('#changeTimeZoneFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('.cancelUpdateButton').click(function() {
-            $('.profileUpdateForm').slideUp();
-            $('.profileUpdateField').slideDown();
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateForm').slideUp(positionFeedbackDiv);
+            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideDown(positionFeedbackDiv);
         });
 
         $profileFormErrorControl
 
-        $('#historyHideButton').click(function() {
-            $('#userAnnotationHistory').slideUp(function() {
-                rowsPerPage = 10;
-                $('#resultSizeSelect').prop('selectedIndex', 0);
-            });
-        });
+        $hideHistoryPanelJavaScript
 
         $('#profileHideButton').click(function() {
             if ($('#profileDetailsWrapper').css('display') === 'none') {
@@ -686,16 +703,8 @@ $jQueryDocumentDotReadyCode = <<<EOT
             } else {
                 $('#profileHideButton').text('Show Profile Details');
             }
-            $('#profileDetailsWrapper').slideToggle();
-        });
-
-        $('#controlHideButton').click(function() {
-            if ($('#historyControlWrapper').css('display') === 'none') {
-                $('#controlHideButton').text('Hide History Controls');
-            } else {
-                $('#controlHideButton').text('Show History Controls');
-            }
-            $('#historyControlWrapper').slideToggle();
+            $('#feedbackWrapper').hide();
+            $('#profileDetailsWrapper').slideToggle(positionFeedbackDiv);
         });
 
         var script = document.createElement("script");
@@ -825,9 +834,11 @@ $jQueryDocumentDotReadyCode = <<<EOT
         $('#crowdType').change(function() {
             if (($('#crowdType option:selected').text() === 'Other (Please specify below)') &&
                     ($('#profileOtherRow').css('display') === 'none')) {
-                $('#profileOtherRow').slideDown();
+                $('#feedbackWrapper').hide();
+                $('#profileOtherRow').slideDown(positionFeedbackDiv);
             } else if ($('#profileOtherRow').css('display') === 'block') {
-                $('#profileOtherRow').slideUp();
+                $('#feedbackWrapper').hide();
+                $('#profileOtherRow').slideUp(positionFeedbackDiv);
                 $('#otherCrowdType').val('');
             }
         });

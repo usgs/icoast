@@ -12,7 +12,7 @@ function crowdTypeConverter($crowdTypeId, $otherCrowdType) {
             return "Coastal Resident";
             break;
         case 4:
-            return "Coastal Recreational User";
+            return "Watersport Enthusiast";
             break;
         case 5:
             return "Marine Science Student";
@@ -58,6 +58,9 @@ function timeZoneIdToTextConverter($timeZoneId) {
         case 7:
             return "Hawaiian";
             break;
+        case 8:
+            return "UTC";
+            break;
     }
 }
 
@@ -94,9 +97,12 @@ function formattedAnnotationTime($time, $userTimeZone, $verbose = TRUE) {
         case 7:
             $timeZoneString = ('Pacific/Honolulu');
             break;
+        case 8:
+            $timeZoneString = ('UTC');
+            break;
         default:
             // Placeholder for error reporting
-            exit('Invalid user time zone specified. Should be 1 - 7 (Eastern to Hawaii');
+            exit('Invalid user time zone specified. Should be 1 - 8 (Eastern to Hawaii or UTC');
             break;
     }
     $annotationTime = new DateTime($time, new DateTimeZone('UTC'));

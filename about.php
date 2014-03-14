@@ -8,7 +8,7 @@ $pageBody = <<<EOL
             <div id="aboutWrapper">
 
                 <h1>About “iCoast - Did the Coast Change?”</h1>
-                <h2> Purpose and Goal of “iCoast - Did the Coast Change?”</h2>
+                <h2> Purpose and Goal of iCoast</h2>
 
 
                 <p>For the past 18 years, the United States Geological Survey (USGS) coastal scientists
@@ -87,28 +87,28 @@ $pageBody = <<<EOL
                         <img src="images/system/sbliu.jpg" height="100" width="100" alt="Image of Sophia Liu" />
                         <h3>Sophia B. Liu</h3>
                         <p><span class="teamPosition">Principal Investigator</span><br>
-                            (USGS Research Geographer and<br>Mendenhall Postdoc Fellow)</p>
+                            USGS Research Geographer and<br>Mendenhall Postdoc Fellow</p>
                     </div>
 
                     <div>
                         <img src="images/system/bpoore.jpg" height="100" width="100" alt="Image of Barbara Poore" />
                         <h3>Barbara Poore</h3>
                         <p><span class="teamPosition">Principal Investigator</span><br>
-                            (USGS Research Geographer)</p>
+                            USGS Research Geographer</p>
                     </div>
 
                     <div>
                         <img src="images/system/rsnell.jpg" height="100" width="100" alt="Image of Richard Snell" />
                         <h3>Richard Snell</h3>
-                        <p><span class="teamPosition">Technology Developer</span><br>
-                            (USGS Web Developer)</p>
+                        <p><span class="teamPosition">Application Developer</span><br>
+                            USGS Web Application Developer</p>
                     </div>
 
                     <div>
                         <img src="images/system/agoodman.jpg" height="100" width="100" alt="Image of Aubrey Goodman" />
                         <h3>Aubrey Goodman</h3>
-                        <p><span class="teamPosition">Technology Developer</span><br>
-                            (<a href="http://migrantstudios.com/">Migrant Studios Information Architect</a>)</p>
+                        <p><span class="teamPosition">Prototype Developer</span><br>
+                            <a href="http://migrantstudios.com/">Migrant Studios Information Architect</a></p>
                     </div>
                 </div>
                 <div class="teamColumn">
@@ -117,28 +117,28 @@ $pageBody = <<<EOL
                         <img src="images/system/nplant.jpg" height="100" width="100" alt="Image of Nathaniel Plant" />
                         <h3>Nathaniel Plant</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
-                            (USGS Research Oceanographer)</p>
+                            USGS Research Oceanographer</p>
                     </div>
 
                     <div>
                         <img src="images/system/hstockdon.jpg" height="100" width="100" alt="Image of Hilary Stockdon" />
                         <h3>Hilary Stockdon</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
-                            (USGS Research Oceanographer)</p>
+                            USGS Research Oceanographer</p>
                     </div>
 
                     <div>
                         <img src="images/system/kmorgan.jpg" height="100" width="100" alt="Image of Karen Morgan" />
                         <h3>Karen Morgan</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
-                            (USGS Geologist and Aerial Photographer)</p>
+                            USGS Geologist and Aerial Photographer</p>
                     </div>
 
                     <div>
                         <img src="images/system/dkrohn.jpg" height="100" width="100" alt="Image of Dennis Krohn" />
                         <h3>Dennis Krohn</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
-                            (USGS Geologist and Aerial Videographer)</p>
+                            USGS Geologist and Aerial Videographer</p>
                     </div>
                 </div>
             </div>

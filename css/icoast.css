@@ -61,8 +61,9 @@ body {
     min-height: 600px;
     min-width: 950px;
     max-width: 1920px;
+    margin: auto;
     text-align: center;
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans', 'Cabin', sans-serif;
     font-weight: bold;
     background: #040535;
 }
@@ -72,12 +73,12 @@ body {
 
 h1 {
     font-size: 2em;
-    margin: 20px 10px 10px 10px ;
+    margin: 25px 10px 10px 10px ;
 }
 
 h2, h3{
     font-size: 1.3em;
-    margin: 10px 10px;
+    margin: 25px 10px 10px 10px;
 }
 
 img {
@@ -130,6 +131,13 @@ a:hover {
     box-shadow: 6px 6px 6px #888888;
 }
 
+/*input[type="radio"]:checked + .clickableButton {
+    background: #e56969;
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+}*/
+
 .disabledClickableButton {
     background: #BBBBBB;
     opacity: 0.5;
@@ -144,6 +152,10 @@ a:hover {
 
 option {
     padding-left: 10px;
+}
+
+.feedbackPanel p {
+    margin: 5px;
 }
 
 /*Fix FF Button Padding
@@ -224,7 +236,7 @@ input::-moz-focus-inner {
     width: 910px;
     margin: auto;
     background-color: #C7DBCC;
-    font-size: 14px;
+    font-size: 18px;
     border-radius: 0 0 10px 10px;
     padding: 1px 20px 10px 20px;
     overflow: hidden;
@@ -234,6 +246,10 @@ input::-moz-focus-inner {
     margin: 10px 20px;
     line-height: 1.2;
 }
+.statisticsTable td:first-of-type {
+    text-align: right;
+}
+
 
 .footer {
     text-align: left;
@@ -244,10 +260,12 @@ input::-moz-focus-inner {
 #profileSettingsWrapper {
     position: relative;
     border-bottom: 2px solid grey;
+    padding-bottom: 15px;
 }
 
 #profileAnnotationListControls {
     position: relative;
+    padding-bottom: 15px;
 }
 
 #userAnnotationHistory {
@@ -255,11 +273,12 @@ input::-moz-focus-inner {
     position: relative;
     display: none;
     border-top: 2px solid grey;
+    padding-bottom: 15px;
 }
 #profileTableWrapper {
     width: 60%;
     float: left;
-    padding-right: 10px;
+    padding-left: 10px;
 }
 
 #historyTableWrapper {
@@ -267,9 +286,19 @@ input::-moz-focus-inner {
     border-radius: 5px;
     border: 1px solid black;
 }
+
+#historyTableWrapper th {
+    text-align: center;
+}
+
+#historyTableWrapper td:nth-of-type(2) {
+    min-width: 75px;
+}
+
 #profileMapWrapper {
+    width: 312px;
     float: left;
-    padding-left: 10px;
+    padding-right: 10px;
 }
 
 #profileMapWrapper #mapCanvas {
@@ -278,7 +307,7 @@ input::-moz-focus-inner {
 }
 
 .incompleteAnnotation a {
-    color: #E56969 !important;
+    color: #E23838 !important;
 }
 
 #historyTableWrapper a {
@@ -328,6 +357,9 @@ table {
     text-align: left;
 }
 
+
+
+
 /*#profileTableWrapper div:first-of-type {
     min-height: 405px;
 }*/
@@ -345,7 +377,7 @@ th, td {
 }
 
 .userData {
-    color: #040535;
+    color:#0602EA;
 }
 
 .formFieldRow {
@@ -365,11 +397,15 @@ th, td {
     text-align: right;
 }
 
+.formFieldRow label.multiline {
+    line-height: 25px;
+}
+
 #registerTimeZone,
 #registerCrowdType,
 #registerOther,
 #registerAffiliation {
-    width: 230px;
+    width: 250px;
 }
 
 .standAloneFormElement select,
@@ -390,7 +426,7 @@ label.error {
     display: inline-block;
     font-size: 1.2em;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin: 0 20px 10px 20px;
 }
 
 .postNavButtonWrapper .clickableButton {
@@ -424,13 +460,14 @@ label.error {
 #annotationDetails table {
     float: left;
     margin: 0 20px;
+    max-width: 630px;
 }
 
 #coastalNavigationImage {
     position: absolute;
     border: 1px solid black;
     bottom: 52px;
-    left: 82px;
+    left: 85px;
     height: 50px;
 }
 
@@ -451,7 +488,7 @@ label.error {
 }
 
 #mapWrapper h1 {
-    margin: 10px 10px 20px 10px;
+    margin: 15px 10px;
     font-size: 1.5em;
 }
 
@@ -472,17 +509,19 @@ label.error {
 }
 
 #mapHide {
+    position: relative;
+    top: -5px;
     line-height: inherit;
     background: #e56969;
-    font-size: 0.5em;
+    font-size: 1em;
     float: right;
-    padding: 3px 10px;
+    padding: 5px 10px;
     border-radius: 5px;
-    margin: 8px 5px;
+    margin: 1px;
 }
 
 #mapHide:hover, #mapHide:active {
-    margin: 7px 4px;
+    margin: 0px;
 }
 
 .mapColumn {
@@ -605,7 +644,6 @@ label.error {
 
 #images>div:nth-of-type(2) {
     width: 14%;
-    padding-bottom: 5px;
 }
 
 /*Images Div Pictures*/
@@ -613,7 +651,7 @@ label.error {
 .imageColumnContent {
     position: relative;
     clear:both;
-    padding: 5px;
+    padding: 5px 5px 10px 5px;
     margin: auto;
 }
 
@@ -630,7 +668,7 @@ label.error {
 }
 
 .imageColumnTitle {
-    padding: 5px 10px 10px;
+    padding: 5px;
 }
 
 .imageColumnTitle p:first-child {
@@ -649,7 +687,7 @@ label.error {
 #annotationWrapper {
     min-height: 343px;
     border-radius: 0 0 5px 5px;
-    border-top: 2px solid grey;
+    border-top: 4px solid grey;
     position: relative;
     background-color: #C7DBCC;
 }

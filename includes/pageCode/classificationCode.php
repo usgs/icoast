@@ -815,19 +815,19 @@ EOT;
 EOT;
     If ($taskCounter > 1) {
         $taskHtmlString .= <<<EOT
-              <input id="task{$taskCounter}PreviousButton" class="clickableButton" type="button" value="Previous Task" title="Click to go to the PREVIOUS task.">
+              <input id="task{$taskCounter}PreviousButton" class="clickableButton" type="button" value="PREVIOUS TASK" title="Click to go to the PREVIOUS task.">
 
 EOT;
     }
 
     if ($taskCounter < count($annotations)) {
         $taskHtmlString .= <<<EOT
-              <input id="task{$taskCounter}NextButton" class="clickableButton" type="button" value="Next Task" title="Click to go to the NEXT task.">
+              <input id="task{$taskCounter}NextButton" class="clickableButton" type="button" value="NEXT TASK" title="Click to go to the NEXT task.">
 
 EOT;
     } else {
         $taskHtmlString .= <<<EOT
-              <input id="submitButton" class="clickableButton" type="button" value="Done" title="Click once you have completed annotating this image set and are happy with your selections.">
+              <input id="submitButton" class="clickableButton" type="button" value="DONE" title="Click once you have completed annotating this image set and are happy with your selections.">
 
 EOT;
     }
@@ -966,6 +966,10 @@ $javaScript = <<<EOL
         }
         $('#task' + icDisplayedTask + ' h2').height(maxHeaderHeight);
 
+        // Size Div over map to match push map down level with the images.
+        var headerInnerHeight = $('.imageColumnTitle').height();
+        $('#mapColumnTitle').css('height', headerInnerHeight);
+
 
         // Determine size the page;
         $('html').css('overflow', 'hidden');
@@ -977,11 +981,11 @@ $javaScript = <<<EOL
         // Calculate and set an image size that stops body exceeding viewport height.
         var headerHeight = $('.imageColumnTitle').outerHeight();
         var annotationHeight = $('#annotationWrapper').outerHeight();
-        // 25px from header, 10px from imageColumnContent padding, 1 to account for browser pixel rounding
-        var maxImageHeightByY = bodyHeight - 25 - 10 - 1 - headerHeight - annotationHeight
-        console.log(headerHeight);
-        console.log(annotationHeight);
-        console.log(maxImageHeightByY);
+        // 25px from header, 15px from imageColumnContent padding, 1 to account for browser pixel rounding
+        var maxImageHeightByY = bodyHeight - 25 - 15 - 1 - headerHeight - annotationHeight
+        console.log('Header:' + headerHeight);
+        console.log('Annotation:' + annotationHeight);
+        console.log('maxImageHeightByY:' + maxImageHeightByY);
         var maxImageWidth = maxImageHeightByY / 0.652;
         if (maxImageWidth >= (bodyWidth * 0.43) - 10) {
             maxImageWidth = (bodyWidth * 0.43) - 15;
@@ -993,15 +997,20 @@ $javaScript = <<<EOL
         $('.imageColumnContent').css('max-width', maxImageWidth);
 
         var maxImageHeightByX = (((bodyWidth * 0.43) - 15) * 0.65) - 1;
+        console.log('maxImageHeightByX:' + maxImageHeightByX);
         if (maxImageHeightByY < maxImageHeightByX) {
             var mapInsertHeight = maxImageHeightByY;
+            console.log('maxImageHeightByY = mapInsertHeight');
         } else {
             var mapInsertHeight = maxImageHeightByX;
+            console.log('maxImageHeightByX = mapInsertHeight');
         }
+
         if (mapInsertHeight > 521) {
             mapInsertHeight = 521;
         }
         mapInsertHeight = Math.floor(mapInsertHeight);
+        console.log('mapInsertHeight: ' + mapInsertHeight);
         mapInsertHeight += "px";
         $('#mapInsert').css('height', mapInsertHeight);
 
@@ -1015,7 +1024,7 @@ $javaScript = <<<EOL
             lensFadeOut: 400,
             containLensZoom: 'true',
             scrollZoomIncrement: 0.2,
-            borderColour: '#040535',
+            borderColour: '#000000',
             onZoomedImageLoaded: function() {
                 hideLoader(true);
             }
@@ -1029,7 +1038,7 @@ $javaScript = <<<EOL
             lensFadeOut: 400,
             containLensZoom: 'true',
             scrollZoomIncrement: 0.2,
-            borderColour: '#040535',
+            borderColour: '#000000',
             onZoomedImageLoaded: function() {
                 hideLoader(false);
             }

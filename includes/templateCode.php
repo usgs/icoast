@@ -1,5 +1,4 @@
 <?php
-
 if (!isset($pageName)) {
     header('Location: login.php');
 }
@@ -222,7 +221,6 @@ EOL;
         $mainNav = <<<EOL
             <ul id="mainHeaderNavigation">
               <li><a href="welcome.php">Home</a></li>
-               <li><a href="profile.php">Profile</a></li>
               <li class="missingPageLink">Help</a></li>
               <li><a href="about.php">About</a></li>
               <li id="activePageLink">Login</li>
@@ -272,5 +270,11 @@ if (!empty($jQueryDocumentDotReadyCode)) {
 EOL;
 }
 
-
-
+if (!empty($feedbackjQueryDocumentDotReadyCode)) {
+    $tempCode = $feedbackjQueryDocumentDotReadyCode;
+    $feedbackjQueryDocumentDotReadyCode = <<<EOL
+        $(document).ready(function() {
+        $tempCode
+        });
+EOL;
+}
