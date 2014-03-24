@@ -3,7 +3,7 @@
 function crowdTypeConverter($crowdTypeId, $otherCrowdType) {
     switch ($crowdTypeId) {
         case 1:
-            return "Coastal Science Researcher";
+            return "Coastal & Marine Scientist";
             break;
         case 2:
             return "Coastal Manager or Planner";

@@ -1,7 +1,6 @@
 <?php
 require("feedback.php");
 require("includes/templateCode.php");
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -9,52 +8,44 @@ require("includes/templateCode.php");
         <title><?php print $pageTitle ?></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <!--<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700'>-->
-        <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Cabin:500,700'>
-        <link rel="stylesheet" href="css/header.css">
         <link rel="stylesheet" href="css/icoast.css">
+        <link rel="stylesheet" href="http://www.usgs.gov/styles/common.css" />
+        <link rel="stylesheet" href="css/custom.css">
+        <link rel="stylesheet" href="css/tipTip.css">
         <?php
         print $cssLinks;
         ?>
         <style>
-        <?php
-            print $feedbackEmbeddedCSS . "\n\r";
-            print $embeddedCSS;
-        ?>
+<?php
+print $feedbackEmbeddedCSS . "\n\r";
+print $embeddedCSS;
+?>
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="scripts/tipTip.js"></script>
         <?php print $javaScriptLinks; ?>
         <script>
-        <?php
-        print $feedbackJavascript . "\n\r";
-            print $javaScript . "\n\r";
-            print $feedbackjQueryDocumentDotReadyCode . "\n\r";
-            print $jQueryDocumentDotReadyCode;
-
-        ?>
+<?php
+print $feedbackJavascript . "\n\r";
+print $javaScript . "\n\r";
+print $feedbackjQueryDocumentDotReadyCode . "\n\r";
+print $jQueryDocumentDotReadyCode;
+?>
         </script>
     </head>
     <body>
         <!--Header-->
-        <div id="usgsColorBand">
-            <div id="usgsIdentifier">
-                <a href="http://www.usgs.gov">
-                    <img src="images/system/usgsIdentifier.jpg" alt="USGS - science for a changing world"
-                         title="U.S. Geological Survey Home Page" width="178" height="72" />
-                </a>
-                <p id="appTitle">iCoast</p>
-                <p id="appSubtitle">did the coast change?</p>
-            </div>
-            <div id="headerImageWrapper">
-                <img src="images/system/hurricaneBanner.jpg" alt="An image from Space of a hurricane approaching the Florida coastline." />
-            </div>
+        <?php require('includes/header.txt') ?>
+
+        <!--Page Body-->
+        <div id='navigationBar'>
             <?php print $mainNav ?>
         </div>
 
-        <!--Page Body-->
         <?php
         print $pageBody;
         print $feedbackPageHTML;
+        require('includes/footer.txt');
         ?>
 
     </body>

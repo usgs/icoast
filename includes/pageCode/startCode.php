@@ -3,7 +3,6 @@
 $pageName = "start";
 $cssLinkArray = array();
 $embeddedCSS = '';
-$javaScriptLinkArray[] = '//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js';
 $javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
 
 require 'includes/userFunctions.php';
@@ -33,6 +32,7 @@ if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId,
 }
 $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
 $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
+$newRandomImageLocation = build_image_location_string($newRandomImageMetadata, TRUE);
 $newRandomImageDisplayURL = "images/datasets/{$newRandomImageMetadata['dataset_id']}/main/{$newRandomImageMetadata['filename']}";
 
 require("includes/mapNavigator.php");

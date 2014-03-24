@@ -56,10 +56,6 @@ if (empty($_GET['imageId'])) {
     exit();
 }
 
-
-
-
-
 //--------------------------------------------------------------------------------------------------
 // Functions to be removed to include
 // Build Image Header
@@ -110,7 +106,7 @@ EOT;
         $tagTooltipImageHeight = $tag['tooltipImageHeight'];
         $tagSelected = $tag['userSelected'];
         if (isset($tag['userComment'])) {
-            $userComment = $tag['userComment'];
+            $userComment = htmlspecialchars($tag['userComment']);
         }
         if ($isTagAComment) {
             $tagString[0] .= <<<EOT
@@ -119,7 +115,7 @@ EOT;
 
 EOT;
             if ($tagSelected) {
-                $tagString[0] .= htmlspecialchars($userComment);
+                $tagString[0] .= $userComment;
             }
             $tagString[0] .= "</textarea></label>";
         } elseif ($isTagARadioButton) {
@@ -148,18 +144,32 @@ EOT;
 EOT;
         }
         if (!empty($tagTooltip) && !empty($tagTooltipImage)) {
+            if ($tagTooltipImageWidth < 400) {
+                $maxTagTooltipImageWidth = ($tagTooltipImageWidth + 18) . 'px';
+            } else {
+                $maxTagTooltipImageWidth = '418px';
+            }
             $tagString[1] .= <<<EOT
-        $('#tag$tagId').tipTip({content: '<div class="tagToolTip"><img src="images/projects/$projectId/tooltips/$tagTooltipImage" height="$tagTooltipImageHeight" width="$tagTooltipImageWidth" /><p>$tagTooltip</p></div>'});
+        $('#tag$tagId').tipTip({
+                content: '<div class="tagToolTip"><img src="images/projects/$projectId/tooltips/$tagTooltipImage" height="$tagTooltipImageHeight" width="$tagTooltipImageWidth" /><p>$tagTooltip</p></div>',
+                maxWidth: '$maxTagTooltipImageWidth'
+            });
 
 EOT;
         } elseif (!empty($tagTooltip)) {
             $tagString[1] .= <<<EOT
-        $('#tag$tagId').tipTip({content: '<div class="tagToolTip"><p>$tagTooltip</p></div>'});
+        $('#tag$tagId').tipTip({
+                content: '<div class="tagToolTip"><p>$tagTooltip</p></div>'
+            });
 
 EOT;
         } elseif (!empty($tagTooltipImage)) {
             $tagString[1] .= <<<EOT
-        $('#tag$tagId').tipTip({content: '<div class="tagToolTip"><img src="images/projects/$projectId/tooltips/$tagTooltipImage" height="$tagTooltipImageHeight" width="$tagTooltipImageWidth" /></div>'});
+        $('#tag$tagId').tipTip({
+                content: '<div class="tagToolTip"><img src="images/projects/$projectId/tooltips/$tagTooltipImage"' +
+                    'height="$tagTooltipImageHeight" width="$tagTooltipImageWidth" /></div>',
+                maxWidth: '$maxTagTooltipImageWidth'
+            });
 
 EOT;
         }
@@ -250,10 +260,12 @@ $annotationMetaDataQueryString = "&annotationSessionId=$annotationSessionId&user
 $postDetailedImageURL = $postImageMetadata['full_url'];
 $postDisplayImageURL = "images/datasets/{$postImageMetadata['dataset_id']}/main/{$postImageMetadata['filename']}";
 $postImageTitle = build_image_header($postImageMetadata, $projectMetadata['post_image_header']);
+$postImageAltTagHTML = "An oblique image of the " . build_image_location_string($postImageMetadata, TRUE) . " coastline.";
 
 $preDetailedImageURL = $preImageMetadata['full_url'];
 $preDisplayImageURL = "images/datasets/{$preImageMetadata['dataset_id']}/main/{$preImageMetadata['filename']}";
 $preImageTitle = build_image_header($preImageMetadata, $projectMetadata['pre_image_header']);
+$preImageAltTagHTML = "An oblique image of the " . build_image_location_string($preImageMetadata, TRUE) . " coastline.";
 
 
 //--------------------------------------------------------------------------------------------------
@@ -281,8 +293,10 @@ $thumbnailCounter = 1;
 if ($thumbnailArray1[0]['image_id'] != 0) {
     $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
     $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
+    $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
     $$thumbnailUrlVarName = $thumbnailArray1[0]['thumb_url'];
     $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray1[0]['image_id']}&sessId=$annotationSessionId";
+    $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray1[0], TRUE) . " coastline.";
 }
 
 $thumbnailCounter++;
@@ -290,16 +304,20 @@ foreach ($thumbnailArray2 as $thumbnail) {
     if ($thumbnail['image_id'] != 0) {
         $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
         $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
+        $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
         $$thumbnailUrlVarName = $thumbnail['thumb_url'];
         $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnail['image_id']}&sessId=$annotationSessionId";
+        $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnail, TRUE) . " coastline.";
     }
     $thumbnailCounter++;
 }
 if ($thumbnailArray3[2]['image_id'] != 0) {
     $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
     $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
+    $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
     $$thumbnailUrlVarName = $thumbnailArray3[2]['thumb_url'];
     $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray3[2]['image_id']}&sessId=$annotationSessionId";
+    $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray3[2], TRUE) . " coastline.";
 }
 
 
@@ -551,7 +569,7 @@ EOT;
 $previousThumbnailHtml = "";
 $nextThumbnailHtml = "";
 $currentThumbnailHtml = "";
-$navThumbnailTitle = "Click this THUMBNAIL to see if this PRE-STORM photo along the coast better matches the POST-STORM photo on the left. Is this a better match than what the computer found?";
+$navThumbnailTitle = "Click this THUMBNAIL to see if this PRE-STORM photo along the coast better matches the POST-STORM photo on the right. Is this a better match than what the computer found?";
 $currentImageTitle = "This THUMBNAIL is the PRE-STORM photo currently displayed above. If this PRE-STORM photo best matches the POST-STORM photo on the left, then click the Confirm Match button.";
 $computerMatchTitle = "This HIGHLIGHTED THUMBNAIL is the closest PRE-STORM photo the computer found. Can you find a better match?";
 $noMoreImagesTitle = "You have reached the end of this dataset. There are no more images to display in this section of coast.";
@@ -559,7 +577,7 @@ if ($thumbnailArray1[0]['image_id'] == $ComputerMatchImageId) {
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail1Link">
-                <img id="computerMatch" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail1Alt">
               </a>
           <p>Computer Match</p>
             </div>
@@ -569,7 +587,7 @@ EOT;
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail1Link">
-                <img src="$thumbnail1Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail1Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail1Alt">
               </a>
             </div>
 
@@ -577,7 +595,7 @@ EOT;
 } else {
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle"  alt="There are no more images in this dataset">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -588,7 +606,7 @@ if ($thumbnailArray2[0]['image_id'] == $ComputerMatchImageId) {
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail2Link">
-                <img id="computerMatch" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail2Alt">
               </a>
           <p>Computer Match</p>
             </div>
@@ -598,7 +616,7 @@ EOT;
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail2Link">
-                <img src="$thumbnail2Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail2Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail2Alt">
               </a>
             </div>
 
@@ -606,7 +624,7 @@ EOT;
 } else {
     $previousThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle"  alt="There are no more images in this dataset">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -616,7 +634,7 @@ EOT;
 if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
     $currentThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper currentThumbnailWrapper">
-              <img id="computerMatch" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle">
+              <img id="computerMatch" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle" alt="$thumbnail3Alt">
           <p>Computer Match &</p>
           <p>Currently Displayed Photo</p>
             </div>
@@ -625,7 +643,7 @@ EOT;
 } else {
     $currentThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper currentThumbnailWrapper">
-              <img src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle">
+              <img src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle" alt="$thumbnail3Alt">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -636,7 +654,7 @@ if ($thumbnailArray2[2]['image_id'] == $ComputerMatchImageId) {
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail4Link">
-                <img id="computerMatch" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail4Alt">
               </a>
           <p>Computer Match</p>
             </div>
@@ -646,7 +664,7 @@ EOT;
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail4Link">
-                <img src="$thumbnail4Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail4Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail4Alt">
               </a>
             </div>
 
@@ -654,7 +672,7 @@ EOT;
 } else {
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle" alt="There are no more images in this dataset">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -665,7 +683,7 @@ if ($thumbnailArray3[2]['image_id'] == $ComputerMatchImageId) {
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail5Link">
-                <img id="computerMatch" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle">
+                <img id="computerMatch" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail5Alt">
               </a>
           <p>Computer Match</p>
             </div>
@@ -675,7 +693,7 @@ EOT;
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
               <a href="$thumbnail5Link">
-                <img src="$thumbnail5Url" height="93" width="140" title="$navThumbnailTitle">
+                <img src="$thumbnail5Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail5Alt">
               </a>
             </div>
 
@@ -683,7 +701,7 @@ EOT;
 } else {
     $nextThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle">
+              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle" alt="There are no more images in this dataset">
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -1014,6 +1032,8 @@ $javaScript = <<<EOL
         mapInsertHeight += "px";
         $('#mapInsert').css('height', mapInsertHeight);
 
+        $(window).scrollTop(104);
+
         $('.zoomContainer').remove();
         $('#postImage').elevateZoom({
             scrollZoom: 'true',
@@ -1235,6 +1255,14 @@ $jQueryDocumentDotReadyCode .= <<<EOL
          }
          dynamicSizing(icDisplayedTask);
      }
+    $(window).scroll(function(){
+        if ($(window).scrollTop() > 72 && $('#navigationBar p').length == 0) {
+            $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
+        } else if ($(window).scrollTop() < 72 && $('#navigationBar p').length == 1) {
+            $('#navigationBar p').remove();
+        }
+    });
+
 
      var script = document.createElement("script");
      script.type = "text/javascript";
@@ -1244,9 +1272,8 @@ $jQueryDocumentDotReadyCode .= <<<EOL
      $('#progressTrackerItem1Content').css('display', 'inline');
      $('#task1Header').css('display', 'block');
      $('#task1').css('display', 'block');
-     $('.clickableButton, #taskProgressTrackerWrapper, .thumbnail, .zoomLoadingIndicator')
-             .tipTip({maxWidth: '400px', defaultPosition: "right"});
-     $('.postImageNavButton').tipTip({maxWidth: '400px', defaultPosition: "bottom"});
+     $('#progressTrackerItemWrapper, .thumbnail, .zoomLoadingIndicator')
+             .tipTip({defaultPosition: "right"});
      $tagJavaScriptString
      icDisplayedTask = 1;
      setMinGroupHeaderWidth(icDisplayedTask);
@@ -1263,5 +1290,7 @@ $jQueryDocumentDotReadyCode .= <<<EOL
          icMap.setCenter(icCurrentImageLatLon);
      });
      dynamicSizing(icDisplayedTask);
+    $(window).scrollTop(104);
+
 
 EOL;

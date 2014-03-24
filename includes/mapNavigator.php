@@ -175,6 +175,7 @@ $mapScript = <<<EOL
           google.maps.event.addListener(thisMarker, 'click', (function(marker) {
             return function() {
               $('#mapSelectedImage').attr("src", imageData.image_url);
+              $('#mapSelectedImage').attr("alt", "An oblique image of the coastline taken near " + imageData.location_string);
               icSelectedMapImage = "classification.php?projectId=" + icProjectId + "&imageId=" + imageData.image_id;
               $('#selectedMapImageHeaderText').text('Post-Storm Photo Selected on Map near ' + imageData.location_string);
               $('#selectedMapImage').css('display', 'block');
@@ -249,7 +250,7 @@ $mapScript = <<<EOL
 
       var mapControlsButtonHeight = $('#rightMapColumn button').outerHeight(true) + 10;
       var randomImageHeaderHeight = $('#randomImageHeader').outerHeight(true);
-      var selectedImageHeaderHeight = 34;
+      var selectedImageHeaderHeight = 45;
       var maxMapImageHeight = (mapColumnHeight - randomImageHeaderHeight -
               selectedImageHeaderHeight - mapControlsButtonHeight - 5) / 2;
         console.log(mapColumnHeight);
@@ -310,16 +311,21 @@ $mapHTML = <<<EOL
 
 
           <div id="leftMapColumn" class="mapColumn">
-
+            <div>
               <p id="randomImageHeader">Random Image Already Selected For You</p>
-              <img src="$newRandomImageDisplayURL">
-
+              <img src="$newRandomImageDisplayURL" title="This image has been randomly selected for you from
+                  the database. If you do not want to tag this image then select another from the map on the
+                  right and select the 'Choose this Photo To Tag' button to start tagging." width="800"
+                  height="521" alt ="An oblique image of the $newRandomImageLocation coastline.">
+            </div>
             <div id="selectedMapImage">
               <div id="selectedMapImageHeader">
                   <p id="selectedMapImageHeaderText"></p>
               </div>
-                <img id="mapSelectedImage" src="">
-                      <button title="Click to load the selected image into iCoast for annotation." id="mapLoadImageButton" class="clickableButton">
+                <img id="mapSelectedImage" src="" alt="" title="This is the photo you have selected on the map to the
+                  right. Select the 'Choose this Photo To Tag' button below to start tagging." width="800"
+                  height="521">
+                      <button title="Click to load the selected image into iCoast for tagging." id="mapLoadImageButton" class="clickableButton">
                 Choose this Photo to Tag
               </button>
             </div>
@@ -337,7 +343,8 @@ $mapHTML = <<<EOL
               </div>
               <div class="mapLegendRow">
                 <div class="mapLegendRowIcon">
-                  <img src="images/system/clusterLegendIcon.png" width="24" height="24">
+                  <img src="images/system/clusterLegendIcon.png" alt="Image of the map cluster symbol"
+                      width="24" height="24" title="">
                 </div>
                 <div class="mapLegendRowText">
                   <p>Clustering of Photos</p>
@@ -345,7 +352,8 @@ $mapHTML = <<<EOL
               </div>
               <div class="mapLegendRow">
                 <div class="mapLegendRowIcon">
-                  <img src="images/system/photo.png" width="20" height="24">
+                  <img src="images/system/photo.png" alt="Image of the post-storm photo map push pin"
+                      width="20" height="24" title="">
                 </div>
                 <div class="mapLegendRowText">
                   <p>Post-Storm Photo</p>
@@ -353,7 +361,8 @@ $mapHTML = <<<EOL
               </div>
               <div class="mapLegendRow">
                 <div class="mapLegendRowIcon">
-                  <img src="images/system/photoCurrent.png" width="20" height="24">
+                  <img src="images/system/photoCurrent.png" alt="Image of the random photo map push pin"
+                      width="20" height="24" title="">
                 </div>
                 <div class="mapLegendRowText">
                   <p>Randomly Selected Photo</p>
@@ -361,14 +370,16 @@ $mapHTML = <<<EOL
               </div>
               <div class="mapLegendRow">
                 <div class="mapLegendRowIcon">
-                  <img src="images/system/photoSelected.png" width="20" height="24">
+                  <img src="images/system/photoSelected.png" alt="Image of the user selected photo map push pin"
+                      width="20" height="24" title="">
                 </div>
                 <div class="mapLegendRowText">
                   <p>Selected Post-Storm Photo</p>
                 </div>
               </div>
             </div>
-              <button title="Click to jump the map to the currently displayed image lovation." id="centerMapButton" class="clickableButton formButton">
+              <button title="Click to jump the map to the location of the random image that has been already
+                  selected for you." id="centerMapButton" class="clickableButton formButton">
                 Jump To Current Photo
               </button>
               <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton formButton">

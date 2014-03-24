@@ -1,11 +1,8 @@
 <?php
-
 //error_reporting(0);
 date_default_timezone_set('UTC');
 $dbmsConnectionPath = '../secureData/icoast/DBMSConnection.php';
 $dbmsConnectionPathDeep = '../../secureData/icoast/DBMSConnection.php';
-
-
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to generate new user authentication credential cookies and matching database entries

@@ -19,6 +19,14 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
     }
 }
 
+$loginButtonHTML = <<<EOL
+            <div class="formFieldRow standAloneFormElement">
+                <input type="submit" class="clickableButton formButton" id="registerSubmitButton"
+                    value="Login or Register with Google" title="Click to begin iCoast login using an account
+                    authenticated by Google (examples of accounts that can be used: aperson@gmail.com, aperson@usgs.gov)" />
+            </div>
+EOL;
+
 $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
 
 if (!$openid->mode) {
@@ -29,10 +37,7 @@ if (!$openid->mode) {
                 extreme storms.</p>
           <p>Click button below to Login or Register using a Google Account</p>
           <form action="?login" method="post">
-            <div class="formFieldRow standAloneFormElement">
-                <input type="submit" class="clickableButton formButton" id="registerSubmitButton"
-                    value="Login or Register with Google" />
-            </div>
+            $loginButtonHTML
           </form>
 EOL;
 
@@ -45,7 +50,7 @@ EOL;
     $variableContent = <<<EOL
           <p>Authentication process was cancelled. Click the button below to start the login process again</p>
           <form action="?login" method="post">
-                <button>Login or Register with Google</button>
+                $loginButtonHTML
           </form>
 EOL;
 } else {
@@ -53,7 +58,7 @@ EOL;
         $variableContent = <<<EOL
           <p>Authentication failed. Click the button below to try again.</p>
           <form action="?login" method="post">
-                <button>Login or Register with Google</button>
+                $loginButtonHTML
           </form>
 EOL;
     } else {
@@ -94,7 +99,7 @@ EOL;
                         $variableContent =  <<<EOL
           <p>Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
           <form action="?login" method="post">
-                <button>Login or Register with Google</button>
+                $loginButtonHTML
           </form>
 EOL;
                     }

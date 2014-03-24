@@ -59,13 +59,10 @@ body {
     position: relative;
     height: 100%;
     min-height: 600px;
-    min-width: 950px;
-    max-width: 1920px;
-    margin: auto;
-    text-align: center;
-    font-family: 'Noto Sans', 'Cabin', sans-serif;
-    font-weight: bold;
-    background: #040535;
+
+    /*font-family: 'Noto Sans', 'Cabin', sans-serif;*/
+    /*font-weight: bold;*/
+    /*background: #040535;*/
 }
 
 /*Remove halo effect from some form elements in webkit browsers*/
@@ -73,17 +70,20 @@ body {
 
 h1 {
     font-size: 2em;
-    margin: 25px 10px 10px 10px ;
+    margin: 25px 10px 10px 10px;
+    font-weight: bold;
 }
 
 h2, h3{
     font-size: 1.3em;
     margin: 25px 10px 10px 10px;
+    font-weight: bold;
 }
 
 img {
     border-radius: 5px;
     max-width: 100%;
+    height: auto;
     display: block;
 }
 
@@ -96,13 +96,74 @@ a:hover {
     color: #888888;
 }
 
-.clickableButton,
-.formFieldRow input,
-.formFieldRow select,
-#profileAnnotationListControls input,
-#profileAnnotationListControls select,
-#profileTableWrapper select,
-#profileSettingsWrapper input {
+#navigationBar {
+    height: 30px;
+    background-color: #666666;
+    border-bottom: solid 1px white;
+    color: white;
+    text-align: left;
+    font-weight: bold;
+}
+
+#navigationBar p {
+    font-size: 17px;
+    float: right;
+    padding-right: 5px;
+
+}
+
+#navigationBar ul {
+    font-size: 0px;
+    display: inline-block;
+    /*    display: block;*/
+
+}
+
+#navigationBar li:first-of-type {
+    /*    padding: 8px 15px 8px 0px;*/
+    padding: 0 15px 0 5px;
+}
+
+#navigationBar li:last-of-type {
+    border-right: none;
+}
+
+#navigationBar li {
+    font-size: 17px;
+    height: 30px;
+    line-height: 30px;
+    display: inline-block;
+    padding: 0 15px;
+    border-right: 1px solid white;
+    /*padding: 8px 15px;*/
+    /*    border-radius: 5px;*/
+}
+
+.missingPageLink {
+    color: #333333;
+}
+
+#activePageLink {
+    background-color: #284D68;
+    /*color: #45a1c8;*/
+    color: #FFFFFF;
+}
+
+#navigationBar a {
+    text-decoration: none;
+    color: white;
+}
+
+#navigationBar a:hover {
+    color: #D3E2F0;
+}
+
+#navigationBar p {
+    line-height: 30px;
+
+}
+
+.clickableButton {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
     vertical-align: middle;
@@ -119,13 +180,7 @@ a:hover {
     box-shadow: 3px 3px 3px #888888;
 }
 
-.clickableButton:hover, .clickableButton:active,
-.formFieldRow input:hover, .formFieldRow input:active,
-.formFieldRow select:hover, .formFieldRow select:active,
-#profileAnnotationListControls input:hover, #profileAnnotationListControls input:active,
-#profileAnnotationListControls select:hover, #profileAnnotationListControls select:active,
-#profileTableWrapper select:hover, #profileTableWrapper select:active,
-#profileSettingsWrapper input:hover, #profileSettingsWrapper input:active {
+.clickableButton:hover, .clickableButton:active {
     margin: 7px;
     border: 2px solid black;
     box-shadow: 6px 6px 6px #888888;
@@ -158,6 +213,10 @@ option {
     margin: 5px;
 }
 
+#usgsfootertext {
+    text-align: left;
+}
+
 /*Fix FF Button Padding
 http://christophzillgens.com/en/articles/equal-height-input-and-button-elements-in-firefox-and-safari*/
 button::-moz-focus-inner,
@@ -177,7 +236,7 @@ input::-moz-focus-inner {
 
 /*Google Maps Search Box Styling*/
 .controls {
-    margin-top: 16px;
+    margin-top: 25px;
     border: 1px solid transparent;
     border-radius: 5px;
     box-sizing: border-box;
@@ -233,19 +292,24 @@ input::-moz-focus-inner {
 /*All Pages except About and Classification*/
 
 #contentWrapper {
-    width: 910px;
+    font-family: Arial,Helvetica,Vardana,sans-serif;
+    width: 1193px;
     margin: auto;
-    background-color: #C7DBCC;
+    background-color: #D3E2F0;
     font-size: 18px;
-    border-radius: 0 0 10px 10px;
     padding: 1px 20px 10px 20px;
     overflow: hidden;
+    text-align: center;
 }
 
 #contentWrapper p {
     margin: 10px 20px;
     line-height: 1.2;
 }
+#contentWrapper th, #contentWrapper td  {
+    font: inherit;
+}
+
 .statisticsTable td:first-of-type {
     text-align: right;
 }
@@ -288,26 +352,47 @@ input::-moz-focus-inner {
 }
 
 #historyTableWrapper th {
+    font-weight: bold;
     text-align: center;
 }
 
-#historyTableWrapper td:nth-of-type(2) {
-    min-width: 75px;
+.profileUpdateField label {
+    font-weight: bold;
 }
 
 #profileMapWrapper {
-    width: 312px;
+    width: 420px;
     float: left;
     padding-right: 10px;
 }
 
 #profileMapWrapper #mapCanvas {
-    height: 470px;
-    width: 312px;
+    height: 600px;
+    width: 420px;
 }
 
-.incompleteAnnotation a {
-    color: #E23838 !important;
+#historyTableWrapper td:first-of-type {
+    /*background-color: white;*/
+    vertical-align: middle;
+
+}
+
+#historyTableWrapper td .clickableButton {
+    margin: 1px;
+    text-align: center;
+}
+
+#historyTableWrapper td .clickableButton:hover {
+    margin: 0px;
+}
+
+.incompleteAnnotation {
+    color: red !important;
+    border-color: red;
+}
+
+.incompleteAnnotation:hover {
+    border-color: red;
 }
 
 #historyTableWrapper a {
@@ -334,7 +419,7 @@ input::-moz-focus-inner {
 }
 
 #profileSettingsWrapper input {
-    width: 210px;
+    width: 235px;
 }
 
 .hideProfilePanelButton:hover {
@@ -350,7 +435,7 @@ input::-moz-focus-inner {
 }
 
 #profileMapWrapper #pac-input {
-    width: 70%
+    width: 50%
 }
 table {
     margin: 10px auto 10px;;
@@ -365,7 +450,7 @@ table {
 }*/
 
 th, td {
-    padding: 3px 10px;
+    padding: 3px 10px 5px 10px;
 }
 
 #profileTableWrapper tr {
@@ -377,6 +462,7 @@ th, td {
 }
 
 .userData {
+    font-weight: normal;
     color:#0602EA;
 }
 
@@ -405,7 +491,7 @@ th, td {
 #registerCrowdType,
 #registerOther,
 #registerAffiliation {
-    width: 250px;
+    width: 280px;
 }
 
 .standAloneFormElement select,
@@ -459,7 +545,7 @@ label.error {
 
 #annotationDetails table {
     float: left;
-    margin: 0 20px;
+    margin: 50px 20px 0 20px;
     max-width: 630px;
 }
 
@@ -467,8 +553,7 @@ label.error {
     position: absolute;
     border: 1px solid black;
     bottom: 52px;
-    left: 85px;
-    height: 50px;
+    left: 97px;
 }
 
 /*Map*/
@@ -496,6 +581,10 @@ label.error {
     margin: 5px 0px;
 }
 
+#leftMapColumn p {
+    font-weight: bold;
+}
+
 #mapContent {
     position: absolute;
     top: 10%;
@@ -509,13 +598,14 @@ label.error {
 }
 
 #mapHide {
+
     position: relative;
     top: -5px;
     line-height: inherit;
     background: #e56969;
     font-size: 1em;
     float: right;
-    padding: 5px 10px;
+    padding: 3px 10px 5px 10px;
     border-radius: 5px;
     margin: 1px;
 }
@@ -543,7 +633,7 @@ label.error {
 }
 
 #selectedMapImageHeader {
-    height: 34px;
+    height: 45px;
     position: relative;
 }
 
@@ -599,9 +689,18 @@ label.error {
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*About Page*/
 
-#aboutWrapper {
+#aboutWrapper, #helpWrapper {
     overflow: hidden;
     text-align: left;
+}
+
+#aboutWrapper p, #helpWrapper p {
+    font-weight: normal;
+    font-size: 16px
+}
+
+#aboutWrapper h2, #helpWrapper h2 {
+    margin-top: 20px
 }
 
 .teamColumn {
@@ -613,25 +712,91 @@ label.error {
     overflow: hidden;
 }
 
+.teamPosition{
+    font-weight: bold
+}
+
 .teamColumn img {
     box-shadow: 3px 3px 3px #666666;
     float: left;
     margin: 10px;
 }
 
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Help Page*/
+
+#helpWrapper h3 {
+    clear: both;
+    font-size: 1em;
+}
+
+#faqs .faq {
+    clear: both;
+    overflow: hidden;
+}
+
+#faqs .faqQuestion {
+    overflow: hidden;
+}
+
+#faqs .faqQuestion p:last-of-type {
+    float: left;
+    margin-left: 0px;
+    font-weight: bold;
+}
+
+#faqs .faqQuestion p:first-of-type {
+    /*Stop selection of text in button*/
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-weight: bold;
+    float: left;
+    position: relative;
+    top: 2px;
+    height: 15px;
+    width: 15px;
+    line-height: 15px;
+    display: block;
+    border: 1px solid black;
+    text-align: center;
+    /*margin-left: 10px;*/
+}
+
+#faqs .faqAnswer {
+    display: none;
+    clear: both;
+}
+
+#faqs .faqAnswer p {
+    margin-left: 57px;
+    margin-top: 0px;
+}
+
+
+
+
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*Classification Page*/
 
 #classificationWrapper {
+    font-family: Arial,Helvetica,Vardana,sans-serif;
+    min-width: 1233px;
+    max-width: 1920px;
     font-size: 12px;
     line-height: 1.1;
+    text-align: center;
+    margin: auto;
 }
 
 /*Images Section*/
 
 #images {
-    padding-top: 25px;
+    /*padding-top: 25px;*/
     overflow: hidden;
     background-color: #DDDDDD;
 }
@@ -669,6 +834,7 @@ label.error {
 
 .imageColumnTitle {
     padding: 5px;
+    font-weight: bold;
 }
 
 .imageColumnTitle p:first-child {
@@ -687,9 +853,9 @@ label.error {
 #annotationWrapper {
     min-height: 343px;
     border-radius: 0 0 5px 5px;
-    border-top: 4px solid grey;
+    border-top: 4px solid #666666;
     position: relative;
-    background-color: #C7DBCC;
+    background-color: #D3E2F0;
 }
 
 
@@ -798,6 +964,7 @@ label.error {
     height: 30px;
     font-size:0.91em;
     box-shadow: 3px 3px 3px #222222;
+    font-weight: bold;
 }
 
 .tag:hover {
@@ -834,8 +1001,9 @@ input[type="checkbox"], input[type="radio"] {
 
 .tagToolTip img {
     max-width: 100%;
-    width: 100%;
-    margin: 0 0 5px 0;
+    height: auto;
+    /*width: 100%;*/
+    margin: 0 auto 5px auto;
 }
 
 #annotationControls {
@@ -846,6 +1014,8 @@ input[type="checkbox"], input[type="radio"] {
 }
 
 #annotationControls input {
+    background-color: #284D68;
+    color: #FFFFFF;
     border-radius: 20px;
 }
 
@@ -879,7 +1049,7 @@ Width needs to be altered to be dynamic!*/
     margin: 0 6px;
     border: 2px solid black;
     border-radius: 14px;
-    background: black;
+    background: #284D68;
     text-align: center;
 }
 

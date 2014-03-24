@@ -3,7 +3,6 @@
 $pageName = "registration";
 $cssLinkArray = array();
 $embeddedCSS = '';
-$javaScriptLinkArray[] = "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js";
 $javaScriptLinkArray[] = "scripts/jquery.validate.min.js";
 $javaScript = '';
 

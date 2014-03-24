@@ -51,7 +51,8 @@ if ($numberOfProjects > 1) {
             </select>
           </div>
           <div class="formFieldRow standAloneFormElement">
-            <input type="submit" id="" class="clickableButton formButton" value="Start Tagging!" />
+            <input type="submit" class="clickableButton formButton" value="Start Tagging!" title="Click to
+                load the photo selection page and begin tagging your chosen project." />
           </div>
       </form>
 EOL;
@@ -61,7 +62,9 @@ EOL;
     $selectProjectButtonHTML = <<<EOL
       <form method="post" action="start.php" class="buttonForm">
         <input type="hidden" name="projectId" value="$onlyProjectId" />
-        <input type="submit" id="continueClassifyingButton" class="clickableButton formButton" value="Start Tagging $onlyProjectName Project" />
+        <input type="submit" id="continueClassifyingButton" class="clickableButton formButton"
+            value="Start Tagging $onlyProjectName Project"
+            title="Click to load the photo selection page and begin tagging the $onlyProjectName project."/>
       </form>
 EOL;
 } else {
@@ -172,11 +175,13 @@ EOL;
                 $positionHTML .= "$ordinalPositionInICoast Place";
             }
             if ($positionInICoast == 2) {
-                $advancementHTML = "<tr><td># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
+                $advancementHTML = "<tr><td title=\"The number of photos you need to tag to become the iCoast
+                        Top Tagger.\"># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
             }
 
             if ($positionInICoast > 2) {
-                $advancementHTML = "<tr><td># of Photos to Move up a Position:</td><td class=\"userData\">$annotationsToNext</td></tr>\n" .
+                $advancementHTML = "<tr><td title =\"The number of photos you need to tag to climb up the"
+                        . " leaderboard by one position\"># of Photos to Move up a Position:</td><td class=\"userData\">$annotationsToNext</td></tr>\n" .
                         "<tr><td># of Photos to Reach 1st Place:</td><td class=\"userData\">$annotationsToFirst</td><tr>";
             }
 
@@ -191,13 +196,22 @@ EOL;
 
             $variableContent.= <<<EOL
                 <table class="statisticsTable">
-                    <tr><td>Leaderboard Position:</td><td class="userData">$positionHTML</td></tr>
-                    <tr><td># of Photos Tagged:</td><td class="userData">$numberOfAnnotations</td></tr>
+                    <tr><td title="This is your position on the leaderboard out of all registered users in
+                        iCoast. The more photos you tag the higher you will climb. Try to become the iCoast
+                            Top Tagger!">Leaderboard Position:</td><td class="userData">$positionHTML</td></tr>
+                    <tr><td title="This is the total number of photos you have tagged in iCoast across all
+                        projects. Only complete annotations count meaning you had to view all tasks and
+                        clicked the final Done button. Use the profile page to see any incomplete annotations
+                        you might have.">
+                        # of Photos Tagged:</td><td class="userData">$numberOfAnnotations</td></tr>
 
                     $advancementHTML
-                    <tr><td># of Tags in Total:</td><td class="userData">$numberOfTotalTags</td></tr>
-                    <tr><td>Last Project Annotated:</td><td class="userData">$projectName</td></tr>
-                    <tr><td>Last Annotation:</td><td class="userData">$formattedLastAnnotationTime</td></tr>
+                    <tr><td title="This is the total number of tags you have selected in iCoast photos across all
+                        projects."># of Tags in Total:</td><td class="userData">$numberOfTotalTags</td></tr>
+                    <tr><td title="The last iCoast project that you tagged was the $projectName project.">
+                        Last Project Annotated:</td><td class="userData">$projectName</td></tr>
+                    <tr><td title="The local time you submitted your last complete annotation">
+                        Last Annotation:</td><td class="userData">$formattedLastAnnotationTime</td></tr>
                 </table>
               $selectProjectButtonHTML
 EOL;
@@ -214,3 +228,7 @@ EOL;
         header('Location: login.php');
         break;
 }
+
+$jQueryDocumentDotReadyCode = <<<EOL
+        $('td:first-of-type').tipTip();
+EOL;

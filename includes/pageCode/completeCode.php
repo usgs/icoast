@@ -3,7 +3,6 @@
 $pageName = "complete";
 $cssLinkArray = array();
 $embeddedCSS = '';
-$javaScriptLinkArray[] = '//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js';
 $javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
 
 require 'includes/globalFunctions.php';
@@ -123,6 +122,7 @@ if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId,
 $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
 $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
 $newRandomImageDisplayURL = "images/datasets/{$newRandomImageMetadata['dataset_id']}/main/{$newRandomImageMetadata['filename']}";
+$newRandomImageLocation = build_image_location_string($newRandomImageMetadata, TRUE);
 
 
 

@@ -27,35 +27,3 @@
   font-style: italic;
   font-size: 14px;
 }
-
-#mainHeaderNavigation {
-  font-size: 16px;
-  position: absolute;
-  left: 400px;
-  top: 20px;
-}
-
-#mainHeaderNavigation li {
-    display: inline-block;
-    margin: 0 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 8px 15px;
-    border-radius: 5px;
-}
-
-.missingPageLink {
-    color: #333333;
-}
-
-#activePageLink {
-    color: #E56969;
-}
-
-#mainHeaderNavigation a {
-    text-decoration: none;
-    color: white;
-}
-
-#mainHeaderNavigation a:hover {
-    color: #5384ed;
-}

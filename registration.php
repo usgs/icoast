@@ -13,7 +13,9 @@ $pageBody = <<<EOL
             <input type="hidden" name="registerEmail" value="$userEmail" />
             <div class="formFieldRow">
                 <label for="registerTimeZone">Time Zone: *</label>
-                <select id="registerTimeZone" name="registerTimeZone" >
+                <select id="registerTimeZone" name="registerTimeZone" class="clickableButton"
+                    title="Select the appropriate time zone that you reside in. If your time zone is not
+                    listed please use UTC. (Select one).">
                     <option value="1" $timeZone1HTML>Eastern</option>
                     <option value="2" $timeZone2HTML>Central</option>
                     <option value="3" $timeZone3HTML>Mountain</option>
@@ -27,8 +29,10 @@ $pageBody = <<<EOL
             </div>
             <div class="formFieldRow">
                 <label for="registerCrowdType">Crowd Type: *</label>
-                <select id="registerCrowdType" name="registerCrowdType" >
-                    <option value="1" $crowdType1HTML>Coastal Science Researcher</option>
+                <select id="registerCrowdType" name="registerCrowdType" class="clickableButton"
+                    title="Select a crowd type from this list that best defines your interest or experience
+                    in the coastal environment. (Select one)">
+                    <option value="1" $crowdType1HTML>Coastal & Marine Scientist</option>
                     <option value="2" $crowdType2HTML>Coastal Manager or Planner</option>
                     <option value="3" $crowdType3HTML>Coastal Resident</option>
                     <option value="4" $crowdType4HTML>Watersport Enthusiast</option>
@@ -43,16 +47,21 @@ $pageBody = <<<EOL
             </div>
             <div class="formFieldRow" id="registerOtherRow">
                 <label for="registerOther">Other Crowd Type *: </label>
-                <input type="text" id="registerOther" name="registerOther" value="$registerOtherContent" />
+                <input type="text" id="registerOther" class="clickableButton" name="registerOther"
+                    value="$registerOtherContent" title="Use this text field to specify a crowd type not
+                    included in the listbox above. (Max 255 characters)"/>
                 $otherCrowdTypeError
             </div>
             <div class="formFieldRow">
                 <label class="multiline" for="registerAffiliation">Coastal Expertise or Affiliation<br>(optional): </label>
-                <input type="text" id="registerAffiliation" name="registerAffiliation" value="$registerAffiliationContent" />
+                <input type="text" id="registerAffiliation" class="clickableButton" name="registerAffiliation"
+                    value="$registerAffiliationContent" title="This optional text field allows you to specify
+                    and relevant experience or professional affiiation you may have. (Max 255 Characters)"/>
                 $registerAffiliationError
             </div>
             <div class="formFieldRow standAloneFormElement">
-                <input type="submit" class="clickableButton formButton" id="registerSubmitButton" value="Complete Registration" />
+                <input type="submit" class="clickableButton formButton" id="registerSubmitButton"
+                    value="Complete Registration" title="Click to submit your registration information."/>
             </div>
         </form>
         <p class="footer">* indicates the field is required.</p>

@@ -3,7 +3,6 @@
 $pageName = "profile";
 $cssLinkArray = array();
 $embeddedCSS = '#historyControlWrapper p:first-of-type {margin-top: 0px; padding-top: 10px;}';
-$javaScriptLinkArray[] = "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js";
 $javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
 $javaScriptLinkArray[] = "scripts/jquery.validate.min.js";
 
@@ -41,13 +40,13 @@ $crowdType8HTML = '';
 $crowdType9HTML = '';
 $crowdType10HTML = '';
 $timeZoneError = '';
-$newEmailError = '';
-$confirmEmailError = '';
+$newAccountError = '';
+$confirmLoginError = '';
 $crowdTypeError = '';
 $otherCrowdTypeError = '';
 $affiliationError = '';
-$newEmail = '';
-$confirmNewEmail = '';
+$newAccount = '';
+$confirmNewLogin = '';
 $otherCrowdType = '';
 $affiliationContent = '';
 $updateAck = '';
@@ -68,19 +67,19 @@ if (isset($_POST['formSubmission'])) {
 
 
 
-        case 'email':
-            $newEmail = (isset($_POST['newEmail'])) ? strtolower(trim($_POST['newEmail'])) : null;
-            $confirmNewEmail = (isset($_POST['confirmNewEmail'])) ? strtolower(trim($_POST['confirmNewEmail'])) : null;
-            $filteredNewEmail = filter_var($newEmail, FILTER_VALIDATE_EMAIL);
+        case 'account':
+            $newAccount = (isset($_POST['newAccount'])) ? strtolower(trim($_POST['newAccount'])) : null;
+            $confirmNewLogin = (isset($_POST['confirmNewLogin'])) ? strtolower(trim($_POST['confirmNewLogin'])) : null;
+            $filteredNewEmail = filter_var($newAccount, FILTER_VALIDATE_EMAIL);
             if (empty($filteredNewEmail)) {
-                $errorMessage['newEmail'] = 'You must specify a valid new eMail Address.';
-            } else if (empty($confirmNewEmail) || strcasecmp($filteredNewEmail, $confirmNewEmail) != 0) {
+                $errorMessage['newAccount'] = 'You must specify a valid new eMail Address.';
+            } else if (empty($confirmNewLogin) || strcasecmp($filteredNewEmail, $confirmNewLogin) != 0) {
                 $errorMessage['confirmEmail'] = 'Your confirmation eMail address must match your new eMail address.';
             }
 
 
             if (!isset($errorMessage)) {
-                $maskedEmail = mask_email($newEmail);
+                $maskedEmail = mask_email($newAccount);
                 $emailExistsQuery = "SELECT encrypted_email, encryption_data FROM users "
                         . "WHERE masked_email = :maskedEmail";
                 $emailExistsParams['maskedEmail'] = $maskedEmail;
@@ -103,7 +102,7 @@ if (isset($_POST['formSubmission'])) {
                             . "encrypted_email = :encryptedEmail, encryption_data = :encryptionData "
                             . "WHERE user_id = :userId LIMIT 1";
                     $profileUpdateParams = array(
-                        'maskedEmail' => mask_email($newEmail),
+                        'maskedEmail' => mask_email($newAccount),
                         'encryptedEmail' => $encryptedEmailData[0],
                         'encryptionData' => $encryptedEmailData[1],
                         'userId' => $userId
@@ -119,19 +118,19 @@ if (isset($_POST['formSubmission'])) {
                         exit;
                     }
                 } else {
-                    $newEmailError = '<label class="error" for="newEmail">The specified eMail address already '
+                    $newAccountError = '<label class="error" for="newAccount">The specified account already '
                             . 'exists within iCoast.</label>';
-                    $confirmNewEmail = '';
+                    $confirmNewLogin = '';
                 }
-            } else if (isset($errorMessage['newEmail'])) {
-                $newEmailError = '<label class="error" for="newEmail">' . $errorMessage['newEmail'] . '</label>';
+            } else if (isset($errorMessage['newAccount'])) {
+                $newAccountError = '<label class="error" for="newAccount">' . $errorMessage['newAccount'] . '</label>';
             } else if (isset($errorMessage['confirmEmail'])) {
-                $confirmEmailError = '<label class="error" for="confirmEmail">' . $errorMessage['confirmEmail'] . '</label>';
+                $confirmLoginError = '<label class="error" for="confirmEmail">' . $errorMessage['confirmEmail'] . '</label>';
             }
 
 
-            $newEmail = htmlentities($newEmail);
-            $confirmNewEmail = htmlentities($confirmNewEmail);
+            $newAccount = htmlentities($newAccount);
+            $confirmNewLogin = htmlentities($confirmNewLogin);
             break;
 
 
@@ -355,9 +354,9 @@ if (isset($_POST['formSubmission'])) {
             break;
     }
 
-    if (!empty($newEmailError) || !empty($confirmNewEmailError)) {
+    if (!empty($newAccountError) || !empty($confirmNewLoginError)) {
         $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
-        $profileFormErrorControl .= "$('#changeEmailFormWrapper').css('display', 'block');";
+        $profileFormErrorControl .= "$('#changeAccountFormWrapper').css('display', 'block');";
     } else if (!empty($crowdTypeError) || !empty($otherCrowdTypeError)) {
         $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
         $profileFormErrorControl .= "$('#changeCrowdFormWrapper').css('display', 'block');";
@@ -494,9 +493,11 @@ $javaScript = <<<EOT
             google.maps.event.addListener(thisMarker, 'click', (function(marker) {
                 return function() {
                     $('tr').css('background-color', '#FFFFFF');
+                    $('tr').css('font-weight', 'normal');
                     $('td').each(function() {
                         if ($(this).text() == annotation.image_id) {
-                            $(this).parent().css('background-color', '#5384ed');
+                            $(this).parent().css('background-color', '#D3E2F0');
+                            $(this).parent().css('font-weight', 'bold');
                         }
                     });
                     for (var i = 0; i < icMarkers.length; i++) {
@@ -520,22 +521,26 @@ $javaScript = <<<EOT
             }
 
             displayedRows++;
-            var classificationLink = '<td><a href="classification.php?projectId=' + annotation.project_id +
+            var mapLink = '<td><a href="classification.php?projectId=' + annotation.project_id +
                         '&imageId=' + annotation.image_id + '">';
 
-            tableContents += '<tr>';
+            tableContents += '<tr><td><a href="classification.php?projectId=' + annotation.project_id +
+                        '&imageId=' + annotation.image_id + '">';
 
             if (annotation.annotation_completed == 1) {
-                tableContents += '<tr>';
+                tableContents += '<div class="clickableButton" title="Click this button to see the photo and edit ' +
+                    'your selections if you wish.">Tag</div></a></td>';
             } else {
-                tableContents += '<tr class="incompleteAnnotation">';
+                tableContents += '<div class="clickableButton incompleteAnnotation" title="Not all tasks for ' +
+                    'this photo were completed. Click this button to return to the photo, edit your selections, ' +
+                    'and complete all the tasks so it counts towards to leaderboard statistics.">Tag</div></a></td>';
             }
-            tableContents += classificationLink + annotation.annotation_time + '</a></td>';
-            tableContents += classificationLink + annotation.time_spent + '</a></td>';
-            tableContents += classificationLink + annotation.number_of_tags + '</a></td>';
-            tableContents += classificationLink + annotation.location + '</a></td>';
-            tableContents += classificationLink + annotation.image_id + '</a></td>';
-            tableContents += classificationLink + annotation.project_name + '</a></td>';
+            tableContents += '<td>' + annotation.annotation_time + '</td>';
+            tableContents += '<td>' + annotation.time_spent + '</td>';
+            tableContents += '<td>' + annotation.number_of_tags + '</td>';
+            tableContents += '<td>' + annotation.location + '</td>';
+            tableContents += '<td>' + annotation.image_id + '</td>';
+            tableContents += '<td>' + annotation.project_name + '</td>';
             tableContents += '</tr>';
         });
         $('tbody tr').remove();
@@ -586,6 +591,9 @@ $javaScript = <<<EOT
             $('#profileDetailsWrapper').slideUp(positionFeedbackDiv);
             $('#profileHideButton').text('Show Profile Details');
         }
+
+        $('.clickableButton').tipTip();
+
 
     }
 
@@ -662,10 +670,10 @@ $jQueryDocumentDotReadyCode = <<<EOT
         $crowdTypeReset
         $timeZoneReset
 
-        $('#emailChangeButton').click(function() {
+        $('#accountChangeButton').click(function() {
             $('#feedbackWrapper').hide();
             $('.profileUpdateField').slideUp(positionFeedbackDiv);
-            $('#changeEmailFormWrapper').slideDown(positionFeedbackDiv);
+            $('#changeAccountFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#crowdTypeChangeButton').click(function() {
@@ -763,21 +771,21 @@ $jQueryDocumentDotReadyCode = <<<EOT
             }
         });
 
-        $('#eMailForm').validate({
+        $('#accountForm').validate({
             rules: {
-                newEmail: {
+                newAccount: {
                     required: true
                 },
-                confirmNewEmail: {
-                    equalTo: '#newEmail'
+                confirmNewLogin: {
+                    equalTo: '#newAccount'
                 }
             },
             messages: {
-                newEmail: {
-                    required: 'You must specify your new eMail address to continue.'
+                newAccount: {
+                    required: 'You must specify a new login account to continue.'
                 },
-                confirmNewEmail: {
-                    equalTo: 'Your confirmation eMail entry must match your first entry.'
+                confirmNewLogin: {
+                    equalTo: 'Your confirmation login entry must match your first entry.'
                 }
             }
         });
@@ -842,5 +850,7 @@ $jQueryDocumentDotReadyCode = <<<EOT
                 $('#otherCrowdType').val('');
             }
         });
+
+        $('#crowdType option').tipTip();
 EOT;
 
