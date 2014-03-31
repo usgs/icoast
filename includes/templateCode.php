@@ -8,7 +8,7 @@ $fileModifiedDateTime->setTimezone(new DateTimeZone('America/New_York'));
 $fileModifiedDateTime = $fileModifiedDateTime->format('F jS, Y H:i T');
 
 if (!isset($pageName)) {
-    header('Location: login.php');
+    header('Location: index.php');
 }
 if (!isset($cssLinkArray)) {
     $cssLinkArray = array();
@@ -35,222 +35,157 @@ $javaScriptLinks = '';
 //define('DYNAMIC_HEADER', 'css/dynamicHeader.css');
 
 switch ($pageName) {
+    case "home":
+        $pageTitle = "iCoast - Home";
+        $mainNav = '<ul>';
+        $mainNav .= '<li class="activePageLink">Home</li>';
+        if ($userData) {
+            $mainNav .= '<li><a href="start.php">Classify</a></li>';
+            $mainNav .= '<li><a href="profile.php">Profile</a></li>';
+        }
+        $mainNav .= '<li><a href="help.php">Help</a></li>';
+        $mainNav .= '<li><a href="about.php">About</a></li>';
+        if ($userData) {
+            $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
+        } else {
+            $mainNav .= '<li><a href="index.php?login">Login</a></li>';
+        }
+        $mainNav .= '</ul>';
+        break;
+
+    case "registration":
+        $pageTitle = "iCoast - User Registration";
+        $mainNav = <<<EOL
+            <ul>
+              <li><a href="index.php">Home</a></li>
+              <li><a href="help.php">Help</a></li>
+              <li><a href="about.php">About</a></li>
+              <li><a href="index.php?login">Login</a></li>
+            </ul>
+EOL;
+        break;
+
     case "welcome":
         $pageTitle = "iCoast: Welcome to iCoast";
-//        $cssLinkArray[] = STATIC_HEADER;
         $mainNav = <<<EOL
       <ul>
-        <li id="activePageLink">Home</li>
+        <li><a href="index.php">Home</a></li>
+        <li class="activePageLink">Welcome</li>
+        <li><a href="start.php">Classify</a></li>
         <li><a href="profile.php">Profile</a></li>
         <li><a href="help.php">Help</a></li>
         <li><a href="about.php">About</a></li>
-
-        <li><a href="logout.php">Logout</a></li>
+        <li class="accountControlLink"><a href="logout.php">Logout</a></li>
       </ul>
 EOL;
         break;
+
     case "classify":
         $pageTitle = "iCoast: Classification";
-//        $cssLinkArray[] = DYNAMIC_HEADER;
         $mainNav = <<<EOL
             <ul>
-              <li><a href="welcome.php">Home</a></li>
+              <li><a href="index.php">Home</a></li>
+              <li class="activePageLink"><a href="start.php">Classify</a></li>
               <li><a href="profile.php">Profile</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li><a href="logout.php">Logout</a></li>
+              <li class="accountControlLink"><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
-//        $jQueryDocumentDotReadyCode .= <<<EOL
-//                    $('#usgsColorBand').click(function() {
-//
-//                        $('#usgsColorBand').animate({
-//                            top: "0px"
-//                        }, 500, "swing");
-//
-//                        $('#headerImageWrapper').animate({
-//                            left: "350px"
-//                        }, 500, "swing");
-//
-//                        $('#usgsIdentifier').animate({
-//                            width: "350px"
-//                        }, 500, "swing");
-//
-//                        $('#usgsIdentifier a').show(0, function() {
-//                            $('#usgsIdentifier a').animate({
-//                                opacity: 1
-//                            }, 500, "swing");
-//                        });
-//
-//                        $('#appTitle').animate({
-//                            left: "190px",
-//                            top: "7px",
-//                            margin: "0 0 0 0",
-//                            fontSize: "48px",
-//                            lineHeight: "48px"
-//                        }, 500, "swing");
-//
-//                        $('#appSubtitle').animate({
-//                            left: "190px",
-//                            top: "52px"
-//                        }, 500, "swing");
-//
-//                        $('#mainHeaderNavigation li').animate({
-//                            opacity: 1
-//                        }, 500, "swing");
-//
-//
-//
-//
-//                    }); // End header click (expand) function.
-//
-//
-//                    $('#usgsColorBand').mouseleave(function() {
-//
-//                        $('#usgsColorBand').animate({
-//                            top: "-47px"
-//                        }, 500, "swing");
-//
-//                        $('#headerImageWrapper').animate({
-//                            left: "252px"
-//                        }, 500, "swing");
-//
-//                        $('#usgsIdentifier').animate({
-//                            width: "252px"
-//                        }, 500, "swing");
-//
-//                        $('#usgsIdentifier a').animate({
-//                            opacity: 0
-//                        }, 500, "swing", function() {
-//                            $('#usgsIdentifier a').hide(0);
-//                        });
-//
-//                        $('#appTitle').animate({
-//                            left: "0px",
-//                            top: "47px",
-//                            margin: "0 0 0 15",
-//                            fontSize: "25px",
-//                            lineHeight: "25px"
-//                        }, 500, "swing");
-//
-//                        $('#appSubtitle').animate({
-//                            left: "97px",
-//                            top: "56px"
-//                        }, 500, "swing");
-//
-//                        $('#mainHeaderNavigation li').animate({
-//                            opacity: 0
-//                        }, 500, "swing");
-//
-//                    }); // End header mouseleave (collapse) function.
-//EOL;
-
         break;
+
     case "start":
         $pageTitle = "iCoast: Choose Your Photo";
-//        $cssLinkArray[] = STATIC_HEADER;
         $mainNav = <<<EOL
             <ul>
-              <li><a href="welcome.php">Home</a></li>
+              <li><a href="index.php">Home</a></li>
+              <li class="activePageLink">Classify</li>
               <li><a href="profile.php">Profile</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li><a href="logout.php">Logout</a></li>
+              <li class="accountControlLink"><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
         break;
+
     case "complete":
         $pageTitle = "iCoast: Annotation Summary";
-//        $cssLinkArray[] = STATIC_HEADER;
         $mainNav = <<<EOL
             <ul>
-              <li><a href="welcome.php">Home</a></li>
+              <li><a href="index.php">Home</a></li>
+              <li class="activePageLink"><a href="start.php">Classify</a></li>
               <li><a href="profile.php">Profile</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li><a href="logout.php">Logout</a></li>
+              <li class="accountControlLink"><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
         break;
-    case "help":
-        $pageTitle = "iCoast: Help";
-//        $cssLinkArray[] = STATIC_HEADER;
-        $mainNav = <<<EOL
-            <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li><a href="profile.php">Profile</a></li>
-              <li id="activePageLink">Help</li>
-              <li><a href="about.php">About</a></li>
-              <li><a href="logout.php">Logout</a></li>
-            </ul>
-EOL;
-        break;
-    case "about":
-        $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
-//        $cssLinkArray[] = STATIC_HEADER;
-        $mainNav = <<<EOL
-            <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li><a href="profile.php">Profile</a></li>
-              <li><a href="help.php">Help</a></li>
-              <li id="activePageLink">About</li>
-              <li><a href="logout.php">Logout</a></li>
-            </ul>
-EOL;
-        break;
+
     case "profile":
         $pageTitle = "iCoast: User Profile";
-//        $cssLinkArray[] = STATIC_HEADER;
         $mainNav = <<<EOL
             <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li id="activePageLink">Profile</li>
+              <li><a href="index.php">Home</a></li>
+              <li><a href="start.php">Classify</a></li>
+              <li class="activePageLink">Profile</li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li><a href="logout.php">Logout</a></li>
+              <li class="accountControlLink"><a href="logout.php">Logout</a></li>
             </ul>
 EOL;
         break;
+
+    case "help":
+        $pageTitle = "iCoast: Help";
+        $mainNav = '<ul>';
+        $mainNav .= '<li><a href="index.php">Home</a></li>';
+        if ($userData) {
+            $mainNav .= '<li><a href="profile.php">Profile</a></li>';
+            $mainNav .= '<li><a href="start.php">Classify</a></li>';
+        }
+        $mainNav .= '<li class="activePageLink">Help</li>';
+        $mainNav .= '<li><a href="about.php">About</a></li>';
+        if ($userData) {
+             $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
+        } else {
+            $mainNav .= '<li><a href="index.php?login">Login</a></li>';
+        }
+        $mainNav .= '</ul>';
+        break;
+
+    case "about":
+        $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
+        $mainNav = '<ul>';
+        $mainNav .= '<li><a href="index.php">Home</a></li>';
+        if ($userData) {
+            $mainNav .= '<li><a href="profile.php">Profile</a></li>';
+            $mainNav .= '<li><a href="start.php">Classify</a></li>';
+        }
+        $mainNav .= '<li><a href="help.php">Help</a></li>';
+        $mainNav .= '<li class="activePageLink">About</li>';
+        if ($userData) {
+             $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
+        } else {
+            $mainNav .= '<li><a href="index.php?login">Login</a></li>';
+        }
+        $mainNav .= '</ul>';
+        break;
+
     case "logout":
         $pageTitle = "iCoast - User Logout";
-//        $cssLinkArray[] = STATIC_HEADER;
         $mainNav = <<<EOL
             <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li><a href="profile.php">Profile</a></li>
+              <li><a href="index.php">Home</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
-              <li><a href="login.php">Login</a></li>
+              <li><a href="index.php?login">Login</a></li>
             </ul>
 EOL;
         break;
-    case "login":
-        $pageTitle = "iCoast - User Login";
-//        $cssLinkArray[] = STATIC_HEADER;
-        $mainNav = <<<EOL
-            <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li><a href="help.php">Help</a></li>
-              <li><a href="about.php">About</a></li>
-              <li id="activePageLink">Login</li>
-            </ul>
-EOL;
-        break;
-    case "registration":
-        $pageTitle = "iCoast - User Registration";
-//        $cssLinkArray[] = STATIC_HEADER;
-        $mainNav = <<<EOL
-            <ul>
-              <li><a href="welcome.php">Home</a></li>
-              <li><a href="profile.php">Profile</a></li>
-              <li><a href="help.php">Help</a></li>
-              <li><a href="about.php">About</a></li>
-              <li id="activePageLink">Login</li>
-            </ul>
-EOL;
-        break;
+
     default:
-        header('Location: login.php');
+        header('Location: index.php');
         break;
 }
 

@@ -10,7 +10,11 @@ $pageBody = <<<EOL
                 <h1>About “iCoast - Did the Coast Change?”</h1>
                 <h2>Purpose of iCoast</h2>
 
-                <p>Since 1995, the U.S. Geological Survey (USGS) has collected over 140,000 aerial photographs
+                 <img src="images/system/indexImages/classify.jpg"
+                     alt="A screenshot of the iCoast application\'s classification page where users can
+                     compare images and log what they see." width="350" height="227" style="border: 1px solid #666666" />
+
+                <p class="aboutShortParagraph">Since 1995, the U.S. Geological Survey (USGS) has collected over 140,000 aerial photographs
                     of the Atlantic and Gulf coasts before and after 24 extreme storms in order to assess
                     coastal damages. The USGS has not been able to use these images to the fullest extent
                     due to a lack of the information processing capacity and personnel needed to analyze the
@@ -24,7 +28,11 @@ $pageBody = <<<EOL
 
                 <h2>USGS Oblique Aerial Photographs</h2>
 
-                <p>The USGS acquires high-resolution oblique aerial photography after extreme storms and
+                <img src="images/system/indexImages/karen.jpg"
+                     alt="An image showing a USGS field worker photographing the coastline from the cabin of
+                     a light aircraft." width="350" height="227" />
+
+                <p class="aboutShortParagraph">The USGS acquires high-resolution oblique aerial photography after extreme storms and
                     compares them to baseline imagery collected before the storms. These aerial photographs
                     are taken at a low altitude to capture a small area of the coast. Aerial imagery helps
                     USGS scientists qualitatively classify the geomorphic change and infrastructure damage
@@ -35,6 +43,10 @@ $pageBody = <<<EOL
 
                 <h2>USGS Predictive Models of Storm-Induced Coastal Changes</h2>
 
+                <img src="images/system/indexImages/predictions.jpg"
+                     alt="An image showing a graphical representation of the USGS coastal erosion prediction
+                     models for the north east United States coastline." width="350" height="227" />
+
                 <p>Sandy beaches provide a natural barrier between the ocean and inland communities,
                     ecosystems, and resources. These dynamic environments move and change in response to
                     winds, waves, and currents. During a hurricane, these changes can be large and sometimes
@@ -44,8 +56,10 @@ $pageBody = <<<EOL
                     identify areas of the US coastline that are likely to experience extreme and potentially
                     hazardous erosion during hurricanes or other extreme storms.</p>
 
-                <p>To assess coastal vulnerability to extreme storms, the USGS has developed a Storm-Impact
-                    Scale to produce Coastal Change Probability estimates. Hurricane-induced water levels, due
+                <p>To assess coastal vulnerability to extreme storms, the USGS has developed a
+                    <a href="http://coastal.er.usgs.gov/hurricanes/impact-scale/">
+                    Storm-Impact Scale</a> to produce <a href="http://coastal.er.usgs.gov/hurricanes/change-probability/">
+                    Coastal Change Probability</a> estimates. Hurricane-induced water levels, due
                     to both storm surge and waves, are compared to beach and dune elevations to determine the
                     probabilities of three types of coastal change processes: (1) Dune Erosion, where the base
                     or toe of the dune is eroded by waves and surge, (2) Overwash, where sand is transported
@@ -53,8 +67,15 @@ $pageBody = <<<EOL
                     where the beach and dune are completely and continuously submerged by surge and wave
                     runup.</p>
 
+
+
                 <h2>Benefits and Broader Impact of iCoast</h2>
-                <p>There are scientific, technological, and societal benefits to the iCoast project. The
+
+                <img src="images/system/aboutImages/coastalDamage.jpg"
+                     alt="An taken from ground level image looking along a beach showing considerable damage
+                         to buildings following an extreme weather event." width="350" height="227" />
+
+                <p class="aboutShortParagraph">There are scientific, technological, and societal benefits to the iCoast project. The
                     crowdsourced data produced from users like you in iCoast will enhance predictive modeling
                     of coastal erosion to better inform emergency managers, coastal planners, and coastal
                     residents of coastal vulnerabilities in their region. iCoast also serves the cause of open
@@ -67,15 +88,15 @@ $pageBody = <<<EOL
                 <h2>The iCoast Team</h2>
                 <div class="teamColumn">
                     <div>
-                        <img src="images/system/sbliu.jpg" height="100" width="100" alt="Image of Sophia Liu"
+                        <img src="images/system/aboutImages/sbliu.jpg" height="100" width="100" alt="Image of Sophia Liu"
                             title="Sophia B. Liu" />
                         <h3>Sophia B. Liu</h3>
                         <p><span class="teamPosition">Principal Investigator</span><br>
-                            USGS Research Geographer and<br>Mendenhall Postdoc Fellow</p>
+                            USGS Research Geographer and Mendenhall Postdoc Fellow</p>
                     </div>
 
                     <div>
-                        <img src="images/system/bpoore.jpg" height="100" width="100" alt="Image of Barbara Poore"
+                        <img src="images/system/aboutImages/bpoore.jpg" height="100" width="100" alt="Image of Barbara Poore"
                             title="Barbara Poore" />
                         <h3>Barbara Poore</h3>
                         <p><span class="teamPosition">Principal Investigator</span><br>
@@ -83,15 +104,15 @@ $pageBody = <<<EOL
                     </div>
 
                     <div>
-                        <img src="images/system/rsnell.jpg" height="100" width="100" alt="Image of Richard Snell"
-                            title=""Richard Snell" />
+                        <img src="images/system/aboutImages/rsnell.jpg" height="100" width="100" alt="Image of Richard Snell"
+                            title="Richard Snell" />
                         <h3>Richard Snell</h3>
                         <p><span class="teamPosition">Application Developer</span><br>
                             USGS Web Application Developer</p>
                     </div>
 
                     <div>
-                        <img src="images/system/agoodman.jpg" height="100" width="100" alt="Image of Aubrey Goodman"
+                        <img src="images/system/aboutImages/agoodman.jpg" height="100" width="100" alt="Image of Aubrey Goodman"
                             title="Aubrey Goodman" />
                         <h3>Aubrey Goodman</h3>
                         <p><span class="teamPosition">Prototype Developer</span><br>
@@ -101,15 +122,15 @@ $pageBody = <<<EOL
                 <div class="teamColumn">
 
                     <div>
-                        <img src="images/system/nplant.jpg" height="100" width="100" alt="Image of Nathaniel Plant"
-                            title=""Nathaniel Plant" />
+                        <img src="images/system/aboutImages/nplant.jpg" height="100" width="100" alt="Image of Nathaniel Plant"
+                            title="Nathaniel Plant" />
                         <h3>Nathaniel Plant</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
                             USGS Research Oceanographer</p>
                     </div>
 
                     <div>
-                        <img src="images/system/hstockdon.jpg" height="100" width="100" alt="Image of Hilary Stockdon"
+                        <img src="images/system/aboutImages/hstockdon.jpg" height="100" width="100" alt="Image of Hilary Stockdon"
                             title="Hilary Stockdon"/>
                         <h3>Hilary Stockdon</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
@@ -117,7 +138,7 @@ $pageBody = <<<EOL
                     </div>
 
                     <div>
-                        <img src="images/system/kmorgan.jpg" height="100" width="100" alt="Image of Karen Morgan"
+                        <img src="images/system/aboutImages/kmorgan.jpg" height="100" width="100" alt="Image of Karen Morgan"
                             title="Karen Morgan" />
                         <h3>Karen Morgan</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>
@@ -125,7 +146,7 @@ $pageBody = <<<EOL
                     </div>
 
                     <div>
-                        <img src="images/system/dkrohn.jpg" height="100" width="100" alt="Image of Dennis Krohn"
+                        <img src="images/system/aboutImages/dkrohn.jpg" height="100" width="100" alt="Image of Dennis Krohn"
                             title="Dennis Krohn" />
                         <h3>Dennis Krohn</h3>
                         <p><span class="teamPosition">Coastal Scientist</span><br>

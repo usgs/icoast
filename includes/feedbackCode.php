@@ -7,7 +7,7 @@ if (!isset($userId)) {
     $userId = 0;
 }
 $url = 'http://' . $_SERVER["SERVER_NAME"] . $_SERVER["PHP_SELF"];
-$queryString = $_SERVER['QUERY_STRING'];
+$queryString = htmlentities($_SERVER['QUERY_STRING']);
 
 $postData = '';
 $firstValue = TRUE;
@@ -24,6 +24,7 @@ foreach ($_POST as $postField => $postValue) {
 $clientAgent = $_SERVER['HTTP_USER_AGENT'];
 
 $feedbackPanel1 = '';
+$feedbackPanel2 = '';
 $cancelFeedbackButtonHTML = '<input type="button" class="clickableButton cancelFeedback" title="Closes the feedback form and resets it to default values." value="Cancel Feedback">';
 
 $allProjects = array();
@@ -39,27 +40,41 @@ if ($numberOfProjects > 0) {
     $feedbackToggleHeight = "top: 173px\n\r;";
     $javascriptFeedbackWrapperHeight = 206;
     $feedbackPanel1 = <<<EOL
-            <p>Click Application if you have feedback on errors, feature requests, etc.</p>
-            <p>Click Project if you have feedback about the photos, tasks, tags, etc.</p>
-            <div class="feedbackButtonWrapper">
-                <input type="radio" id="systemFeedback" name="eventType" value="2">
-                <label for="systemFeedback" class="clickableButton" title="Use the Application button if your
-                    feedback relates to the iCoast application in general. This can include bugs or errors you
-                    have found, improvement suggestions, or new feature requests.">Application</label>
-                <input type="radio" id="projectFeedback" name="eventType" value="3">
-                <label for="projectFeedback" class="clickableButton" title="Use the Project button if your
-                feedback relates to a specific project within iCoast. Such feedback can relate to the coastal
-                images used within a project, the wording of questions or tags, or the clarity of the
-                tooltips.">Project</label>
-            </div>
+        <p>Click Application if you have feedback on errors, feature requests, etc.</p>
+        <p>Click Project if you have feedback about the photos, tasks, tags, etc.</p>
+        <div class="feedbackButtonWrapper">
+            <input type="radio" id="systemFeedback" name="eventType" value="2">
+            <label for="systemFeedback" class="clickableButton" title="Use the Application button if your
+                feedback relates to the iCoast application in general. This can include bugs or errors you
+                have found, improvement suggestions, or new feature requests.">Application</label>
+            <input type="radio" id="projectFeedback" name="eventType" value="3">
+            <label for="projectFeedback" class="clickableButton" title="Use the Project button if your
+            feedback relates to a specific project within iCoast. Such feedback can relate to the coastal
+            images used within a project, the wording of questions or tags, or the clarity of the
+            tooltips.">Project</label>
+        </div>
 
 EOL;
     $projectSelectOptionHTML = "";
     foreach ($allProjects as $project) {
         $id = $project['project_id'];
         $name = $project['name'];
-        $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>/r/n";
+        $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>\r\n";
     }
+    $feedbackPanel2 = <<<EOL
+        <p>Select the project that you wish to provide feedback for...</p>
+        <select id="feedbackFormProjectList" name="eventCode" class="clickableButton" title="Select
+            the iCoast project you would like to provide feedback for from the list here.">
+            $projectSelectOptionHTML
+        </select>
+        <div class="feedbackButtonWrapper">
+            <input type="button" id="backToPanel1" class="clickableButton" title="Takes
+            you back to the previous feedback step." value="Back">
+            $cancelFeedbackButtonHTML
+            <input type="button" id="nextToFeedbackPanel3" class="clickableButton" title="Takes
+            you to the next step in submitting your feedback." value="Next">
+        </div>
+EOL;
 } else {
     $feedbackContentHeight = "height: 230px\n\r;";
     $feedbackWrapperHeight = "height: 236px\n\r;";
@@ -227,10 +242,8 @@ $feedbackJavascript = <<<EOL
     function positionFeedbackDiv() {
         if ($('#contentWrapper').length) {
             var contentHeight = $('#contentWrapper').outerHeight() + 135;
-            console.log('contentHeight: ' + contentHeight);
         } else {
             var contentHeight = $('#classificationWrapper').outerHeight() + 135;
-            console.log('contentHeight: ' + contentHeight);
         }
 
         var windowHeight = $(window).height();
@@ -239,7 +252,6 @@ $feedbackJavascript = <<<EOL
         } else {
             var feedbackYPosition = windowHeight
         }
-        console.log('feedbackYPosition: ' + feedbackYPosition);
         feedbackYPosition -= (100 + feedbackHeight);
         if (feedbackYPosition < 135) {
             feedbackYPosition = 135
@@ -247,7 +259,6 @@ $feedbackJavascript = <<<EOL
         if (feedbackYPosition > (contentHeight - feedbackHeight)) {
             feedbackYPosition = (contentHeight - feedbackHeight)
         }
-        console.log('feedbackYPosition: ' + feedbackYPosition);
         feedbackYPosition += 'px';
 
         $('#feedbackWrapper').css({
@@ -272,19 +283,18 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
     $(window).resize(positionFeedbackDiv);
 
     $('#feedbackToggle').click(function() {
-        console.log("In feedbackToggle Click");
         if (feedbackHidden) {
             feedbackHidden = false;
             $('#feedbackBackground').show();
             $('#feedbackWrapper').animate({
                 width: 539
-            });
+            }, 1000);
         } else {
             feedbackHidden = true;
             $('#feedbackBackground').hide();
             $('#feedbackWrapper').animate({
                 width: 33
-            });
+            }, 1000);
         }
     });
 
@@ -293,18 +303,11 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
     });
 
     $('.cancelFeedback').click(function() {
-        console.log("In cancelFeedback Click");
-        if (feedbackHidden) {
-            feedbackHidden = false;
-            $('#feedbackWrapper').animate({
-                width: 539
-            });
-        } else {
             feedbackHidden = true;
             $('#feedbackWrapper').animate(
                 {
                     width: 33
-                },
+                }, 1000,
                 function() {
                     $('#feedbackPanel1').css('left', '0px');
                     $('#feedbackPanel2').css('left', '500px');
@@ -315,11 +318,9 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
                     }
                     $('#feedbackText').val('Please type your feedback here.');
                 });
-        }
     });
 
     $('#feedbackText').keyup(function() {
-        (console.log("in count chars"));
         var chars = $('#feedbackText').val().length;
         $('#feedbackCharacterCount').text(chars + ' of 500 characters used');
     });
@@ -336,7 +337,6 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
                 $('#feedbackText').val() !== 'You must provide some feedback.' &&
                 $('#feedbackText').val() !== 'Please type your feedback here.') {
             var formData = $('#userFeedbackForm').serialize();
-            console.log(formData);
             $.post('ajax/eventLogger.php', formData, feedbackConfirmation());
         } else {
             $('#feedbackText').val('You must provide some feedback.');
@@ -346,9 +346,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
 
     if ($('#systemFeedback').length) {
         $('#systemFeedback').click(function() {
-            console.log("In Application Click");
             panel2InUse = false;
-            console.log("panel2InUse" + panel2InUse);
             $('#feedbackPanel1').animate({
                 left: -500
             });
@@ -360,9 +358,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
 
     if ($('#projectFeedback').length) {
         $('#projectFeedback').click(function() {
-            console.log("In Project Click");
             panel2InUse = true;
-            console.log("panel2InUse" + panel2InUse);
             $('#feedbackPanel1').animate({
                 left: -500
             });
@@ -375,7 +371,6 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
 
     if ($('#backToPanel1').length) {
         $('#backToPanel1').click(function() {
-            console.log("In backToPanel1 Click");
             $('#feedbackPanel2').animate({
                 left: 500
             });
@@ -387,7 +382,6 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
 
     if ($('#nextToFeedbackPanel3').length) {
         $('#nextToFeedbackPanel3').click(function() {
-            console.log("In forwardToPanel3 Click");
             if ($('#feedbackFormProjectList').prop('selectedIndex') >= 0) {
                 if ($('#projectSelectionError').length) {
                     $('#projectSelectionError').remove();
@@ -422,7 +416,6 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
                     left: 0
                 });
             }
-            console.log("In backToPreviousPanel Click");
             $('#feedbackPanel3').animate({
                 left: 500
             });

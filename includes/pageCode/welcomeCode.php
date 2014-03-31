@@ -12,10 +12,11 @@ require 'includes/userFunctions.php';
 require $dbmsConnectionPath;
 
 if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode']) || !isset($_GET['userType'])) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 
+$userData = FALSE;
 $userType = $_GET['userType'];
 $userId = $_COOKIE['userId'];
 $authCheckCode = $_COOKIE['authCheckCode'];
@@ -25,57 +26,13 @@ $authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 $userEmail = $userData['masked_email'];
 
-$selectProjectButtonHTML = '';
-$allProjects = array();
-$allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 ORDER BY project_id ASC";
-foreach ($DBH->query($allProjectsQuery) as $row) {
-    $allProjects[] = $row;
-}
-$numberOfProjects = count($allProjects);
-if ($numberOfProjects > 1) {
-    $projectSelectOptionHTML = "";
-    foreach ($allProjects as $project) {
-        $id = $project['project_id'];
-        $name = $project['name'];
-        $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>/r/n";
-    }
-    $selectProjectButtonHTML = <<<EOL
-      <form method="post" action="start.php">
-          <input type="hidden" name="userId" value="$userId" />
-          <label for="projectIdSelect">
-              <h2>Select a Project to Annotate:</h2>
-          </label>
-          <div class="formFieldRow standAloneFormElement">
-            <select id="projectIdSelect" name="projectId">
-              $projectSelectOptionHTML
-            </select>
-          </div>
-          <div class="formFieldRow standAloneFormElement">
-            <input type="submit" class="clickableButton formButton" value="Start Tagging!" title="Click to
-                load the photo selection page and begin tagging your chosen project." />
-          </div>
-      </form>
-EOL;
-} else if ($numberOfProjects == 1) {
-    $onlyProjectId = $allProjects[0]['project_id'];
-    $onlyProjectName = $allProjects[0]['name'];
-    $selectProjectButtonHTML = <<<EOL
+$startTaggingButtonHTML = <<<EOL
       <form method="post" action="start.php" class="buttonForm">
-        <input type="hidden" name="projectId" value="$onlyProjectId" />
         <input type="submit" id="continueClassifyingButton" class="clickableButton formButton"
-            value="Start Tagging $onlyProjectName Project"
-            title="Click to load the photo selection page and begin tagging the $onlyProjectName project."/>
+            value="Start Tagging Photos"
+            title="Click to begin the classification process and start tagging."/>
       </form>
 EOL;
-} else {
-    $selectProjectButtonHTML = <<<EOL
-      <h2>No Projects Available</h2>
-      <p>There are no projects available for annotation at this time.<br>
-        Please check back at a later date.</p>
-EOL;
-}
-
-
 
 
 switch ($userType) {
@@ -88,7 +45,7 @@ switch ($userType) {
             check out the first iCoast project showing aerial photographs taken after
               Hurricane Sandy.</p>
 
-            $selectProjectButtonHTML
+            $startTaggingButtonHTML
 EOL;
         break;
     case 'existing':
@@ -213,19 +170,19 @@ EOL;
                     <tr><td title="The local time you submitted your last complete annotation">
                         Last Annotation:</td><td class="userData">$formattedLastAnnotationTime</td></tr>
                 </table>
-              $selectProjectButtonHTML
+              $startTaggingButtonHTML
 EOL;
         } else {
             $variableContent .= <<<EOL
                 <p>You have not yet annotated any POST-storm photographs.<br>Click the button below to
                   Start Tagging aerial photographs taken after Hurricane Sandy.<br>See if you can tag
                   more photos than other iCoast users.</p>
-                $selectProjectButtonHTML
+                $startTaggingButtonHTML
 EOL;
         }
         break;
     default:
-        header('Location: login.php');
+        header('Location: index.php');
         break;
 }
 

@@ -22,18 +22,7 @@ $feedbackPageHTML = <<<EOL
                     $feedbackPanel1
                 </div>
                 <div id="feedbackPanel2" class="feedbackPanel">
-                    <p>Select the project that you wish to provide feedback for...</p>
-                    <select id="feedbackFormProjectList" name="eventCode" class="clickableButton" title="Select
-                        the iCoast project you would like to provide feedback for from the list here.">
-                        $projectSelectOptionHTML
-                    </select>
-                    <div class="feedbackButtonWrapper">
-                        <input type="button" id="backToPanel1" class="clickableButton" title="Takes
-                        you back to the previous feedback step." value="Back">
-                        $cancelFeedbackButtonHTML
-                        <input type="button" id="nextToFeedbackPanel3" class="clickableButton" title="Takes
-                        you to the next step in submitting your feedback." value="Next">
-                    </div>
+                    $feedbackPanel2
                 </div>
                 <div id="feedbackPanel3" class="feedbackPanel">
                     <p><label for="feedbackText">What would you like to tell us?</label></p>

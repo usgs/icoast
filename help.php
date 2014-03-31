@@ -22,11 +22,13 @@ $pageBody = <<<EOL
                                 <p>Why do I have to sign in with a Google account? Can I sign in with other accounts?</p>
                             </div>
                             <div class="faqAnswer">
-                                <p>USGS is required to use OpenID and Google-based accounts are currently the only ones supported
+                                <p>USGS is required to use <a href="http://openid.net/get-an-openid/what-is-openid/">
+                                    OpenID</a> and Google-based accounts are currently the only ones supported
                                     by the Federal government. If you or your organization use Google accounts for email, you can
                                     login using that email and password. You can also change the email you want us to use in
                                     iCoast by going to the profile page, but it must be changed to a Google-based account. If you
-                                    have problems logging in, please contact icoast@usgs.gov.</p>
+                                    have problems logging in, please contact <a href="mailto:icoast@usgs.gov">
+                                    icoast@usgs.gov</a>.</p>
                             </div>
                         </div>
                         <div class="faq">

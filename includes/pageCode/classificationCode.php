@@ -15,7 +15,7 @@ require_once('includes/userFunctions.php');
 require $dbmsConnectionPath;
 
 if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -27,7 +27,7 @@ $authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 $projectId = "";
 if (empty($_POST['projectId']) && empty($_GET['projectId'])) {
-    header("location: welcome.php?userType=existing");
+    header("location: start.php");
     exit;
 } else {
     if (!empty($_POST['projectId'])) {
@@ -295,7 +295,7 @@ if ($thumbnailArray1[0]['image_id'] != 0) {
     $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
     $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
     $$thumbnailUrlVarName = $thumbnailArray1[0]['thumb_url'];
-    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray1[0]['image_id']}&sessId=$annotationSessionId";
+    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnailArray1[0]['image_id']}&amp;sessId=$annotationSessionId";
     $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray1[0], TRUE) . " coastline.";
 }
 
@@ -306,7 +306,7 @@ foreach ($thumbnailArray2 as $thumbnail) {
         $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
         $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
         $$thumbnailUrlVarName = $thumbnail['thumb_url'];
-        $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnail['image_id']}&sessId=$annotationSessionId";
+        $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnail['image_id']}&amp;sessId=$annotationSessionId";
         $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnail, TRUE) . " coastline.";
     }
     $thumbnailCounter++;
@@ -316,7 +316,7 @@ if ($thumbnailArray3[2]['image_id'] != 0) {
     $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
     $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
     $$thumbnailUrlVarName = $thumbnailArray3[2]['thumb_url'];
-    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray3[2]['image_id']}&sessId=$annotationSessionId";
+    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnailArray3[2]['image_id']}&amp;sessId=$annotationSessionId";
     $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray3[2], TRUE) . " coastline.";
 }
 
@@ -635,7 +635,7 @@ if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
     $currentThumbnailHtml .= <<<EOT
             <div class="navThumbnailWrapper currentThumbnailWrapper">
               <img id="computerMatch" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle" alt="$thumbnail3Alt">
-          <p>Computer Match &</p>
+          <p>Computer Match &amp;</p>
           <p>Currently Displayed Photo</p>
             </div>
 
@@ -828,7 +828,7 @@ EOT;
     }
     $taskHtmlString .= <<<EOT
             </div>
-            <div id="annotationControls">
+            <div class="annotationControls">
 
 EOT;
     If ($taskCounter > 1) {

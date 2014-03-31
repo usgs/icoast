@@ -54,7 +54,8 @@ function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirec
     $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
     if (count($userData) == 0) {
         if ($redirect) {
-            header('Location: login.php');
+            header('Location: index.php');
+            exit;
         } else {
             return FALSE;
         }

@@ -10,7 +10,8 @@ require 'includes/globalFunctions.php';
 require $dbmsConnectionPath;
 
 if (!isset($_COOKIE['registrationEmail'])) {
-    header("Location: login.php");
+    header("Location: index.php");
+    exit;
 } else {
     $userEmail = $_COOKIE['registrationEmail'];
 }

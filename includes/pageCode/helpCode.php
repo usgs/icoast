@@ -6,6 +6,21 @@ $embeddedCSS = '';
 $javaScriptLinkArray = array();
 $javaScript = '';
 
+require 'includes/globalFunctions.php';
+require $dbmsConnectionPath;
+$userData = FALSE;
+
+if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
+
+    $userId = $_COOKIE['userId'];
+    $authCheckCode = $_COOKIE['authCheckCode'];
+
+    $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE);
+    if ($userdata) {
+        $authCheckCode = generate_cookie_credentials($DBH, $userId);
+    }
+}
+
 $jQueryDocumentDotReadyCode = <<<EOL
 
    var revealedFaqs = 0;

@@ -13,7 +13,7 @@ $projectId = 1;
 // => If the page has been called without a random image id in the query string then generate
 // => an image id and redirect back to the page with a string attached.
 if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 $userId = escape_string($_COOKIE['userId']);
@@ -21,7 +21,7 @@ $authCheckCode = escape_string($_COOKIE['authCheckCode']);
 $authQuery = "SELECT * FROM users WHERE user_id = '$userId' AND auth_check_code = '$authCheckCode' LIMIT 1";
 $authMysqlResult = run_database_query($authQuery);
 if ($authMysqlResult && $authMysqlResult->num_rows == 0) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 $userData = $authMysqlResult->fetch_assoc();
@@ -38,7 +38,7 @@ if ($mysqlResult) {
     $error = true;
     $bodyHTML .= <<<EOL
           <p>Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
-          <form action="login.php" method="post">
+          <form action="index.php" method="post">
             <input type="submit" value="Login / Register using Google" />
           </form>
 

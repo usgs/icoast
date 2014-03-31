@@ -10,6 +10,14 @@ $mapScript = <<<EOL
   icMarkerClusterer = null;
   icSelectedMapImage = "";
   icProjectId = $projectId;
+  icUserId = $userId;
+  icRandomImageId = $newRandomImageId
+  icRandomImageLatitude = $newRandomImageLatitude;
+  icRandomImageLongitude = $newRandomImageLongitude;
+  var icRandomImageLocation;
+  var randomImageDisplayURL;
+
+
   function mapBoundaries() {
     //        console.log("In boundaries");
     var bounds = icMap.getBounds();
@@ -18,9 +26,9 @@ $mapScript = <<<EOL
       east: encodeURIComponent(bounds.getNorthEast().lng()),
       south: encodeURIComponent(bounds.getSouthWest().lat()),
       west: encodeURIComponent(bounds.getSouthWest().lng()),
-      projectId: $projectId,
-      userId: $userId,
-      currentImageId: $newRandomImageId
+      projectId: icProjectId,
+      userId: icUserId,
+      currentImageId: icRandomImageId
     };
     return boundaries;
   } //End function mapBoundaries
@@ -29,7 +37,7 @@ $mapScript = <<<EOL
 
 
   function initializeMaps() {
-    icCurrentImageLatLon = new google.maps.LatLng($newRandomImageLatitude, $newRandomImageLongitude);
+    icCurrentImageLatLon = new google.maps.LatLng(icRandomImageLatitude, icRandomImageLongitude);
     var mapOptions = {
       center: icCurrentImageLatLon,
       zoom: 10,
@@ -273,6 +281,32 @@ $mapScript = <<<EOL
       $('#mapCanvas').height(mapCanvasHeight);
     }
   } // End function dynamicSizing
+
+  function processRandomImageChange (updatedRandomImageData) {
+    var projectName = updatedRandomImageData.newProjectName;
+    icRandomImageId = updatedRandomImageData.newRandomImageId;
+    icRandomImageLatitude = updatedRandomImageData.newRandomImageLatitude;
+    icRandomImageLongitude = updatedRandomImageData.newRandomImageLongitude;
+    icRandomImageLocation = updatedRandomImageData.newRandomImageLocation;
+    icRandomImageDisplayURL = updatedRandomImageData.newRandomImageDisplayURL;
+
+    $('#currentProjectText').text('Current Project: ' + projectName);
+
+    $('#projectName').text(icRandomImageLocation);
+    $('#randomPostImagePreviewWrapper img').attr({
+      src: icRandomImageDisplayURL,
+      alt: 'An oblique image of the United States coastline taken near ' + icRandomImageLocation + '.'
+    });
+
+    $('#randomImageHeader').text('Random photo selected for you near ' + icRandomImageLocation);
+    $('#leftMapColumn img:first-of-type').attr({
+      src: icRandomImageDisplayURL,
+      alt: 'An oblique image of the United States coastline taken near ' + icRandomImageLocation + '.'
+    });
+
+    icCurrentImageLatLon = new google.maps.LatLng(icRandomImageLatitude, icRandomImageLongitude);
+    icCurrentImageMarker.setPosition(icCurrentImageLatLon);
+  }
 EOL;
 
 $mapDocumentReadyScript = <<<EOL
@@ -298,6 +332,37 @@ $mapDocumentReadyScript = <<<EOL
     $('#mapLoadImageButton').click(function() {
       window.location.href = icSelectedMapImage;
     });
+
+    $('#randomButton').click(function() {
+        var newProjectData = {
+            projectId: icProjectId,
+            userId: $userId
+        };
+        $.getJSON('ajax/projectChanger.php', newProjectData, processRandomImageChange);
+    });
+
+    $('#projectSelect').change(function() {
+        icProjectId = $('#projectSelect option:selected').val();
+        var newProjectData = {
+            projectId: icProjectId,
+            userId: $userId
+        };
+        $.getJSON('ajax/projectChanger.php', newProjectData, processRandomImageChange);
+    });
+
+    $('#mapButton').click(function() {
+      $('#mapWrapper').fadeToggle(400, function() {
+        dynamicSizing();
+        google.maps.event.trigger(icMap, "resize");
+        icMap.setCenter(icCurrentImageLatLon);
+        icMarkersShown = false;
+        toggleMarkers();
+        icCurrentImageMarker.setMap(icMap);
+      });
+    });
+    $('#tagButton').click(function() {
+      window.location.href = "classification.php?projectId=" + icProjectId + "&imageId=" + icRandomImageId;
+    });
 EOL;
 
 $mapHTML = <<<EOL
@@ -312,11 +377,11 @@ $mapHTML = <<<EOL
 
           <div id="leftMapColumn" class="mapColumn">
             <div>
-              <p id="randomImageHeader">Random Image Already Selected For You</p>
+              <p id="randomImageHeader">Random photo selected for you near $newRandomImageLocation</p>
               <img src="$newRandomImageDisplayURL" title="This image has been randomly selected for you from
                   the database. If you do not want to tag this image then select another from the map on the
                   right and select the 'Choose this Photo To Tag' button to start tagging." width="800"
-                  height="521" alt ="An oblique image of the $newRandomImageLocation coastline.">
+                  height="521" alt ="An oblique image of the United States coastline taken near $newRandomImageLocation.">
             </div>
             <div id="selectedMapImage">
               <div id="selectedMapImageHeader">
@@ -336,7 +401,8 @@ $mapHTML = <<<EOL
             <input id="pac-input" class="controls" type="text" placeholder="Search Box">
             <div id="mapCanvas">
             </div>
-            <img id="mapLoadingBar" class="loadingBar" title="Loading other available image data..." src="images/system/loading.gif">
+            <img id="mapLoadingBar" class="loadingBar" title="Loading other available image data..."
+                src="images/system/loading.gif" alt="A spinning icon indicatin page content is loading.">
             <div id="mapLegend">
               <div class="mapLegendRow">
                 <p id="mapInstruction">ZOOM-IN TO SELECT A POST-STORM PHOTO</p>

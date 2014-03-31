@@ -88,12 +88,12 @@ img {
 }
 
 a {
-    color: #444444;
+    color: #5384ED;
     text-decoration: none;
 }
 
 a:hover {
-    color: #888888;
+    color: #284D68;
 }
 
 #navigationBar {
@@ -139,11 +139,7 @@ a:hover {
     /*    border-radius: 5px;*/
 }
 
-.missingPageLink {
-    color: #333333;
-}
-
-#activePageLink {
+.activePageLink {
     background-color: #284D68;
     /*color: #45a1c8;*/
     color: #FFFFFF;
@@ -152,6 +148,11 @@ a:hover {
 #navigationBar a {
     text-decoration: none;
     color: white;
+}
+
+.accountControlLink a {
+    /*border-bottom: solid #E56969 2px;*/
+    color: #E56969;
 }
 
 #navigationBar a:hover {
@@ -312,6 +313,7 @@ input::-moz-focus-inner {
 
 .statisticsTable td:first-of-type {
     text-align: right;
+    font-weight:bold !important;
 }
 
 
@@ -507,31 +509,113 @@ label.error {
     width: 100% !important;
 }
 
-.postNavButtonWrapper {
+.singleNavButtonWrapper {
+    width: 266px;
     position: relative;
     display: inline-block;
     font-size: 1.2em;
     font-weight: bold;
-    margin: 0 20px 10px 20px;
+    margin: 0 20px 10px 0;
+    float: left;
 }
 
-.postNavButtonWrapper .clickableButton {
+.singleNavButtonWrapper p {
+    height: 58px;
+}
+
+.singleNavButtonWrapper .clickableButton {
     margin: 4px 8px;
     padding: 8px;
 }
 
-.postNavButtonWrapper .clickableButton:hover,
-.postNavButtonWrapper .clickableButton:active {
+.singleNavButtonWrapper .clickableButton:hover,
+.singleNavButtonWrapper .clickableButton:active {
     margin: 1px 5px;
     border: 4px solid black;
 }
 
-.postNavButtonWrapper .disabledClickableButton:hover,
-.postNavButtonWrapper disabledClickableButton:active {
+.singleNavButtonWrapper .disabledClickableButton:hover,
+.singleNavButtonWrapper .disabledClickableButton:active {
     margin: 4px 8px;
     border: 1px solid black;
     box-shadow: 3px 3px 3px #888888;
 }
+
+#navOptionDivider {
+    display: inline-block;
+    float: left;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+}
+
+#navOptionDivider p {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#stackedNavButtonsCenteringWrapper {
+
+}
+
+#stackedNavButtons {
+    float: left;
+    display: inline-block;
+    margin: 0 20px 10px;
+    width: 330px;
+}
+
+#stackedNavButtons>p {
+    font-size: 1.2em;
+    font-weight: bold;
+    height: 62px;
+}
+
+.stackedNavButtonWrapper,
+.stackedNavSelectWrapper {
+    border-top: 1px solid black;
+    height: 94px;
+}
+
+.stackedNavSelectWrapper:last-of-type {
+    border-bottom: 1px solid black;
+}
+
+.stackedNavButtonWrapper label {
+    float: left;
+    width: 218px;
+    margin: 36px 0 0 0 !important;
+    text-align: left;
+}
+
+.stackedNavButtonWrapper button {
+    float: right;
+}
+
+.stackedNavSelectWrapper p {
+    margin: 15px 0 0 0 !important;
+    text-align: left;
+}
+
+.stackedNavSelectWrapper label {
+    display: block;
+    margin: 10px 0 5px 0 !important;
+}
+
+.stackedNavSelectWrapper select {
+    width: 292px;
+}
+
+#traverseCoastControls {
+    position: relative;
+}
+
+#traverseCoastControls p {
+    float: left;
+    margin: 36px 0 0 0 !important;
+    text-align: left;
+    width: 155px;
+}
+
 
 #annotationDetails {
     overflow: hidden;
@@ -539,21 +623,36 @@ label.error {
 
 #annotationDetails img {
     float: left;
-    margin: 0 20px 10px 20px;;
+    margin: 0 20px 10px 28px;;
     box-shadow: 5px 5px 5px #666666;
 }
 
 #annotationDetails table {
     float: left;
     margin: 50px 20px 0 20px;
-    max-width: 630px;
+    max-width: 670px;
+}
+
+.leftCoastalNavButton {
+    margin-right: 24px;
+}
+
+.leftCoastalNavButton:hover,
+.leftCoastalNavButton:active {
+    margin-right: 23px;
+}
+
+.leftCoastalNavButton.disabledClickableButton:hover,
+.leftCoastalNavButton.disabledClickableButton:active {
+    margin-right: 24px;
+    box-shadow: 3px 3px 3px #888888;
 }
 
 #coastalNavigationImage {
     position: absolute;
     border: 1px solid black;
-    bottom: 52px;
-    left: 97px;
+    bottom: 21px;
+    right: 47px;
 }
 
 /*Map*/
@@ -687,6 +786,170 @@ label.error {
 
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Home Page*/
+#indexImageColumn {
+    /*    background-color: #666666;
+        color: white;*/
+    background-color: #DDDDDD;
+    margin-top: 25px;
+    margin-bottom: 20px;
+    width: 670px;
+    height: 480px;
+    float: left;
+    border-radius: 5px;
+    /*border: 1px solid black;*/
+    text-align: left;
+    box-shadow: 3px 3px 3px #666666;
+}
+
+#indexImageWrapper {
+    position: relative;
+    overflow: hidden;
+    height: 435px;
+}
+
+#indexImageWrapper img {
+    position: absolute;
+    border-radius: 5px 5px 0 0;
+    float:left;
+}
+
+#indexImageWrapper img:first-of-type {
+    top: 0;
+    left: 0;
+}
+
+#indexImageWrapper img:last-of-type {
+    top: 0;
+    left: 670px;
+}
+
+#imageCaptionWrapper {
+    height: 45px;
+    font-size: 0.85em;
+}
+
+#imageCaptionWrapper p {
+    margin: 5px;
+}
+
+.captionTitle {
+    font-weight: bold;
+}
+
+#indexTextColumn {
+    margin-left: 700px;
+    height: 450px;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+#indexTextColumn h1 {
+    text-align: center;
+}
+
+#indexTextColumn p {
+    margin: 10px;
+}
+
+#indexTextColumn form {
+    text-align: center;
+}
+
+.loginError {
+    color: red;
+}
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Welcome Pages*/
+#welcomeImageColumn {
+    /*    background-color: #666666;
+        color: white;*/
+    background-color: #DDDDDD;
+    margin-top: 25px;
+    margin-bottom: 20px;
+    width: 550px;
+    height: 402px;
+    float: left;
+    border-radius: 5px;
+    /*border: 1px solid black;*/
+    text-align: left;
+    box-shadow: 3px 3px 3px #666666;
+}
+
+#welcomeImageWrapper {
+    position: relative;
+    overflow: hidden;
+    height: 357px;
+}
+
+#welcomeImageWrapper img {
+    position: absolute;
+    border-radius: 5px 5px 0 0;
+    float:left;
+}
+
+#welcomeImageWrapper img:first-of-type {
+    top: 0;
+    left: 0;
+}
+
+
+#welcomeImageCaptionWrapper {
+    height: 45px;
+    font-size: 0.85em;
+}
+
+#welcomeImageCaptionWrapper p {
+    margin: 5px;
+}
+
+#welcomeTextColumn {
+    margin-left: 580px;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+#welcomeTextColumn h1,
+#welcomeTextColumn h2 {
+    text-align: center;
+}
+
+#welcomeTextColumn p {
+    text-align: center;
+    margin: 10px;
+}
+
+#welcomeTextColumn form {
+    text-align: center;
+}
+
+
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Start & Complete Pages*/
+
+#randomPostImagePreviewWrapper {
+    float: left;
+    width: 400px;
+    margin-left: 20px;
+}
+
+#randomPostImagePreviewWrapper p {
+    height: 62px;
+}
+
+#randomPostImagePreviewWrapper img {
+    box-shadow: 5px 5px 5px #666666;
+    margin: auto;
+}
+
+#randomPostImageControls {
+    margin-left: 440px;
+    overflow: hidden;
+}
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*About Page*/
 
 #aboutWrapper, #helpWrapper {
@@ -699,8 +962,25 @@ label.error {
     font-size: 16px
 }
 
+#aboutWrapper>p {
+    width: 750px;
+}
+
+.aboutShortParagraph {
+    min-height: 227px;
+}
+
+
+#aboutWrapper>img {
+    float: right;
+    margin: 0 20px;
+    box-shadow: 3px 3px 3px #666666;
+}
+
 #aboutWrapper h2, #helpWrapper h2 {
-    margin-top: 20px
+    margin-top: 20px;
+    clear: both;
+
 }
 
 .teamColumn {
@@ -749,10 +1029,8 @@ label.error {
     /*Stop selection of text in button*/
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    user-select: none;
     font-weight: bold;
     float: left;
     position: relative;
@@ -870,6 +1148,10 @@ label.error {
     margin: 0 auto;
     width: 700px;
     overflow: hidden;
+}
+
+#preNavigationWrapper p {
+    font-weight: bold;
 }
 
 .navThumbnailWrapper {
@@ -993,10 +1275,8 @@ input[type="checkbox"], input[type="radio"] {
     /*Stop selection of text in button*/
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    user-select: none;
 }
 
 .tagToolTip img {
@@ -1006,24 +1286,24 @@ input[type="checkbox"], input[type="radio"] {
     margin: 0 auto 5px auto;
 }
 
-#annotationControls {
+.annotationControls {
     position: absolute;
     bottom: 5px;
     width:90%;
     margin: 0 5%;
 }
 
-#annotationControls input {
+.annotationControls input {
     background-color: #284D68;
     color: #FFFFFF;
     border-radius: 20px;
 }
 
-#annotationControls input:first-of-type, #firstPageButton, #previousPageButton {
+.annotationControls input:first-of-type, #firstPageButton, #previousPageButton {
     float:left;
 }
 
-#annotationControls input:last-of-type, #lastPageButton, #nextPageButton {
+.annotationControls input:last-of-type, #lastPageButton, #nextPageButton {
     float:right;
 }
 
@@ -1056,6 +1336,7 @@ Width needs to be altered to be dynamic!*/
 .progressTrackerItem p {
     display: none;
     line-height: 26px;
+    font-weight: bold;
 }
 
 .currentProgressTrackerItem {

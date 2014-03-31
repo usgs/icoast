@@ -11,7 +11,7 @@ require 'includes/userFunctions.php';
 require $dbmsConnectionPath;
 
 if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 
