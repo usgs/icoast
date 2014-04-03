@@ -182,6 +182,7 @@ $mapScript = <<<EOL
 
           google.maps.event.addListener(thisMarker, 'click', (function(marker) {
             return function() {
+              $('#mapRandomButtonControlWrapper').hide();
               $('#mapSelectedImage').attr("src", imageData.image_url);
               $('#mapSelectedImage').attr("alt", "An oblique image of the coastline taken near " + imageData.location_string);
               icSelectedMapImage = "classification.php?projectId=" + icProjectId + "&imageId=" + imageData.image_id;
@@ -270,6 +271,13 @@ $mapScript = <<<EOL
       var maxMapImageWidth = (maxMapImageHeight) / 0.65;
       $('#leftMapColumn').width(maxMapImageWidth);
 
+      var randomControlButtonSize = (maxMapImageWidth/2) - 58;
+    $('#mapRandomButtonControlWrapper img').attr({
+        height: randomControlButtonSize,
+        width: randomControlButtonSize
+    });
+
+
       var mapColumnTotalMargin = (+$('.mapColumn').css('margin-left').replace("px", "")) +
         (+$('.mapColumn').css('margin-right').replace("px", ""));
       var rightMapColumnWidth = Math.floor(mapContentDivWidth - maxMapImageWidth -
@@ -299,13 +307,15 @@ $mapScript = <<<EOL
     });
 
     $('#randomImageHeader').text('Random photo selected for you near ' + icRandomImageLocation);
-    $('#leftMapColumn img:first-of-type').attr({
+    $('#mapRandomImageDisplay').attr({
       src: icRandomImageDisplayURL,
       alt: 'An oblique image of the United States coastline taken near ' + icRandomImageLocation + '.'
     });
 
     icCurrentImageLatLon = new google.maps.LatLng(icRandomImageLatitude, icRandomImageLongitude);
     icCurrentImageMarker.setPosition(icCurrentImageLatLon);
+    icMap.setCenter(icCurrentImageLatLon);
+    icMap.setZoom(13);
   }
 EOL;
 
@@ -328,12 +338,15 @@ $mapDocumentReadyScript = <<<EOL
     });
     $('#centerMapButton').click(function() {
       icMap.setCenter(icCurrentImageLatLon);
+      icMap.setZoom(13);
+      $('#selectedMapImage').hide();
+      $('#mapRandomButtonControlWrapper').show();
     });
     $('#mapLoadImageButton').click(function() {
       window.location.href = icSelectedMapImage;
     });
 
-    $('#randomButton').click(function() {
+    $('#randomButton, #mapRandomButton').click(function() {
         var newProjectData = {
             projectId: icProjectId,
             userId: $userId
@@ -360,7 +373,7 @@ $mapDocumentReadyScript = <<<EOL
         icCurrentImageMarker.setMap(icMap);
       });
     });
-    $('#tagButton').click(function() {
+    $('#tagButton, #mapTagButton').click(function() {
       window.location.href = "classification.php?projectId=" + icProjectId + "&imageId=" + icRandomImageId;
     });
 EOL;
@@ -378,11 +391,36 @@ $mapHTML = <<<EOL
           <div id="leftMapColumn" class="mapColumn">
             <div>
               <p id="randomImageHeader">Random photo selected for you near $newRandomImageLocation</p>
-              <img src="$newRandomImageDisplayURL" title="This image has been randomly selected for you from
+              <img id="mapRandomImageDisplay" src="$newRandomImageDisplayURL" title="This image has been randomly selected for you from
                   the database. If you do not want to tag this image then select another from the map on the
                   right and select the 'Choose this Photo To Tag' button to start tagging." width="800"
                   height="521" alt ="An oblique image of the United States coastline taken near $newRandomImageLocation.">
             </div>
+
+            <div id="mapRandomButtonControlWrapper">
+                <div>
+                    <label for="mapTagButton">
+                        Tag This Random Photo
+                    </label>
+                    <button class="clickableButton" type="button" id="mapTagButton"
+                            title="Using this button will load the classification page using the random image shown on the left.">
+                        <img src="images/system/checkmark.png" height="64" width="64" alt="Image of a checkmark
+                            indicating that this button causes iCoast to load the chosen image for tagging.">
+                    </button>
+                </div>
+                <div>
+                    <label for="mapRandomButton">
+                        New Random Photo
+                    </label>
+                    <button class="clickableButton" type="button" id="mapRandomButton"
+                        title="Using this button will cause iCoast to pick a new random image from your chosen
+                            project for you to tag.">
+                    <img src="images/system/dice.png" height="64" width="64" alt="Image of a dice indicating
+                         that this button causes iCoast to randomly select an image to display">
+                    </button>
+                </div>
+            </div>
+
             <div id="selectedMapImage">
               <div id="selectedMapImageHeader">
                   <p id="selectedMapImageHeaderText"></p>
@@ -391,8 +429,8 @@ $mapHTML = <<<EOL
                   right. Select the 'Choose this Photo To Tag' button below to start tagging." width="800"
                   height="521">
                       <button title="Click to load the selected image into iCoast for tagging." id="mapLoadImageButton" class="clickableButton">
-                Choose this Photo to Tag
-              </button>
+                    Choose this Photo to Tag
+                </button>
             </div>
 
 
@@ -444,9 +482,9 @@ $mapHTML = <<<EOL
                 </div>
               </div>
             </div>
-              <button title="Click to jump the map to the location of the random image that has been already
-                  selected for you." id="centerMapButton" class="clickableButton formButton">
-                Jump To Current Photo
+              <button title="Click to reset the map to the default zoom and location of the randomly selected photo."
+                  id="centerMapButton" class="clickableButton formButton">
+                Reset the Map
               </button>
               <button title="Click to show or hide other selectable images within the map boundaries." id="mapMarkerToggle" class="clickableButton formButton">
                 Hide Other Photos

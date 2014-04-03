@@ -18,7 +18,7 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
     $authCheckCode = $_COOKIE['authCheckCode'];
 
     $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE);
-    if ($userdata) {
+    if ($userData) {
         $authCheckCode = generate_cookie_credentials($DBH, $userId);
     }
 }

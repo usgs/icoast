@@ -153,6 +153,18 @@ $pageBody = <<<EOL
                             USGS Geologist and Aerial Videographer</p>
                     </div>
                 </div>
+                <h2>Attributions and Acknowledgements</h2>
+                <p>
+                    <span class="captionTitle">Geocoding:</span> Location names derived using the <a href="http://www.geonames.org/">GeoNames</a> Gazetteer<br>
+                    <span class="captionTitle">ToolTips:</span> <a href="http://code.drewwilson.com/entry/tiptip-jquery-plugin">TipTip</a><br>
+                    <span class="captionTitle">Zoom Tool:</span> <a href="http://www.elevateweb.co.uk/image-zoom">Elevate Zoom</a><br>
+                    <span class="captionTitle">Map Marker Clustering:</span> <a href="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclustererplus/docs/reference.html">MarkerClusterPlus</a><br>
+                    <span class="captionTitle">Form Validation:</span> <a href="http://jqueryvalidation.org">jQuery Validation Plugin</a><br>
+                    <span class="captionTitle">OpenId Validation:</span> <a href="https://code.google.com/p/lightopenid">lightopenid</a><br>
+                    <span class="captionTitle">Map Icon:</span> Created by <a href="http://simpleicon.com">Simple Icon</a><br>
+                    <span class="captionTitle">Dice Icon:</span> Created by <a href="http://www.visualpharm.com">VisualPharm</a><br>
+                    <span class="captionTitle">Map Markers:</span> <a href="http://mapicons.nicolasmollet.com">Map Icons Collection</a>
+                </p>
             </div>
         </div>
 EOL;

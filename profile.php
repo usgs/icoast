@@ -81,8 +81,7 @@ $pageBody = <<<EOL
                                         Watersport Enthusiast
                                     </option>
                                     <option value="5" $crowdType5HTML>Marine Science Student</option>
-                                    <option value="6" $crowdType6HTML>Emergency Manager</option>
-                                    <option value="7" $crowdType7HTML>Policy Maker</option>
+                                    <option value="6" $crowdType6HTML>Emergency Responder</option>
                                     <option value="8" $crowdType8HTML>Digital Crisis Volunteer (VTC)</option>
                                     <option value="9" $crowdType9HTML>Interested Public</option>
                                     <option value="10" $crowdType10HTML>Other (Please specify below)</option>
@@ -111,17 +110,17 @@ $pageBody = <<<EOL
 
 
                     <div class="formFieldRow profileUpdateField">
-                        <label for="affiliationChangeButton">Coastal Expertise or Affiliation: <span class="userData">$affiliation</span></label>
+                        <label for="affiliationChangeButton">Coastal Expertise / Affiliation: <span class="userData">$affiliation</span></label>
                         <input type="button" id="affiliationChangeButton" value="Change Expertise/Affiliation" class="clickableButton"
                             title="Click this button to display the form that allows you to update your details">
                     </div>
                     <div id="changeAffiliationFormWrapper" class="profileUpdateForm">
-                        <h3>Change Your Coastal Expertise or Affiliation</h3>
-                        <p>Your current Expertise or Affiliation is <span class="userData">$affiliation</span></p>
+                        <h3>Change Your Coastal Expertise / Affiliation</h3>
+                        <p>Your current Expertise / Affiliation is <span class="userData">$affiliation</span></p>
                         <form method="post" id="affiliationForm">
                             <input type="hidden" name="formSubmission" value="affiliation" />
                             <div class="formFieldRow">
-                                <label class="multiline" for="affiliation">New coastal expertise or affiliation<br>(optional): </label>
+                                <label class="multiline" for="affiliation">New coastal expertise / affiliation<br>(optional): </label>
                                 <input type="text" id="affiliation" class="clickableButton" name="affiliation"
                                     value="$affiliationContent" title="This optional text field allows you to specify
                                     and relevant experience or professional affiiation you may have.

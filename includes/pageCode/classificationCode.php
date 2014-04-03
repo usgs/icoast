@@ -992,7 +992,7 @@ $javaScript = <<<EOL
         // Determine size the page;
         $('html').css('overflow', 'hidden');
         var bodyHeight = $('body').height();
-        var bodyWidth = $('body').width();
+        var bodyWidth = $('#classificationWrapper').width();
         $('html').css('overflow', 'auto');
 
 
@@ -1032,8 +1032,6 @@ $javaScript = <<<EOL
         mapInsertHeight += "px";
         $('#mapInsert').css('height', mapInsertHeight);
 
-        $(window).scrollTop(104);
-
         $('.zoomContainer').remove();
         $('#postImage').elevateZoom({
             scrollZoom: 'true',
@@ -1063,8 +1061,24 @@ $javaScript = <<<EOL
                 hideLoader(false);
             }
         });
+
+        $(window).scrollTop($('#navigationBar').position().top);
+        
     } // End dynamicSizing
 
+    function iCoastTitle() {
+        if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar p').outerWidth() + 20)) {
+            if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar p').length == 0) {
+                $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
+            } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar p').length) {
+                $('#navigationBar p').remove();
+            }
+        } else {
+            if ($('#navigationBar p').length) {
+                $('#navigationBar p').remove();
+            }
+        }
+    }
 EOL;
 
 
@@ -1256,11 +1270,7 @@ $jQueryDocumentDotReadyCode .= <<<EOL
          dynamicSizing(icDisplayedTask);
      }
     $(window).scroll(function(){
-        if ($(window).scrollTop() > 72 && $('#navigationBar p').length == 0) {
-            $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
-        } else if ($(window).scrollTop() < 72 && $('#navigationBar p').length == 1) {
-            $('#navigationBar p').remove();
-        }
+        iCoastTitle();
     });
 
 
@@ -1288,9 +1298,10 @@ $jQueryDocumentDotReadyCode .= <<<EOL
      $(window).resize(function() {
          dynamicSizing(icDisplayedTask);
          icMap.setCenter(icCurrentImageLatLon);
+         iCoastTitle();
      });
      dynamicSizing(icDisplayedTask);
-    $(window).scrollTop(104);
+    $(window).scrollTop($('#navigationBar').position().top);
 
 
 EOL;

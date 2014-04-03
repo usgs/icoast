@@ -16,7 +16,7 @@ if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
     $authCheckCode = $_COOKIE['authCheckCode'];
 
     $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE);
-    if ($userdata) {
+    if ($userData) {
         $authCheckCode = generate_cookie_credentials($DBH, $userId);
     }
 }
@@ -36,7 +36,7 @@ $jQueryDocumentDotReadyCode = <<<EOL
                 $(this).find('p:first-of-type').html('+');
                 revealedFaqs = revealedFaqs - 1;
            }
-           $(this).next().slideToggle();
+           $(this).next().slideToggle(positionFeedbackDiv);
 
            if (revealedFaqs > 0) {
                 $('#hideAllFaqs').removeClass('disabledClickableButton');
@@ -51,9 +51,6 @@ $jQueryDocumentDotReadyCode = <<<EOL
                 $('#revealAllFaqs').addClass('disabledClickableButton');
                 revealedFaqs = totalFaqs;
            }
-
-            console.log(totalFaqs);
-            console.log(revealedFaqs);
        });
    });
 

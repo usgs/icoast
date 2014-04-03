@@ -576,7 +576,7 @@ $javaScript = <<<EOT
                 ' of ' + resultCount + ' total results (' + totalRows + ' rows shown)</p>');
 
         if ($('#userAnnotationHistory').css('display') === 'none') {
-            $('#feedbackWrapper').hide();
+//            $('#feedbackWrapper').hide();
             $('#userAnnotationHistory').slideDown(positionFeedbackDiv);
         }
         google.maps.event.trigger(icMap, "resize");
@@ -587,13 +587,14 @@ $javaScript = <<<EOT
       }
 
         if ($('#profileDetailsWrapper').css('display') !== 'none') {
-            $('#feedbackWrapper').hide();
+//            $('#feedbackWrapper').hide();
             $('#profileDetailsWrapper').slideUp(positionFeedbackDiv);
             $('#profileHideButton').text('Show Profile Details');
         }
 
-        $('.clickableButton').tipTip();
+        $('#profileTableWrapper .clickableButton').tipTip();
 
+        moveFooter();
 
     }
 
@@ -671,33 +672,32 @@ $jQueryDocumentDotReadyCode = <<<EOT
         $timeZoneReset
 
         $('#accountChangeButton').click(function() {
-            $('#feedbackWrapper').hide();
-            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+//            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp();
             $('#changeAccountFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#crowdTypeChangeButton').click(function() {
-            $('#feedbackWrapper').hide();
-            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+//            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp();
             $('#changeCrowdFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#affiliationChangeButton').click(function() {
-            $('#feedbackWrapper').hide();
-            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+//            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp();
             $('#changeAffiliationFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('#timeZoneChangeButton').click(function() {
-            $('#feedbackWrapper').hide();
-            $('.profileUpdateField').slideUp(positionFeedbackDiv);
+//            $('#feedbackWrapper').hide();
+            $('.profileUpdateField').slideUp();
             $('#changeTimeZoneFormWrapper').slideDown(positionFeedbackDiv);
         });
 
         $('.cancelUpdateButton').click(function() {
-            $('#feedbackWrapper').hide();
-            $('.profileUpdateForm').slideUp(positionFeedbackDiv);
-            $('#feedbackWrapper').hide();
+//            $('#feedbackWrapper').hide();
+            $('.profileUpdateForm').slideUp();
             $('.profileUpdateField').slideDown(positionFeedbackDiv);
         });
 
@@ -711,8 +711,9 @@ $jQueryDocumentDotReadyCode = <<<EOT
             } else {
                 $('#profileHideButton').text('Show Profile Details');
             }
-            $('#feedbackWrapper').hide();
+//            $('#feedbackWrapper').hide();
             $('#profileDetailsWrapper').slideToggle(positionFeedbackDiv);
+            moveFooter();
         });
 
         var script = document.createElement("script");

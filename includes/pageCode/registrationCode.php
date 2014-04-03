@@ -101,7 +101,7 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 
 
-    switch ($timeZone) {
+    switch ($registerTimeZone) {
         case 1;
             $timeZone1HTML = 'selected="selected"';
             $stickyTimeZone = TRUE;

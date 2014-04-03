@@ -37,8 +37,8 @@ $pageBody = <<<EOL
                     <option value="3" $crowdType3HTML>Coastal Resident</option>
                     <option value="4" $crowdType4HTML>Watersport Enthusiast</option>
                     <option value="5" $crowdType5HTML>Marine Science Student</option>
-                    <option value="6" $crowdType6HTML>Emergency Manager</option>
-                    <option value="7" $crowdType7HTML>Policy Maker</option>
+                    <option value="6" $crowdType6HTML>Emergency Responder</option>
+
                     <option value="8" $crowdType8HTML>Digital Crisis Volunteer (VTC)</option>
                     <option value="9" $crowdType9HTML>Interested Public</option>
                     <option value="10" $crowdType10HTML>Other (Please specify below)</option>
@@ -53,7 +53,7 @@ $pageBody = <<<EOL
                 $otherCrowdTypeError
             </div>
             <div class="formFieldRow">
-                <label class="multiline" for="registerAffiliation">Coastal Expertise or Affiliation<br>(optional): </label>
+                <label class="multiline" for="registerAffiliation">Coastal Expertise / Affiliation<br>(optional): </label>
                 <input type="text" id="registerAffiliation" class="clickableButton" name="registerAffiliation"
                     value="$registerAffiliationContent" title="This optional text field allows you to specify
                     and relevant experience or professional affiiation you may have. (Max 255 Characters)"/>

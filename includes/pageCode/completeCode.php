@@ -117,8 +117,24 @@ $tagCount = tagsInAnnotation($DBH, $annotationId);
 // Find image id's of next and previous post images
 $postImageArray = find_adjacent_images($DBH, $postImageId, $projectId);
 $previousImageId = $postImageArray[0]['image_id'];
-$nextImageId = $postImageArray[2]['image_id'];
+if (!$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
+    //  Placeholder for error management
+    exit("Previous Image $previousImageId not found in Database");
+}
+$previousImageLatitude = $previousImageMetadata['latitude'];
+$previousImageLongitude = $previousImageMetadata['longitude'];
+$previousImageDisplayURL = "images/datasets/{$previousImageMetadata['dataset_id']}/main/{$previousImageMetadata['filename']}";
+$previousImageLocation = build_image_location_string($previousImageMetadata);
 
+$nextImageId = $postImageArray[2]['image_id'];
+if (!$nextImageMetadata = retrieve_entity_metadata($DBH, $nextImageId, 'image')) {
+    //  Placeholder for error management
+    exit("Previous Image $nextImageId not found in Database");
+}
+$nextImageLatitude = $nextImageMetadata['latitude'];
+$nextImageLongitude = $nextImageMetadata['longitude'];
+$nextImageDisplayURL = "images/datasets/{$nextImageMetadata['dataset_id']}/main/{$nextImageMetadata['filename']}";
+$nextImageLocation = build_image_location_string($nextImageMetadata);
 
 //--------------------------------------------------------------------------------------------------
 // Build next/previous post image buttons HTML
@@ -274,31 +290,62 @@ EOL;
 
     $variableContent .= $mapHTML;
 
-    $javaScript = "$mapScript";
+    $javaScript = <<<EOL
+        $mapScript
+            function iCoastTitle() {
+                if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar p').outerWidth() + 20)) {
+                    if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar p').length == 0) {
+                        $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
+                    } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar p').length) {
+                        $('#navigationBar p').remove();
+                    }
+                } else {
+                    if ($('#navigationBar p').length) {
+                        $('#navigationBar p').remove();
+                    }
+                }
+            }
+EOL;
 
     $jQueryDocumentDotReadyCode = <<<EOL
     $mapDocumentReadyScript
 
         $('#leftButton').click(function() {
-            window.location.href = "classification.php?projectId=" + icProjectId + "&imageId=" + "$previousImageId";
+            var previousImageData = {
+                newProjectName: '$projectName',
+                newRandomImageId:  '$previousImageId',
+                newRandomImageLatitude: '$previousImageLatitude',
+                newRandomImageLongitude: '$previousImageLongitude',
+                newRandomImageLocation: '$previousImageLocation',
+                newRandomImageDisplayURL: '$previousImageDisplayURL'
+            }
+            processRandomImageChange(previousImageData);
         });
         $('#rightButton').click(function() {
-            window.location.href = "classification.php?projectId=" + icProjectId + "&imageId=" + "$nextImageId";
+            var nextImageData = {
+                newProjectName: '$projectName',
+                newRandomImageId:  '$nextImageId',
+                newRandomImageLatitude: '$nextImageLatitude',
+                newRandomImageLongitude: '$nextImageLongitude',
+                newRandomImageLocation: '$nextImageLocation',
+                newRandomImageDisplayURL: '$nextImageDisplayURL'
+            }
+            processRandomImageChange(nextImageData);
         });
 
         if ($('#projectSelect').length) {
             $('#projectSelect').prop('selectedIndex', 0);
         }
 
-        $(window).scroll(function(){
-            if ($(window).scrollTop() > 72 && $('#navigationBar p').length == 0) {
-                $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
-            } else if ($(window).scrollTop() < 72 && $('#navigationBar p').length == 1) {
-                $('#navigationBar p').remove();
-            }
+        $(window).resize(function() {
+            iCoastTitle();
         });
 
-        $(window).scrollTop(104);
+        $(window).scroll(function() {
+            iCoastTitle();
+        });
+
+        $(window).scrollTop($('#navigationBar').position().top);
 EOL;
 } else {
     $variableContent = $projectSelectionHTML;

@@ -40,8 +40,8 @@ if ($numberOfProjects > 0) {
     $feedbackToggleHeight = "top: 173px\n\r;";
     $javascriptFeedbackWrapperHeight = 206;
     $feedbackPanel1 = <<<EOL
-        <p>Click Application if you have feedback on errors, feature requests, etc.</p>
-        <p>Click Project if you have feedback about the photos, tasks, tags, etc.</p>
+        <p>Click <span class="captionTitle">Application</span> for errors, new feature requests, etc.</p>
+        <p>Click <span class="captionTitle">Project</span> for feedback on photos, tasks, tags, etc.</p>
         <div class="feedbackButtonWrapper">
             <input type="radio" id="systemFeedback" name="eventType" value="2">
             <label for="systemFeedback" class="clickableButton" title="Use the Application button if your
@@ -240,25 +240,26 @@ $feedbackJavascript = <<<EOL
     }
 
     function positionFeedbackDiv() {
-        if ($('#contentWrapper').length) {
-            var contentHeight = $('#contentWrapper').outerHeight() + 135;
-        } else {
-            var contentHeight = $('#classificationWrapper').outerHeight() + 135;
-        }
+        moveFooter();
+//        if ($('#contentWrapper').length) {
+//            var contentHeight = $('#contentWrapper').outerHeight() + 135;
+//        } else {
+//            var contentHeight = $('#classificationWrapper').outerHeight() + 135;
+//        }
 
         var windowHeight = $(window).height();
-        if (contentHeight < windowHeight) {
-            var feedbackYPosition = contentHeight
-        } else {
+//        if (contentHeight < windowHeight) {
+//            var feedbackYPosition = contentHeight
+//        } else {
             var feedbackYPosition = windowHeight
-        }
+//        }
         feedbackYPosition -= (100 + feedbackHeight);
         if (feedbackYPosition < 135) {
             feedbackYPosition = 135
         }
-        if (feedbackYPosition > (contentHeight - feedbackHeight)) {
-            feedbackYPosition = (contentHeight - feedbackHeight)
-        }
+//        if (feedbackYPosition > (contentHeight - feedbackHeight)) {
+//            feedbackYPosition = (contentHeight - feedbackHeight)
+//        }
         feedbackYPosition += 'px';
 
         $('#feedbackWrapper').css({
@@ -304,6 +305,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
 
     $('.cancelFeedback').click(function() {
             feedbackHidden = true;
+            $('#feedbackBackground').hide();
             $('#feedbackWrapper').animate(
                 {
                     width: 33
@@ -350,6 +352,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
             $('#feedbackPanel1').animate({
                 left: -500
             });
+            $('#feedbackFormProjectList').prop('selectedIndex', -1);
             $('#feedbackPanel3').animate({
                 left: 0
             });

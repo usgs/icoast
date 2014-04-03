@@ -43,8 +43,8 @@ print $embeddedCSS;
 <?php
 print $feedbackJavascript . "\n\r";
 print $javaScript . "\n\r";
-print $feedbackjQueryDocumentDotReadyCode . "\n\r";
 print $jQueryDocumentDotReadyCode;
+print $feedbackjQueryDocumentDotReadyCode . "\n\r";
 ?>
         </script>
     </head>

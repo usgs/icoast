@@ -18,7 +18,7 @@ function crowdTypeConverter($crowdTypeId, $otherCrowdType) {
             return "Marine Science Student";
             break;
         case 6:
-            return "Emergency Manager";
+            return "Emergency Responder";
             break;
         case 7:
             return "Policy Maker";

@@ -46,7 +46,7 @@ if (isset($_POST['eventSummary'])) {
 
 if (isset($_POST['userId'])) {
     $setTypeResult = setType($_POST['eventType'], "integer");
-    if ($setTypeResult && $_POST['userId'] > 0) {
+    if ($setTypeResult && $_POST['userId'] >= 0) {
         $eventData['user_id'] = $_POST['userId'];
     } else {
         $eventDataError[] = "Invalid User Id field in supplied Event Logger data: {$_POST['userId']}";

@@ -189,8 +189,41 @@ EOL;
         break;
 }
 
-$jQueryDocumentDotReadyCode .= "$('img, .clickableButton').tipTip();";
+$javaScript .= <<<EOL
+    function moveFooter() {
+        //console.log('IN MOVE FOOTER');
+        $('#usgsfooter').css({
+            position: 'relative',
+            top: 0
+        });
+        //console.log($('#usgsfooter').css('position'));
+        var footerTopOffset = $('#usgsfooter').offset().top;
+        //console.log('footerTopOffset: ' + footerTopOffset);
+        var footerHeight = $('#usgsfooter').outerHeight();
+        //console.log('footerHeight: ' + footerHeight);
+        var windowHeight = $(window).height();
+        //console.log('windowHeight: ' + windowHeight);
 
+        if (footerTopOffset < (windowHeight - footerHeight)) {
+            //console.log('<');
+            $('#usgsfooter').css({
+                width: '100%',
+                position: 'absolute',
+                top: windowHeight - footerHeight
+            });
+        }
+    }
+EOL;
+
+$jQueryDocumentDotReadyCode .= <<<EOL
+        $('img, .clickableButton').tipTip();
+
+        $(window).resize(function () {
+            moveFooter();
+        });
+
+        moveFooter();
+EOL;
 
 
 if (count($cssLinkArray) > 0) {
