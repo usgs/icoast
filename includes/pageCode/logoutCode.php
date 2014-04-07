@@ -6,6 +6,7 @@ $javaScriptLinkArray = array();
 $javaScript = '';
 $jQueryDocumentDotReadyCode = '';
 
+$userData = FALSE;
 
 require 'includes/globalFunctions.php';
 require $dbmsConnectionPath;

@@ -632,7 +632,7 @@ function build_annotation_list_html($projectId) {
         <?php
         /////////
 // => Check user permissions to access the page.
-        if ($permissionLevel == 1) {
+        if ($permissionLevel == 2) {
             if (isset($_POST['submissionType'])) {
 //      $data = array();
 //      foreach ($_POST as $key => $value) {

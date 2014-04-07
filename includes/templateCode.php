@@ -31,13 +31,51 @@ if (!isset($pageBody)) {
 $cssLinks = '';
 $javaScriptLinks = '';
 
-//define('STATIC_HEADER', 'css/staticHeader.css');
-//define('DYNAMIC_HEADER', 'css/dynamicHeader.css');
+
+$adminLevel = FALSE;
+$alertBox = "";
+
+
+if ($userData && $userData['account_type'] >= 2 && $userData['account_type'] <= 4) {
+    $userId = $userData['user_id'];
+    $adminLevel = $userData['account_type'];
+}
+
+$mainNav = '<ul>';
+
+if ($adminLevel) {
+    $mainNav .= '<li id="adminPanelLink"><a href="adminPanel.php">Admin Panel</a></li>';
+}
 
 switch ($pageName) {
     case "home":
         $pageTitle = "iCoast - Home";
-        $mainNav = '<ul>';
+        if ($adminLevel) {
+
+            $systemEventCount = 0;
+            $systemAdminEventQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 1 OR event_type = 2 AND "
+                    . "event_ack = 0";
+            $systemAdminEventResult = $DBH->query($systemAdminEventQuery);
+            if ($systemAdminEventResult) {
+                $systemEventCount = $systemAdminEventResult->fetchColumn;
+            }
+
+            $projectEventCount = 0;
+            $administeredProjectsQuery = "SELECT project_id FROM project_administrators WHERE user_id = :userId";
+            $administeredProjectsParams['userId'] = $userId;
+            $administeredProjectsResult = run_prepared_query($DBH, $projectAdminEventQuery, $projectAdminEventParams);
+            $administeredProjects = $administeredProjectsResult->fetchAll(PDO::FETCH_ASSOC);
+            if (count($administeredProjects) > 0) {
+                $projectString = where_in_string_builder($administeredProjects);
+                $projectAdminEventQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 3 AND "
+                    . "event_code IN ($projectString)";
+                $projectAdminEventResult = $DBH->query($projectAdminEventQuery);
+                if ($projectAdminEventResult) {
+                    $projectEventCount = $projectAdminEventResult->fetchColumn;
+                }
+            }
+        }
+
         $mainNav .= '<li class="activePageLink">Home</li>';
         if ($userData) {
             $mainNav .= '<li><a href="start.php">Classify</a></li>';
@@ -55,8 +93,7 @@ switch ($pageName) {
 
     case "registration":
         $pageTitle = "iCoast - User Registration";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
@@ -67,23 +104,21 @@ EOL;
 
     case "welcome":
         $pageTitle = "iCoast: Welcome to iCoast";
-        $mainNav = <<<EOL
-      <ul>
-        <li><a href="index.php">Home</a></li>
-        <li class="activePageLink">Welcome</li>
-        <li><a href="start.php">Classify</a></li>
-        <li><a href="profile.php">Profile</a></li>
-        <li><a href="help.php">Help</a></li>
-        <li><a href="about.php">About</a></li>
-        <li class="accountControlLink"><a href="logout.php">Logout</a></li>
-      </ul>
+        $mainNav .= <<<EOL
+              <li><a href="index.php">Home</a></li>
+              <li class="activePageLink">Welcome</li>
+              <li><a href="start.php">Classify</a></li>
+              <li><a href="profile.php">Profile</a></li>
+              <li><a href="help.php">Help</a></li>
+              <li><a href="about.php">About</a></li>
+              <li class="accountControlLink"><a href="logout.php">Logout</a></li>
+            </ul>
 EOL;
         break;
 
     case "classify":
         $pageTitle = "iCoast: Classification";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li class="activePageLink"><a href="start.php">Classify</a></li>
               <li><a href="profile.php">Profile</a></li>
@@ -96,8 +131,7 @@ EOL;
 
     case "start":
         $pageTitle = "iCoast: Choose Your Photo";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li class="activePageLink">Classify</li>
               <li><a href="profile.php">Profile</a></li>
@@ -110,8 +144,7 @@ EOL;
 
     case "complete":
         $pageTitle = "iCoast: Annotation Summary";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li class="activePageLink"><a href="start.php">Classify</a></li>
               <li><a href="profile.php">Profile</a></li>
@@ -124,8 +157,7 @@ EOL;
 
     case "profile":
         $pageTitle = "iCoast: User Profile";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li><a href="start.php">Classify</a></li>
               <li class="activePageLink">Profile</li>
@@ -138,7 +170,6 @@ EOL;
 
     case "help":
         $pageTitle = "iCoast: Help";
-        $mainNav = '<ul>';
         $mainNav .= '<li><a href="index.php">Home</a></li>';
         if ($userData) {
             $mainNav .= '<li><a href="profile.php">Profile</a></li>';
@@ -147,7 +178,7 @@ EOL;
         $mainNav .= '<li class="activePageLink">Help</li>';
         $mainNav .= '<li><a href="about.php">About</a></li>';
         if ($userData) {
-             $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
+            $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
         } else {
             $mainNav .= '<li><a href="index.php?login">Login</a></li>';
         }
@@ -156,7 +187,6 @@ EOL;
 
     case "about":
         $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
-        $mainNav = '<ul>';
         $mainNav .= '<li><a href="index.php">Home</a></li>';
         if ($userData) {
             $mainNav .= '<li><a href="profile.php">Profile</a></li>';
@@ -165,7 +195,7 @@ EOL;
         $mainNav .= '<li><a href="help.php">Help</a></li>';
         $mainNav .= '<li class="activePageLink">About</li>';
         if ($userData) {
-             $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
+            $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
         } else {
             $mainNav .= '<li><a href="index.php?login">Login</a></li>';
         }
@@ -174,8 +204,7 @@ EOL;
 
     case "logout":
         $pageTitle = "iCoast - User Logout";
-        $mainNav = <<<EOL
-            <ul>
+        $mainNav .= <<<EOL
               <li><a href="index.php">Home</a></li>
               <li><a href="help.php">Help</a></li>
               <li><a href="about.php">About</a></li>
