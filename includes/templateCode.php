@@ -1,11 +1,11 @@
 <?php
 
 $pageUrl = 'http://' . $_SERVER["SERVER_NAME"] . $_SERVER["PHP_SELF"];
-$lastModifiedTimestamp = filemtime(__FILE__);
-$fileModifiedDateTime = new DateTime();
-$fileModifiedDateTime->setTimestamp($lastModifiedTimestamp);
-$fileModifiedDateTime->setTimezone(new DateTimeZone('America/New_York'));
-$fileModifiedDateTime = $fileModifiedDateTime->format('F jS, Y H:i T');
+//$lastModifiedTimestamp = filemtime(__FILE__);
+//$fileModifiedDateTime = new DateTime();
+//$fileModifiedDateTime->setTimestamp($lastModifiedTimestamp);
+//$fileModifiedDateTime->setTimezone(new DateTimeZone('America/New_York'));
+$fileModifiedDateTime = date('F jS, Y H:i', filemtime(__FILE__)) . " EDT";
 
 if (!isset($pageName)) {
     header('Location: index.php');
@@ -33,7 +33,8 @@ $javaScriptLinks = '';
 
 
 $adminLevel = FALSE;
-$alertBox = "";
+$alertBoxContent = "";
+$alertBoxDynamicControls = "";
 
 
 if ($userData && $userData['account_type'] >= 2 && $userData['account_type'] <= 4) {
@@ -52,27 +53,62 @@ switch ($pageName) {
         $pageTitle = "iCoast - Home";
         if ($adminLevel) {
 
-            $systemEventCount = 0;
-            $systemAdminEventQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 1 OR event_type = 2 AND "
-                    . "event_ack = 0";
-            $systemAdminEventResult = $DBH->query($systemAdminEventQuery);
-            if ($systemAdminEventResult) {
-                $systemEventCount = $systemAdminEventResult->fetchColumn;
+            $userAdministeredProjects = array();
+            $errorEventCount = 0;
+            $systemFeedbackCount = 0;
+            $projectFeedbackCount = 0;
+            $projectString = '';
+
+            if ($adminLevel == 2) {
+
+                $errorEventQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 1 AND event_ack = 0";
+                $errorEventResult = $DBH->query($errorEventQuery);
+                if ($errorEventResult) {
+                    $errorEventCount = $errorEventResult->fetchColumn();
+                }
+
+                $systemFeedbackQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 2 AND event_ack = 0";
+                $systemFeedbackResult = $DBH->query($systemFeedbackQuery);
+                if ($systemFeedbackResult) {
+                    $systemFeedbackCount = $systemFeedbackResult->fetchColumn();
+                }
             }
 
-            $projectEventCount = 0;
-            $administeredProjectsQuery = "SELECT project_id FROM project_administrators WHERE user_id = :userId";
-            $administeredProjectsParams['userId'] = $userId;
-            $administeredProjectsResult = run_prepared_query($DBH, $projectAdminEventQuery, $projectAdminEventParams);
-            $administeredProjects = $administeredProjectsResult->fetchAll(PDO::FETCH_ASSOC);
-            if (count($administeredProjects) > 0) {
-                $projectString = where_in_string_builder($administeredProjects);
-                $projectAdminEventQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 3 AND "
-                    . "event_code IN ($projectString)";
-                $projectAdminEventResult = $DBH->query($projectAdminEventQuery);
-                if ($projectAdminEventResult) {
-                    $projectEventCount = $projectAdminEventResult->fetchColumn;
+            $userAdministeredProjectsQuery = "SELECT project_id FROM project_administrators WHERE user_id = :userId";
+            $userAdministeredProjectsParams['userId'] = $userId;
+            $userAdministeredProjectsResult = run_prepared_query($DBH, $userAdministeredProjectsQuery, $userAdministeredProjectsParams);
+            while ($row = $userAdministeredProjectsResult->fetch(PDO::FETCH_ASSOC)) {
+                $userAdministeredProjects[] = $row['project_id'];
+            }
+
+            if (count($userAdministeredProjects) > 0) {
+                $projectString = where_in_string_builder($userAdministeredProjects);
+                $projectFeedbackQuery = "SELECT COUNT(*) FROM event_log WHERE event_type = 3 AND "
+                        . "event_code IN ($projectString)";
+                $projectFeedbackResult = $DBH->query($projectFeedbackQuery);
+                if ($projectFeedbackResult) {
+                    $projectFeedbackCount = $projectFeedbackResult->fetchColumn();
                 }
+
+            }
+
+            $totalFeedbackCount = $systemFeedbackCount + $projectFeedbackCount;
+
+            if ($errorEventCount > 0 || $totalFeedbackCount > 0) {
+                $alertBoxContent .= "<h1 id=\"alertBoxTitle\">iCoast: You have unread events in the log</h1>";
+                if ($errorEventCount > 0) {
+                    $alertBoxContent .= "<p>You have <span class=\"userData captionTitle\">$errorEventCount "
+                            . "unread system error events</span> that require investigation.</p>";
+                }
+                if ($errorEventCount > 0 && $totalFeedbackCount > 0) {
+                    $alertBoxContent .= "<p>AND</p>";
+                }
+                if ($totalFeedbackCount > 0) {
+                    $alertBoxContent .= "<p>You have <span class=\"userData captionTitle\">$totalFeedbackCount "
+                            . "unread feedback submissions</span> to be reviewed.</p>";
+                }
+                $alertBoxDynamicControls .= '<input type="button" id="goToEventViewerButton" class="clickableButton" '
+                        . 'value="Go To Event Log">';
             }
         }
 
@@ -245,6 +281,10 @@ $javaScript .= <<<EOL
 EOL;
 
 $jQueryDocumentDotReadyCode .= <<<EOL
+        $('#closeAlertBox').click(function() {
+            $('#alertBoxWrapper').hide();
+        });
+
         $('img, .clickableButton').tipTip();
 
         $(window).resize(function () {

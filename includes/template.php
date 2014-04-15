@@ -72,8 +72,19 @@ print $embeddedCSS;
         print $pageBody;
         print $feedbackPageHTML;
         require('includes/footer.txt');
-        print $alertBox;
         ?>
+
+        <div id="alertBoxWrapper">
+            <div id="alertBoxCenteringWrapper">
+                <div id="alertBox">
+                    <?php print $alertBoxContent; ?>
+                    <div id="alertBoxControls">
+                        <?php print $alertBoxDynamicControls; ?>
+                        <input type="button" id="closeAlertBox" class="clickableButton" value="Close">
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </body>
 </html>
