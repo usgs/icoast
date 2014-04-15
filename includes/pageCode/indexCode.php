@@ -38,10 +38,10 @@ EOL;
 }
 
 $loginAccountInfoText = <<<EOL
-    <p>NOTE: Any Google based account can be used for iCoast registration. This could be a standard gmail
+    <p>NOTE: Any Google-based account can be used for iCoast registration. This could be a standard gmail
         account or one managed by you or your organization (examples: aperson@gmail.com, aperson@usgs.gov etc.)</p>
-    <p>No personal data that you provide through iCoast is shared with Google and USGS is not granted any control of your Google account or
-        information from it except for the account username you login with.</p>
+    <p>No personal data that you provide through iCoast is shared with Google. Also, USGS is not granted any
+        control of your Google account or information from it except for the account username you login with</p>
 EOL;
 
 $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
@@ -58,7 +58,7 @@ if (!$openid->mode) {
 EOL;
     } else {
         $variableContent = <<<EOL
-          <p>Click button below to Login or Register using a Google Account</p>
+          <p>Click the button below to Login or Register using a Google Account</p>
           <form action="?login" method="post">
             $buttonHTML
           </form>
@@ -200,7 +200,7 @@ $javaScript = <<<EOL
         [
             'seasideHeights.jpg',
             'Welcome!',
-            'Welcome to iCoast; the USGS crowdsourcing application created for you to help us better understand ' +
+            'Welcome to iCoast, the USGS crowdsourcing application created for you to help us better understand ' +
                 'how the United States coastline is changing due to extreme storms.',
             'An image of the pier at Seaside Heights, New Jersey following Hurricane Sandy. The end has been ' +
                 'washed away by the storm.'
@@ -208,7 +208,7 @@ $javaScript = <<<EOL
         [
             'karen.jpg',
             'Team Up!',
-            'Become an honarary member of the USGS team as we fly along the United States coastline looking for ' +
+            'Become an honorary member of the USGS team as we fly along the United States coastline looking for ' +
                 'coastal changes following extreme events.',
             'An image showing a USGS field worker photographing the coastline from the cabin of a light aircraft.'
         ],
@@ -245,7 +245,7 @@ $javaScript = <<<EOL
         [
             'classify.jpg',
             'Help!',
-            'Use your new found knowledge to help us identify what coastal change processes have happened where ' +
+            'Use your newfound knowledge to help us identify what coastal change processes have happened where ' +
                 'and when by tagging coastal imagery.',
             'A screenshot of the iCoast application\'s classification page where users can compare images and ' +
                 'log what they see.'
