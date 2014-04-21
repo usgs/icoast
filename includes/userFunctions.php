@@ -146,11 +146,15 @@ function tagsInAnnotation($DBH, $annotationId) {
 function timeDifference($startDateTime, $endDateTime, $verbose = TRUE) {
     $startDateTime = new DateTime($startDateTime);
     $endDateTime = new DateTime($endDateTime);
-    $annotationInterval = $startDateTime->diff($endDateTime);
+    // Invaliud method in PHP < v5.3
+    // $annotationInterval = $startDateTime->diff($endDateTime);
+    $annotationIntervalTS = $endDateTime->format('U') - $startDateTime->format('U');
+    $annotationIntervalMinutes = floor($annotationIntervalTS / 60);
+    $annotationIntervalSeconds = $annotationIntervalTS % 60;
     if ($verbose) {
-        return $annotationInterval->format('%i min(s) %s sec(s)');
+        return "$annotationIntervalMinutes min(s) $annotationIntervalSeconds sec(s)";
     } else {
-        return $annotationInterval->format('%im %Ss');
+        return "{$annotationIntervalMinutes}m {$annotationIntervalSeconds}s";
     }
 }
 

@@ -11,7 +11,7 @@ TO DISPLAY A CUSTOM BANNER COLOR (NO IMAGE):
 If you would rather display a color instead of a banner image, change the "background: url" portion to point to "" and set the background color (#006633) to whatever color you wish to display.
 NOTE: You can use either hexadecimal color codes (i.e. - #006633, #063) or HTML color names (i.e. - "black"). */
 #usgscolorband {
-	background: #040535 url(/images/system/banner.jpg) 178px 0px repeat-x;
+	background: #040535 url('../images/system/banner.jpg') 178px 0px repeat-x;
 }
 /* ================SITE TITLE===================*/
 /* TO DISPLAY A CUSTOM SITE TITLE BAR:

@@ -319,6 +319,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
                         $('#feedbackFormProjectList').prop('selectedIndex', -1);
                     }
                     $('#feedbackText').val('Please type your feedback here.');
+                    $('#feedbackCharacterCount').text('0 of 500 characters used');
                 });
     });
 
@@ -340,6 +341,7 @@ $feedbackjQueryDocumentDotReadyCode = <<<EOL
                 $('#feedbackText').val() !== 'Please type your feedback here.') {
             var formData = $('#userFeedbackForm').serialize();
             $.post('ajax/eventLogger.php', formData, feedbackConfirmation());
+            $('#feedbackCharacterCount').text('0 of 500 characters used');
         } else {
             $('#feedbackText').val('You must provide some feedback.');
         }

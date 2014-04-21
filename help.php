@@ -26,7 +26,7 @@ $pageBody = <<<EOL
                                     OpenID</a> and Google-based accounts are currently the only ones supported
                                     by the Federal government. If you or your organization use Google accounts for email, you can
                                     login using that email and password. You can also change the email you want us to use in
-                                    iCoast by going to the profile page, but it must be changed to a Google-based account. If you
+                                    iCoast by going to the Profile page, but it must be changed to a Google-based account. If you
                                     have problems logging in, please contact <a href="mailto:icoast@usgs.gov">
                                     icoast@usgs.gov</a>.</p>
                             </div>
@@ -37,7 +37,7 @@ $pageBody = <<<EOL
                                 <p>Can I make changes to the information I provided when I first created an iCoast account?</p>
                             </div>
                             <div class="faqAnswer">
-                                <p>Yes, go to the profile page and you can update your account information there. We may request
+                                <p>Yes, go to the Profile page and you can update your account information there. We may request
                                 other optional information in the future here.</p>
                             </div>
                         </div>

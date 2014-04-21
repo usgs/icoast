@@ -1,11 +1,7 @@
 <?php
 
 $pageUrl = 'http://' . $_SERVER["SERVER_NAME"] . $_SERVER["PHP_SELF"];
-//$lastModifiedTimestamp = filemtime(__FILE__);
-//$fileModifiedDateTime = new DateTime();
-//$fileModifiedDateTime->setTimestamp($lastModifiedTimestamp);
-//$fileModifiedDateTime->setTimezone(new DateTimeZone('America/New_York'));
-$fileModifiedDateTime = date('F jS, Y H:i', filemtime(__FILE__)) . " EDT";
+$fileModifiedDateTime =  date ('F jS, Y H:i', filemtime(__FILE__)) . " EDT";
 
 if (!isset($pageName)) {
     header('Location: index.php');

@@ -1,8 +1,8 @@
 <?php
 //error_reporting(0);
 date_default_timezone_set('UTC');
-$dbmsConnectionPath = '../secureData/icoast/DBMSConnection.php';
-$dbmsConnectionPathDeep = '../../secureData/icoast/DBMSConnection.php';
+$dbmsConnectionPath = '../../icoast/DBMSConnection.php';
+$dbmsConnectionPathDeep = '../../../icoast/DBMSConnection.php';
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to generate new user authentication credential cookies and matching database entries
@@ -84,7 +84,7 @@ function mysql_aes_encrypt($value) {
     }
 
     $m = mcrypt_module_open('rijndael-256', '', 'cbc', '');
-    $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($m), MCRYPT_DEV_RANDOM);
+    $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($m), MCRYPT_RAND);
     mcrypt_generic_init($m, $dbmsSalt, $iv);
     $encryptedValue = mcrypt_generic($m, $value);
     mcrypt_generic_deinit($m);
@@ -488,9 +488,9 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
     }
     // Create DateTime Object
     if (!$error AND is_numeric($time)) {
-        $timeObject = DateTime::createFromFormat('U', $time, new DateTimeZone('UTC'));
+        $timeObject = new DateTime('@' . $time);
     } elseif (!$error AND is_string($time)) {
-        $timeObject = DateTime::createFromFormat('Y-m-d H:i:s', $time, new DateTimeZone('UTC'));
+        $timeObject = new DateTime($time, new DateTimeZone('UTC'));
     }
     if ($timeObject) {
         // if longitude is given set the timezone and adjust $timeObject for it)
