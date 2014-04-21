@@ -169,31 +169,47 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 
     if (!isset($errorMessage)) {
-        $encryptedEmailData = mysql_aes_encrypt($registerEmail);
-        setType($registerCrowdType, "int");
-        $authCheckCode = md5(rand());
-        $queryStatement = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
-                . "time_zone, account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
-                . ":encryptedRegisterEmailIV, :authCheckCode, :registerCrowdType, "
-                . ":registerOther, :registerAffiliation, :timeZone, NOW( ), NOW( ))";
-        $queryParams = array(
-            'maskedEmail' => mask_email($registerEmail),
-            'encryptedRegisterEmail' => $encryptedEmailData[0],
-            'encryptedRegisterEmailIV' => $encryptedEmailData[1],
-            'authCheckCode' => $authCheckCode,
-            'registerCrowdType' => $registerCrowdType,
-            'registerOther' => $registerOtherContent,
-            'registerAffiliation' => $registerAffiliationContent,
-            'timeZone' => $registerTimeZone
-        );
+        $maskedUserEmail = mask_email($registerEmail);
+        $queryStatement = "SELECT * FROM users WHERE masked_email = :maskedEmail";
+        $queryParams['maskedEmail'] = $maskedUserEmail;
         $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
-        if ($STH->rowCount() > 0) {
-            print $STH->rowCount();
-            setcookie('userId', $DBH->lastInsertId(), time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
-            setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
-            setcookie('registrationEmail', '', time() - 360 * 24, '/', '', 0, 1);
-            header('Location: welcome.php?userType=new');
-            exit;
+        $queryResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+        if (count($queryResult) > 0) {
+            foreach ($queryResult as $userCredentials) {
+                $decryptedEmail = mysql_aes_decrypt($userCredentials['encrypted_email'], $userCredentials['encryption_data']);
+                if (strcasecmp($decryptedEmail, $registerEmail) === 0) {
+                    setcookie('registrationEmail', '', time() - 360 * 24, '/', '', 0, 1);
+                    header('Location: index.php');
+                }
+            }
+        }
+        if (count($queryResult) === 0) {
+            $encryptedEmailData = mysql_aes_encrypt($registerEmail);
+            setType($registerCrowdType, "int");
+            $authCheckCode = md5(rand());
+            $queryStatement = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
+                    . "time_zone, account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
+                    . ":encryptedRegisterEmailIV, :authCheckCode, :registerCrowdType, "
+                    . ":registerOther, :registerAffiliation, :timeZone, NOW( ), NOW( ))";
+            $queryParams = array(
+                'maskedEmail' => $maskedUserEmail,
+                'encryptedRegisterEmail' => $encryptedEmailData[0],
+                'encryptedRegisterEmailIV' => $encryptedEmailData[1],
+                'authCheckCode' => $authCheckCode,
+                'registerCrowdType' => $registerCrowdType,
+                'registerOther' => $registerOtherContent,
+                'registerAffiliation' => $registerAffiliationContent,
+                'timeZone' => $registerTimeZone
+            );
+            $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
+            if ($STH->rowCount() > 0) {
+                print $STH->rowCount();
+                setcookie('userId', $DBH->lastInsertId(), time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
+                setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
+                setcookie('registrationEmail', '', time() - 360 * 24, '/', '', 0, 1);
+                header('Location: welcome.php?userType=new');
+                exit;
+            }
         }
     }
 }

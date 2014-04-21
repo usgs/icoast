@@ -159,10 +159,8 @@ if (isset($_POST['formSubmission'])) {
             if (!isset($errorMessage)) {
                 $existingCrowdType = $userData['crowd_type'];
                 $existingOtherCrowdType = $userData['other_crowd_type'];
-                print $crowdType;
-                print $existingCrowdType;
                 if (($crowdType != 10 && $crowdType == $existingCrowdType) ||
-                        ($crowdType == 10 && strcomp($crowdType, $existingCrowdType == 0))) {
+                        ($crowdType == 10 && strcmp($otherCrowdType, $existingOtherCrowdType) == 0)) {
                     header('Location: profile.php?update=crowd');
                     exit;
                 }
@@ -250,7 +248,7 @@ if (isset($_POST['formSubmission'])) {
             }
             if (!isset($errorMessage)) {
                 $existingAffiliation = $userData['affiliation'];
-                if (strcomp($affiliationContent, $existingAffiliation) == 0) {
+                if (strcmp($affiliationContent, $existingAffiliation) == 0) {
                     header('Location: profile.php?update=affiliation');
                     exit;
                 }

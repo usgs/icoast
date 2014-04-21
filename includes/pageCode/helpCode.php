@@ -55,6 +55,9 @@ $jQueryDocumentDotReadyCode = <<<EOL
    });
 
    $('#revealAllFaqs').click(function() {
+        $('#usgsfooter').css({
+            visibility: 'hidden'
+        });
        $('.faq').each(function () {
             $(this).find('.faqQuestion p:first-of-type').text('-');
             $(this).find('.faqAnswer').slideDown();
@@ -62,6 +65,14 @@ $jQueryDocumentDotReadyCode = <<<EOL
             $('#hideAllFaqs').removeClass('disabledClickableButton');
             revealedFaqs = totalFaqs;
        });
+        setTimeout(
+            function()
+            {
+              moveFooter();
+            $('#usgsfooter').css({
+                visibility: 'visible'
+            });
+            }, 500);
         console.log(totalFaqs);
         console.log(revealedFaqs);
    });
@@ -74,6 +85,11 @@ $jQueryDocumentDotReadyCode = <<<EOL
             $('#revealAllFaqs').removeClass('disabledClickableButton');
             revealedFaqs = 0;
        });
+        setTimeout(
+            function()
+            {
+              moveFooter();
+            }, 500);
         console.log(totalFaqs);
         console.log(revealedFaqs);
    });
