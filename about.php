@@ -39,7 +39,8 @@ $pageBody = <<<EOL
                     from extreme storms that may not be easily recognizable in the quantitative topographic
                     data. The photography can be uploaded quickly to the web to help provide damage
                     assessments in the immediate aftermath of a storm. These digital photographs are also
-                    geocoded with the location of the aircraft to easily plot them on a map.</p>
+                    geocoded with the location of the aircraft to easily plot them on a map. Learn more at the
+                    USGS <a href="http://coastal.er.usgs.gov/hurricanes/oblique.php">Aerial Photography</a> web page.</p>
 
                 <h2>USGS Predictive Models of Storm-Induced Coastal Changes</h2>
 
@@ -58,7 +59,7 @@ $pageBody = <<<EOL
 
                 <p>To assess coastal vulnerability to extreme storms, the USGS has developed a
                     <a href="http://coastal.er.usgs.gov/hurricanes/impact-scale/">
-                    Storm-Impact Scale</a> to produce <a href="http://coastal.er.usgs.gov/hurricanes/change-probability/">
+                    Storm-Impact Scale</a> to produce <a href="http://coastal.er.usgs.gov/hurricanes/erosionhazards/">
                     Coastal Change Probability</a> estimates. Hurricane-induced water levels, due
                     to both storm surge and waves, are compared to beach and dune elevations to determine the
                     probabilities of three types of coastal change processes: (1) Dune Erosion, where the base

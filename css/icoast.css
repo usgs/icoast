@@ -188,6 +188,10 @@ a:hover {
     box-shadow: 6px 6px 6px #888888;
 }
 
+.italic {
+    font-style: italic;
+}
+
 /*input[type="radio"]:checked + .clickableButton {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);

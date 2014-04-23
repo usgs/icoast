@@ -38,10 +38,10 @@ EOL;
 }
 
 $loginAccountInfoText = <<<EOL
-    <p>NOTE: Any Google-based account can be used for iCoast registration. This could be a standard gmail
-        account or one managed by you or your organization (examples: aperson@gmail.com, aperson@usgs.gov etc.)</p>
-    <p>No personal data that you provide through iCoast is shared with Google. Also, USGS is not granted any
-        control of your Google account or information from it except for the account username you login with</p>
+    <p>NOTE: Any Google based account can be used for iCoast registration. This could be a standard gmail
+        account or one managed by you or your organization (examples: aperson@gmail.com, aperson@usgs.gov).</p>
+    <p>USGS has no access to your Google account other than receiving your email address upon registration.
+        USGS does not share any information you provide to iCoast with Google.</p>
 EOL;
 
 $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
@@ -58,7 +58,8 @@ if (!$openid->mode) {
 EOL;
     } else {
         $variableContent = <<<EOL
-          <p>Click the button below to Login or Register using a Google Account</p>
+          <p>Click the button below to <span class="italic">Login</span> or <span class="italic">Register</span>
+              using a Google Account</p>
           <form action="?login" method="post">
             $buttonHTML
           </form>
@@ -200,64 +201,64 @@ $javaScript = <<<EOL
         [
             'seasideHeights.jpg',
             'Welcome!',
-            'Welcome to iCoast, the USGS crowdsourcing application created for you to help us better understand ' +
-                'how the United States coastline is changing due to extreme storms.',
+            'iCoast is a USGS crowdsourcing application created for you to help us better understand how ' +
+                'coastlines change after extreme storms.',
             'An image of the pier at Seaside Heights, New Jersey following Hurricane Sandy. The end has been ' +
                 'washed away by the storm.'
         ],
         [
             'karen.jpg',
-            'Team Up!',
-            'Become an honorary member of the USGS team as we fly along the United States coastline looking for ' +
-                'coastal changes following extreme events.',
-            'An image showing a USGS field worker photographing the coastline from the cabin of a light aircraft.'
-        ],
-        [
-            'map.jpg',
-            'Explore!',
-            'View random locations to see imagery of places you never knew existed, or use the map to look at areas ' +
-                'familiar to you.',
-            'An image of the iCoast map interface that is used to select specific images to tag.'
-        ],
-        [
-            'duneErosion.jpg',
-            'Learn!',
-            'Learn about the coastal change processes that can reshape the land on which we live and threaten ' +
-                'our homes, businesses, and infrastructure.',
-            'An image showing severe dune erosion where a wooden beach stairway and walkover have been badly damaged.'
+            'Help!',
+            'Become a volunteer to help USGS scientists look for coastal changes in their oblique aerial ' +
+                'photographs they have taken since 1995.',
+            'An image showing a member of USGS photographing the coastline from the cabin of a light aircraft.'
         ],
         [
             'mantoloking.jpg',
-            'See!',
-            'Witness the real world effects of coastal change processes following extreme events affecting the ' +
-                ' United States coastline.',
+            'Witness!',
+            'Fly along the coast with us and witness the real world impacts of extreme storms affecting our ' +
+                'coastlines.',
             'An image of severe coastal change at Mantoloking, New Jersey following Hurricane Sandy. A new ' +
                 'inlet has been cut by the storm resulting in loss of housing and road infrastructure.'
         ],
         [
-            'breach.jpg',
-            'Respect!',
-            'See before and after images that will develop your understanding and respect of the real dangers ' +
-                'of extreme storms.',
-            'An image showing the effect of a coastal process called Inundation. An entire barrier island has ' +
-                'been destroyed with almost complete loss of all housing and transportation infrastructure.'
+            'map.jpg',
+            'Explore!',
+            'Look at aerial photographs of the coast you never knew existed, or use the map to find aerial ' +
+                'imagery of places familiar to you.',
+            'An image of the iCoast map interface that is used to select specific images to tag.'
         ],
         [
             'classify.jpg',
-            'Help!',
-            'Use your newfound knowledge to help us identify what coastal change processes have happened where ' +
-                'and when by tagging coastal imagery.',
+            'Volunteer!',
+            'Tag coastal aerial imagery with pre-defined keywords to help us identify and map coastal change ' +
+                'processes after extreme storms.',
             'A screenshot of the iCoast application\'s classification page where users can compare images and ' +
                 'log what they see.'
         ],
         [
             'predictions.jpg',
             'Improve!',
-            'Your input will be fed into analysis software to help us better understand the way the coast changes ' +
-                'and will help improve existing predictive models.',
+            'Help ground truth and improve USGS predictive models of coastal changes to inform evacuation, ' +
+                'preparedness, and mitigation efforts.',
             'An image showing a graphical representation of the USGS coastal erosion prediction models for the ' +
                 'north east United States coastline.'
         ],
+        [
+            'breach.jpg',
+            'Respect!',
+            'See before and after images of the coast to understand and build a respect for the real dangers ' +
+                'of extreme storms.',
+            'An image showing the effect of a coastal process called Inundation. An entire barrier island has ' +
+                'been destroyed with almost complete loss of all housing and transportation infrastructure.'
+        ],
+        [
+            'learn.jpg',
+            'Learn!',
+            'iCoast is designed to also educate the public about how extreme storms can threaten homes, ' +
+                'businesses, and infrastructure on our Nation’s coast.',
+            'An image showing a popup from the iCoast interface describing a coastal change process.'
+        ]
     ];
 
     var loadImage = 0;

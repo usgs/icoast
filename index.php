@@ -18,10 +18,9 @@ $pageBody = <<<EOL
         </div>
         <div id="indexTextColumn">
         <h1>Welcome to iCoast!</h1>
-        <p>Help scientists at the U.S. Geological Survey annotate aerial photographs with keyword
-            tags to identify changes to the coast after extreme storms like Hurricane Sandy. We
-            need your eyes to help us understand how United States coastlines are changing from
-            extreme storms.</p>
+        <p>Help scientists at the U.S. Geological Survey annotate aerial photographs with keyword tags to
+            identify changes to the coast after extreme storms like Hurricane Sandy. We need your eyes to
+            help us understand how our coastlines are changing from extreme storms.</p>
         $variableContent
         </div>
     </div>
