@@ -1025,6 +1025,9 @@ label.error {
 #aboutWrapper>p {
     width: 750px;
 }
+#aboutAttributions {
+    width: 100% !important;
+}
 
 .aboutShortParagraph {
     min-height: 227px;
