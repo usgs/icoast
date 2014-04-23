@@ -40,10 +40,7 @@ switch ($userType) {
         $welcomeBackHTML = '';
         $variableContent = <<<EOL
         <h2>Thanks for joining iCoast</h2>
-        <p>Thank you for your interest in signing up to iCoast.<br>We are developing tutorials
-          and other instructional materials to make it easier to get started.<br>In the meantime,
-            check out the first iCoast project showing aerial photographs taken after
-              Hurricane Sandy.</p>
+        <p>Check out the first iCoast project showing aerial photographs taken after Hurricane Sandy.</p>
 
             $startTaggingButtonHTML
 EOL;
@@ -174,9 +171,9 @@ EOL;
 EOL;
         } else {
             $variableContent .= <<<EOL
-                <p>You have not yet annotated any POST-storm photographs.<br>Click the button below to
-                  Start Tagging aerial photographs taken after Hurricane Sandy.<br>See if you can tag
-                  more photos than other iCoast users.</p>
+                <p>You have not yet tagged any post-storm photographs.<br>Click the <span class="italic">
+                    Start Tagging</span> button below to tag aerial photographs taken after Hurricane Sandy.
+                    <br>See if you can tag more photos than other iCoast users.</p>
                 $startTaggingButtonHTML
 EOL;
         }
