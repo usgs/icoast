@@ -1,9 +1,11 @@
 <?php
 
 $pageName = "complete";
-$cssLinkArray = array();
+$cssLinkArray[] = 'css/leaflet.css';
+$cssLinkArray[] = 'css/markerCluster.css';
 $embeddedCSS = '';
-$javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
+$javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 
 require 'includes/globalFunctions.php';
 require 'includes/userFunctions.php';
@@ -295,7 +297,7 @@ EOL;
             function iCoastTitle() {
                 if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar p').outerWidth() + 20)) {
                     if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar p').length == 0) {
-                        $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
+                        $('#navigationBar').append('<p>USGS iCoast - Did the Coast Change?</p>');
                     } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar p').length) {
                         $('#navigationBar p').remove();
                     }

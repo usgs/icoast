@@ -13,6 +13,6 @@
 	</div>
 </div>
 <div id="usgstitle">
-	<p>iCoast - Did the Coast Change?</p>
+	<p>USGS iCoast - Did the Coast Change?</p>
 </div>
 <!-- END USGS Header Template -->

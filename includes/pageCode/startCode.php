@@ -1,9 +1,15 @@
 <?php
 
 $pageName = "start";
-$cssLinkArray = array();
+$cssLinkArray[] = 'css/leaflet.css';
+$cssLinkArray[] = 'css/markerCluster.css';
+$cssLinkArray[] = 'css/leafletGeoSearch.css';
+
 $embeddedCSS = '';
-$javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
+$javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
+$javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
+$javaScriptLinkArray[] = 'scripts/leafletGeoSearchProvider.js';
 $javascript = '';
 $jQueryDocumentDotReadyCode = '';
 

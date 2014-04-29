@@ -1,9 +1,11 @@
 <?php
 
 $pageName = "profile";
-$cssLinkArray = array();
+$cssLinkArray[] = 'css/leaflet.css';
+$cssLinkArray[] = 'css/markerCluster.css';
 $embeddedCSS = '#historyControlWrapper p:first-of-type {margin-top: 0px; padding-top: 10px;}';
-$javaScriptLinkArray[] = 'scripts/markerClusterPlus.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
+$javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = "scripts/jquery.validate.min.js";
 
 require 'includes/globalFunctions.php';
@@ -450,9 +452,22 @@ $javaScript = <<<EOT
     var resultSetCenterPoint;
     var searchedProject;
 
-    icMap = null;
-    icMarkers = null;
-    icMarkerClusterer = null;
+    var map = null;
+    var markers = null;
+    var resultSetMapBounds;
+
+    var photoIcon = L.icon({
+        iconSize: [32, 37],
+        iconAnchor: [16, 37],
+        iconUrl: 'images/system/photo.png',
+        popupAnchor: [16, 18]
+    });
+    var selectedIcon = L.icon({
+        iconSize: [32, 37],
+        iconAnchor: [16, 37],
+        iconUrl: 'images/system/photoSelected.png',
+        popupAnchor: [16, 18]
+    });
 
     function runAjaxAnnotationQuery() {
         if (startingRow < 0) {
@@ -473,65 +488,77 @@ $javaScript = <<<EOT
         delete history.controlData;
         var tableContents;
         displayedRows = 0;
-        resultSetMapBounds = new google.maps.LatLngBounds;
-        icMarkers = new Array();
-        $.each(history, function(index, annotation) {
-            var annotationPoint = new google.maps.LatLng(annotation.latitude, annotation.longitude);
-            resultSetMapBounds.extend(annotationPoint);
 
-            var thisMarker = new google.maps.Marker({
-                position: annotationPoint,
-                icon: 'images/system/photo.png',
-                title: 'Image Id: ' + annotation.image_id + '. Location ' + annotation.location +
-                        '. Tagged on: ' + annotation.annotation_time + '. Part of the ' +
-                        annotation.project_name + ' project.'
-
+        if (markers === null) {
+            markers = L.markerClusterGroup({
+                disableClusteringAtZoom: 15,
+                maxClusterRadius: 40
             });
-            icMarkers.push(thisMarker);
-            google.maps.event.addListener(thisMarker, 'click', (function(marker) {
-                return function() {
-                    $('tr').css('background-color', '#FFFFFF');
-                    $('tr').css('font-weight', 'normal');
-                    $('td').each(function() {
-                        if ($(this).text() == annotation.image_id) {
-                            $(this).parent().css('background-color', '#D3E2F0');
-                            $(this).parent().css('font-weight', 'bold');
-                        }
-                    });
-                    for (var i = 0; i < icMarkers.length; i++) {
-                        icMarkers[i].setIcon('images/system/photo.png');
-                    }
-                    marker.setIcon('images/system/photoSelected.png');
-                };
-            })(thisMarker));
+        } else {
+            markers.clearLayers();
+        }
 
-            if (icMarkerClusterer === null) {
-                var mcOptions = {
-                    'gridSize': 60,
-                    'minimumClusterSize': 5,
-                    'maxZoom': 14,
-                    'imagePath': 'images/system/m'
-                };
-                icMarkerClusterer = new MarkerClusterer(icMap, icMarkers, mcOptions);
+        var firstMarker = true;
+
+        $.each(history, function(index, annotation) {
+            var annotationPoint = L.latLng(annotation.latitude, annotation.longitude);
+            var infoString = 'Image Id: ' + annotation.image_id + '. Location ' + annotation.location +
+                '. Tagged on: ' + annotation.annotation_time + '. Part of the ' + annotation.project_name +
+                ' project.'
+
+            if (firstMarker) {
+                resultSetMapBounds = L.latLngBounds(annotationPoint, annotationPoint);
             } else {
-                icMarkerClusterer.clearMarkers();
-                icMarkerClusterer.addMarkers(icMarkers);
+                resultSetMapBounds.extend(annotationPoint);
             }
+            if (resultSetMapBounds.contains(annotationPoint)) {
+                console.log('In Bounds');
+            }
+            firstMarker = false;
+            var markerPopup = L.popup({offset: L.point(0,-40), closeButton: false, autoPan :false}).setContent(infoString).setLatLng(annotationPoint);
 
+            var thisMarker = L.marker(annotationPoint, {icon: photoIcon});
+            thisMarker.on('mouseover', function() {
+                map.openPopup(markerPopup);
+            });
+            thisMarker.on('mouseout', function() {
+                map.closePopup(markerPopup);
+            });
+    
+            markers.addLayer(thisMarker);
+
+
+
+
+
+            thisMarker.on('click', function() {
+                $('tr').css('background-color', '#FFFFFF');
+                $('tr').css('font-weight', 'normal');
+                $('td').each(function() {
+                    if ($(this).text() == annotation.image_id) {
+                        $(this).parent().css('background-color', '#D3E2F0');
+                        $(this).parent().css('font-weight', 'bold');
+                    }
+                });
+                markers.eachLayer(function(layer) {
+                    layer.setIcon(photoIcon);
+                });
+                thisMarker.setIcon(selectedIcon);
+            });
             displayedRows++;
             var mapLink = '<td><a href="classification.php?projectId=' + annotation.project_id +
-                        '&imageId=' + annotation.image_id + '">';
+                    '&imageId=' + annotation.image_id + '">';
 
             tableContents += '<tr><td><a href="classification.php?projectId=' + annotation.project_id +
-                        '&imageId=' + annotation.image_id + '">';
+                    '&imageId=' + annotation.image_id + '">';
 
             if (annotation.annotation_completed == 1) {
                 tableContents += '<div class="clickableButton" title="Click this button to see the photo and edit ' +
-                    'your selections if you wish.">Tag</div></a></td>';
+                        'your selections if you wish.">Tag</div></a></td>';
             } else {
                 tableContents += '<div class="clickableButton incompleteAnnotation" title="Not all tasks for ' +
-                    'this photo were completed. Click this button to return to the photo, edit your selections, ' +
-                    'and complete all the tasks so it counts towards to leaderboard statistics.">Tag</div></a></td>';
+                        'this photo were completed. Click this button to return to the photo, edit your selections, ' +
+                        'and complete all the tasks so it counts towards to leaderboard statistics.">Tag</div></a></td>';
             }
             tableContents += '<td>' + annotation.annotation_time + '</td>';
             tableContents += '<td>' + annotation.time_spent + '</td>';
@@ -574,18 +601,18 @@ $javaScript = <<<EOT
                 ' of ' + resultCount + ' total results (' + totalRows + ' rows shown)</p>');
 
         if ($('#userAnnotationHistory').css('display') === 'none') {
-//            $('#feedbackWrapper').hide();
+    //            $('#feedbackWrapper').hide();
             $('#userAnnotationHistory').slideDown(positionFeedbackDiv);
         }
-        google.maps.event.trigger(icMap, "resize");
-        icMap.setZoom(20);
-        icMap.fitBounds(resultSetMapBounds);
-        if (icMap.getZoom() > 15) {
-        icMap.setZoom(15);
-      }
+        map.addLayer(markers);
+        map.invalidateSize();
+        map.fitBounds(resultSetMapBounds, {
+            maxZoom: 15
+        });
+
 
         if ($('#profileDetailsWrapper').css('display') !== 'none') {
-//            $('#feedbackWrapper').hide();
+    //            $('#feedbackWrapper').hide();
             $('#profileDetailsWrapper').slideUp(positionFeedbackDiv);
             $('#profileHideButton').text('Show Profile Details');
         }
@@ -598,67 +625,17 @@ $javaScript = <<<EOT
 
 
     function initializeMaps() {
-        var startingPosition = new google.maps.LatLng(27.764463, -82.638284);
-        var mapOptions = {
-            center: startingPosition,
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            zoom: 16
-        };
-        icMap = new google.maps.Map(document.getElementById("mapCanvas"),
-                mapOptions);
+        var startingPosition = L.latLng(27.764463, -82.638284);
 
-        var markers = [];
-        var input = (document.getElementById('pac-input'));
-        icMap.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-        var searchBox = new google.maps.places.SearchBox((input));
-        // [START region_getplaces]
-        // Listen for the event fired when the user selects an item from the
-        // pick list. Retrieve the matching places for that item.
-        google.maps.event.addListener(searchBox, 'places_changed', function() {
-          var places = searchBox.getPlaces();
-          for (var i = 0, marker; marker = markers[i]; i++) {
-            marker.setMap(null);
-          }
-          // For each place, get the icon, place name, and location.
-          markers = [];
-          var bounds = new google.maps.LatLngBounds();
-          for (var i = 0, place; place = places[i]; i++) {
-            var image = {
-              url: place.icon,
-              size: new google.maps.Size(71, 71),
-              origin: new google.maps.Point(0, 0),
-              anchor: new google.maps.Point(17, 34),
-              scaledSize: new google.maps.Size(25, 25)
-            };
-
-            // Create a marker for each place.
-            var marker = new google.maps.Marker({
-              map: icMap,
-              icon: image,
-              title: place.name,
-              position: place.geometry.location
-            });
-
-            markers.push(marker);
-
-            bounds.extend(place.geometry.location);
-          }
-          icMap.fitBounds(bounds);
-          var zoom = icMap.getZoom();
-          console.log(zoom);
-          if (zoom > 13) {
-            icMap.setZoom(13);
-          }
-        });
-
-        // [END region_getplaces]
-
-        // Bias the SearchBox results towards places that are within the bounds of the
-        // current map's viewport.
-        google.maps.event.addListener(icMap, 'bounds_changed', function() {
-          var bounds = icMap.getBounds();
-          searchBox.setBounds(bounds);
-        });
+        map = L.map("mapCanvas", {maxZoom: 18}).setView(startingPosition, 16);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+        }).addTo(map);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.control.scale({
+            position: 'topright',
+            metric: false
+        }).addTo(map);
 
     } // End function initializeMaps
 

@@ -39,7 +39,7 @@ switch ($userType) {
     case 'new':
         $welcomeBackHTML = '';
         $variableContent = <<<EOL
-        <h2>Thanks for joining iCoast</h2>
+        <h2>Thanks for joining USGS iCoast</h2>
         <p>Check out the first iCoast project showing aerial photographs taken after Hurricane Sandy.</p>
 
             $startTaggingButtonHTML
@@ -49,7 +49,7 @@ EOL;
         $welcomeBackHTML = 'Back';
         $lastProjectId = null;
         $projectName = null;
-        $variableContent = '<h2>Your iCoast Statistics</h2>';
+        $variableContent = '<h2>Your USGS iCoast Statistics</h2>';
 
         $annotationQuery = "SELECT annotation_id, initial_session_end_time, project_id "
                 . "FROM annotations WHERE user_id = :userId AND annotation_completed = 1 "

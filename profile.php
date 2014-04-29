@@ -3,7 +3,7 @@
 require('includes/pageCode/profileCode.php');
 $pageBody = <<<EOL
         <div id="contentWrapper">
-            <h1>Your iCoast Profile and Tagging History</h1>
+            <h1>Your USGS iCoast Profile and Tagging History</h1>
             <div id="profileSettingsWrapper">
                 <button id="profileHideButton" class="clickableButton hideProfilePanelButton" title="Use this
                     button to show or hide your profile information such as registration account, timezone,
@@ -186,7 +186,7 @@ $pageBody = <<<EOL
 
             </div>
             <div id="profileAnnotationListControls">
-                <h2>View Your iCoast Tagging History</h2>
+                <h2>View Your USGS iCoast Tagging History</h2>
                 <div id="historyControlWrapper">
                     <p>Choose from the options below to view either your complete tagging history across all of iCoast's projects...</p>
                     <input type="button" id="allPhotoButton" value="Complete History" class="clickableButton"
@@ -208,7 +208,6 @@ $pageBody = <<<EOL
 
                 <div id="profileMapWrapper">
                     <h2>Map of Photos You Tagged</h2>
-                    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
                     <p>Select a marker to highlight the annotation in the adjacent table.</p>
                     <div id="mapCanvas"></div>
                 </div>

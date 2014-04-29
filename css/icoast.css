@@ -780,15 +780,17 @@ label.error {
 }
 
 #mapLoadingBar {
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.5);
     position: absolute;
     display: none;
-    bottom: 80px;
-    left: 15px;
+    bottom: 85px;
+    left: 8px;
 }
 
 #mapLegend {
     position: absolute;
-    bottom: 75px;
+    bottom: 85px;
     right: 8px;
     width: 200px;
     background: rgba(0, 0, 0, 0.5);
@@ -1029,8 +1031,8 @@ label.error {
 #aboutWrapper>p {
     width: 750px;
 }
-#aboutAttributions {
-    width: 100% !important;
+.aboutAttributions {
+    width: auto !important;
 }
 
 .aboutShortParagraph {

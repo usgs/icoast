@@ -38,10 +38,10 @@ EOL;
 }
 
 $loginAccountInfoText = <<<EOL
-    <p>NOTE: Any Google based account can be used for iCoast registration. This could be a standard gmail
-        account or one managed by you or your organization (examples: aperson@gmail.com, aperson@usgs.gov).</p>
-    <p>USGS has no access to your Google account other than receiving your email address upon registration.
-        USGS does not share any information you provide to iCoast with Google.</p>
+    <p><span class="captionTitle">Note:</span> Any Google based account, included standard Gmail accounts or those managed by you or your
+        organization, can be used to create an iCoast account.</p>
+        <p>(Examples: aperson@gmail.com, aperson@usgs.gov, aperson@university.edu)</p>
+    <p><a href="help.php#loginFAQ">Why Google?</a></p>
 EOL;
 
 $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
@@ -59,7 +59,7 @@ EOL;
     } else {
         $variableContent = <<<EOL
           <p>Click the button below to <span class="italic">Login</span> or <span class="italic">Register</span>
-              using a Google Account</p>
+              using Google.</p>
           <form action="?login" method="post">
             $buttonHTML
           </form>
@@ -201,7 +201,7 @@ $javaScript = <<<EOL
         [
             'seasideHeights.jpg',
             'Welcome!',
-            'iCoast is a USGS crowdsourcing application created for you to help us better understand how ' +
+            'USGS iCoast is a USGS crowdsourcing application created for you to help us better understand how ' +
                 'coastlines change after extreme storms.',
             'An image of the pier at Seaside Heights, New Jersey following Hurricane Sandy. The end has been ' +
                 'washed away by the storm.'
@@ -255,7 +255,7 @@ $javaScript = <<<EOL
         [
             'learn.jpg',
             'Learn!',
-            'iCoast is designed to also educate the public about how extreme storms can threaten homes, ' +
+            'USGS iCoast is designed to also educate the public about how extreme storms can threaten homes, ' +
                 'businesses, and infrastructure on our Nation’s coast.',
             'An image showing a popup from the iCoast interface describing a coastal change process.'
         ]

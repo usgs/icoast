@@ -1,252 +1,206 @@
 <?php
 
 $mapScript = <<<EOL
-  icMap = null;
-  icMarkers = null;
-  icCurrentImageLatLon = null;
-  icCurrentImageMarker = null;
-  icBoundsChanged = false;
-  icMarkersShown = false;
-  icMarkerClusterer = null;
-  icSelectedMapImage = "";
-  icProjectId = $projectId;
-  icUserId = $userId;
-  icRandomImageId = $newRandomImageId
-  icRandomImageLatitude = $newRandomImageLatitude;
-  icRandomImageLongitude = $newRandomImageLongitude;
-  var icRandomImageLocation;
+  var map = null;
+  var bounds;
+  var markers = null;
+  var currentImageLatLon = null;
+  var currentImageMarker = null;
+  var markersShown = false;
+  var markerClusterer = null;
+  var selectedMapImage = "";
+  var projectId = $projectId;
+  var userId = $userId;
+  var randomImageId = $newRandomImageId
+  var randomImageLatitude = $newRandomImageLatitude;
+  var randomImageLongitude = $newRandomImageLongitude;
+  var randomImageLocation;
   var randomImageDisplayURL;
 
+  var photoIcon = L.icon({
+      iconSize: [32, 37],
+      iconAnchor: [16, 37],
+      iconUrl: 'images/system/photo.png',
+      popupAnchor: [16, 18]
+  });
+  var currentIcon = L.icon({
+    iconSize: [32, 37],
+    iconAnchor: [16, 37],
+    iconUrl: 'images/system/photoCurrent.png',
+    popupAnchor: [16, 18]
+  });
 
-  function mapBoundaries() {
-    //        console.log("In boundaries");
-    var bounds = icMap.getBounds();
-    var boundaries = {
-      north: encodeURIComponent(bounds.getNorthEast().lat()),
-      east: encodeURIComponent(bounds.getNorthEast().lng()),
-      south: encodeURIComponent(bounds.getSouthWest().lat()),
-      west: encodeURIComponent(bounds.getSouthWest().lng()),
-      projectId: icProjectId,
-      userId: icUserId,
-      currentImageId: icRandomImageId
-    };
-    return boundaries;
-  } //End function mapBoundaries
-
+   var selectedIcon = L.icon({
+    iconSize: [32, 37],
+    iconAnchor: [16, 37],
+    iconUrl: 'images/system/photoSelected.png',
+    popupAnchor: [16, 18]
+  });
 
 
 
   function initializeMaps() {
-    icCurrentImageLatLon = new google.maps.LatLng(icRandomImageLatitude, icRandomImageLongitude);
-    var mapOptions = {
-      center: icCurrentImageLatLon,
-      zoom: 10,
-      mapTypeId: google.maps.MapTypeId.HYBRID
-    };
-    icMap = new google.maps.Map(document.getElementById("mapCanvas"),
-            mapOptions);
+    currentImageLatLon = L.latLng(randomImageLatitude, randomImageLongitude);
+    map = L.map("mapCanvas", {maxZoom: 18}).setView(currentImageLatLon, 11);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+        }).addTo(map);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.control.scale({
+            position: 'topright',
+            metric: false
+        }).addTo(map);
 
+   currentImageMarker = L.marker(currentImageLatLon,
+    {
+        clickable: false,
+        icon: currentIcon
+    }).addTo(map);
 
+    new L.Control.GeoSearch({
+        provider: new L.GeoSearch.Provider.Esri()
+    }).addTo(map);
 
+    bounds = map.getBounds();
 
+    markerControl(true);
 
-    var markers = [];
-    var input = (document.getElementById('pac-input'));
-    icMap.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-    var searchBox = new google.maps.places.SearchBox((input));
-    // [START region_getplaces]
-    // Listen for the event fired when the user selects an item from the
-    // pick list. Retrieve the matching places for that item.
-    google.maps.event.addListener(searchBox, 'places_changed', function() {
-      var places = searchBox.getPlaces();
-      for (var i = 0, marker; marker = markers[i]; i++) {
-        marker.setMap(null);
+    map.on('moveend', function() {
+      bounds = map.getBounds();
+      if (!bounds.contains(currentImageLatLon) && map.hasLayer(currentImageMarker)) {
+        map.removeLayer(currentImageMarker);
+      } else if (bounds.contains(currentImageLatLon) && !map.hasLayer(currentImageMarker)) {
+        currentImageMarker.addTo(map);
       }
-      // For each place, get the icon, place name, and location.
-      markers = [];
-      var bounds = new google.maps.LatLngBounds();
-      for (var i = 0, place; place = places[i]; i++) {
-        var image = {
-          url: place.icon,
-          size: new google.maps.Size(71, 71),
-          origin: new google.maps.Point(0, 0),
-          anchor: new google.maps.Point(17, 34),
-          scaledSize: new google.maps.Size(25, 25)
-        };
-
-        // Create a marker for each place.
-        var marker = new google.maps.Marker({
-          map: icMap,
-          icon: image,
-          title: place.name,
-          position: place.geometry.location
-        });
-
-        markers.push(marker);
-
-        bounds.extend(place.geometry.location);
-      }
-      icMap.fitBounds(bounds);
-      var zoom = icMap.getZoom();
-      console.log(zoom);
-      if (zoom > 13) {
-        icMap.setZoom(13);
-      }
-    });
-
-    // [END region_getplaces]
-
-    // Bias the SearchBox results towards places that are within the bounds of the
-    // current map's viewport.
-    google.maps.event.addListener(icMap, 'bounds_changed', function() {
-      var bounds = icMap.getBounds();
-      searchBox.setBounds(bounds);
+      markerControl(false, true);
     });
 
 
-
-    var mapCurrentIcon = {
-      size: new google.maps.Size(32, 37),
-      anchor: new google.maps.Point(-25, 37),
-      url: 'images/system/photoCurrent.png'
-    };
-    icCurrentImageMarker = new google.maps.Marker({
-      position: icCurrentImageLatLon,
-      //          map: icMap,
-      animation: google.maps.Animation.DROP,
-      icon: mapCurrentIcon,
-      //          icon: 'images/system/photoCurrent.png',
-      clickable: false
-    });
-    google.maps.event.addListener(icMap, 'idle', function() {
-      mapBoundsChanged();
-    });
   } // End function initializeMaps
 
 
+   function markerControl(toggleMarkers, boundsChanged) {
 
-  function mapBoundsChanged() {
-    //        console.log('mapBoundsChanged' + icMarkersShown);
-    if (icMarkersShown === true) {
-      if (icMarkerClusterer !== null) {
-        icMarkerClusterer.clearMarkers();
-      }
+    toggleMarkers = typeof toggleMarkers !== 'undefined' ? toggleMarkers : true;
+    boundsChanged = typeof boundsChanged !== 'undefined' ? boundsChanged : false;
 
-      icBoundsChanged = true;
-      toggleMarkers();
-    }
-  } // End funciton mapBoundsChanged
+    if ((markersShown === false && toggleMarkers === true) || (markersShown === true && boundsChanged === true)) {
+        $('#mapLoadingBar').css('display', 'block');
 
-  //      function clearMarkers() {
-  //        if (icMarkersShown === true) {
-  //          icMarkerClusterer.clearMarkers()
-  //          icMarkersShown === false;
-  //        }
-  //      }
-
-  function toggleMarkers() {
-    if (icMarkersShown === false || icBoundsChanged === true) {
-      //          console.log('loading bar');
-      $('#mapLoadingBar').css('display', 'block');
-      $('#mapMarkerToggle').text("Hide Other Photos");
-
-      icMarkersShown = true;
-      icBoundsChanged = false;
-      var currentBoundaries = mapBoundaries();
-      $.getJSON('ajax/mapUpdater.php', currentBoundaries, function(ajaxMarkerData) {
-
-        icMarkers = new Array();
-        $.each(ajaxMarkerData, function(imageNo, imageData) {
-          var thisMarker = null;
-          var markerLatLng = new google.maps.LatLng(imageData.latitude, imageData.longitude);
-          var infoString = 'Image taken near: ' + imageData.location_string;
-          //              if (imageData.collation_number > 1) {
-          //                thisMarker = new google.maps.Marker({
-          ////                  map: icMap,
-          //                  position: markerLatLng,
-          //                  icon: 'images/system/multiplePhotos.png',
-          //                  title: imageData.collation_number + ' images. Near ' + imageData.location_string
-          ////                  collation: imageData.collation_number
-          //                });
-          //              } else {
-          thisMarker = new google.maps.Marker({
-            //                  map: icMap,
-            position: markerLatLng,
-            icon: 'images/system/photo.png',
-            title: 'Image taken near ' + imageData.location_string
-                    //                  collation: imageData.collation_number
-
-          });
-          //              }
-          icMarkers.push(thisMarker);
-
-          google.maps.event.addListener(thisMarker, 'click', (function(marker) {
-            return function() {
-              $('#mapRandomButtonControlWrapper').hide();
-              $('#mapSelectedImage').attr("src", imageData.image_url);
-              $('#mapSelectedImage').attr("alt", "An oblique image of the coastline taken near " + imageData.location_string);
-              icSelectedMapImage = "classification.php?projectId=" + icProjectId + "&imageId=" + imageData.image_id;
-              $('#selectedMapImageHeaderText').text('Post-Storm Photo Selected on Map near ' + imageData.location_string);
-              $('#selectedMapImage').css('display', 'block');
-//              $("#mapLoadImageButton").css('display', 'inline-block');
-              dynamicSizing();
-              google.maps.event.trigger(icMap, "resize");
-              for (var i = 0; i < icMarkers.length; i++) {
-                //                    if (icMarkers[i].collation > 1) {
-                //                      icMarkers[i].setIcon('images/system/multiplePhotos.png');
-                //                    } else {
-                icMarkers[i].setIcon('images/system/photo.png');
-                //                    }
-              }
-              //                  if (marker.collation > 1) {
-              //                    marker.setIcon('images/system/multiplePhotosSelected.png');
-              //                  } else {
-              marker.setIcon('images/system/photoSelected.png');
-              //                  }
-            };
-          })(thisMarker));
-        });
-        if (icMarkerClusterer === null) {
-          var mcOptions = {
-            'gridSize': 60,
-            'minimumClusterSize': 2,
-            'maxZoom': 14,
-            'imagePath': 'images/system/m'
-          };
-          icMarkerClusterer = new MarkerClusterer(icMap, icMarkers, mcOptions);
-          //              google.maps.event.addListener(icMarkerClusterer, "clusteringend", function() {
-          //                console.log('removing bar');
-          ////                $('#mapLoadingBar').css('display', 'none');
-          //              });
-
-        } else {
-          //              console.log("Adding Markers");
-          icMarkerClusterer.addMarkers(icMarkers);
+        if (toggleMarkers === true) {
+            $('#mapMarkerToggle').text("Hide Other Photos");
+            markersShown = true;
         }
-        $('#mapLoadingBar').css('display', 'none');
-        //            icCurrentImageMarker.setZIndex(9999999);
 
+        var boundaries = {
+          north: encodeURIComponent(bounds.getNorthEast().lat),
+          east: encodeURIComponent(bounds.getNorthEast().lng),
+          south: encodeURIComponent(bounds.getSouthWest().lat),
+          west: encodeURIComponent(bounds.getSouthWest().lng),
+          projectId: projectId,
+          userId: userId,
+          currentImageId: randomImageId
+        };
+
+        var currentBoundaries = boundaries;
+
+        $.getJSON('ajax/mapUpdater.php', currentBoundaries, function(ajaxMarkerData) {
+            if (markers === null) {
+                markers = L.markerClusterGroup({
+                    disableClusteringAtZoom: 15,
+                    maxClusterRadius: 120
+                });
+            } else {
+                markers.clearLayers();
+            }
+
+            $.each(ajaxMarkerData, function(imageNo, imageData) {
+                var markerLatLng = L.latLng(imageData.latitude, imageData.longitude);
+                var infoString = 'Image taken near: ' + imageData.location_string;
+                var markerPopup = L.popup({offset: L.point(0,-40), closeButton: false, autoPan :false}).setContent(infoString).setLatLng(markerLatLng);
+
+                var thisMarker = L.marker(markerLatLng, {icon: photoIcon});
+                thisMarker.on('mouseover', function() {
+                    map.openPopup(markerPopup);
+                });
+                thisMarker.on('mouseout', function() {
+                    map.closePopup(markerPopup);
+                });
+
+                thisMarker.on('click', function() {
+                    $('#mapRandomButtonControlWrapper').hide();
+                    $('#mapSelectedImage').attr("src", imageData.image_url);
+                    $('#mapSelectedImage').attr("alt", "An oblique image of the coastline taken near " + imageData.location_string);
+                    selectedMapImage = "classification.php?projectId=" + projectId + "&imageId=" + imageData.image_id;
+                    $('#selectedMapImageHeaderText').text('Post-Storm Photo Selected on Map near ' + imageData.location_string);
+                    $('#selectedMapImage').css('display', 'block');
+                    dynamicSizing();
+                    map.invalidateSize(false);
+
+                    markers.eachLayer(function (layer) {
+                        layer.setIcon(photoIcon);
+                    });
+                  thisMarker.setIcon(selectedIcon);
+                });
+
+                markers.addLayer(thisMarker);
+            });
+            map.addLayer(markers);
+            $('#mapLoadingBar').css('display', 'none');
+
+        });
+
+    } else if (markersShown === true && toggleMarkers === true) {
+        markersShown = false;
+        markers.clearLayers();
+        $('#selectedMapImage').css('display', 'none');
+        $('#mapRandomButtonControlWrapper').show();
+        $('#mapMarkerToggle').text("Show Other Photos");
+    }
+
+} // End function markerControl
+
+
+
+
+
+
+
+    function hideLoader(isPost) {
+        if (isPost) {
+          $('#postLoadingBar').hide();
+        } else {
+          $('#preLoadingBar').hide();
+        }
+    } // End funtion hideLoader
+
+    function processRandomImageChange (updatedRandomImageData) {
+      var projectName = updatedRandomImageData.newProjectName;
+      randomImageId = updatedRandomImageData.newRandomImageId;
+      randomImageLatitude = updatedRandomImageData.newRandomImageLatitude;
+      randomImageLongitude = updatedRandomImageData.newRandomImageLongitude;
+      randomImageLocation = updatedRandomImageData.newRandomImageLocation;
+      randomImageDisplayURL = updatedRandomImageData.newRandomImageDisplayURL;
+
+      $('#currentProjectText').text('Current Project: ' + projectName);
+
+      $('#projectName').text(randomImageLocation);
+      $('#randomPostImagePreviewWrapper img').attr({
+        src: randomImageDisplayURL,
+        alt: 'An oblique image of the United States coastline taken near ' + randomImageLocation + '.'
       });
-    } else {
-      //          clearMarkers();
-      icMarkersShown = false;
-      icMarkerClusterer.clearMarkers();
-      //          icMarkers = null;
-      $('#selectedMapImage').css('display', 'none');
-//      $("#mapLoadImageButton").css('display', 'none');
-      $('#mapMarkerToggle').text("Show Other Photos");
+
+      $('#randomImageHeader').text('Random photo selected for you near ' + randomImageLocation);
+      $('#mapRandomImageDisplay').attr({
+        src: randomImageDisplayURL,
+        alt: 'An oblique image of the United States coastline taken near ' + randomImageLocation + '.'
+      });
+
+      currentImageLatLon = L.latLng(randomImageLatitude, randomImageLongitude);
+      currentImageMarker.setLatLng(currentImageLatLon).update();
+      map.setView(currentImageLatLon, 11);
     }
 
-  } // End function toggleMarkers
-
-
-  function hideLoader(isPost) {
-    if (isPost) {
-      $('#postLoadingBar').hide();
-    } else {
-      $('#preLoadingBar').hide();
-    }
-  } // End funtion hideLoader
 
   function dynamicSizing() {
     // Calculate image sizes for Map is shown
@@ -290,75 +244,46 @@ $mapScript = <<<EOL
     }
   } // End function dynamicSizing
 
-  function processRandomImageChange (updatedRandomImageData) {
-    var projectName = updatedRandomImageData.newProjectName;
-    icRandomImageId = updatedRandomImageData.newRandomImageId;
-    icRandomImageLatitude = updatedRandomImageData.newRandomImageLatitude;
-    icRandomImageLongitude = updatedRandomImageData.newRandomImageLongitude;
-    icRandomImageLocation = updatedRandomImageData.newRandomImageLocation;
-    icRandomImageDisplayURL = updatedRandomImageData.newRandomImageDisplayURL;
-
-    $('#currentProjectText').text('Current Project: ' + projectName);
-
-    $('#projectName').text(icRandomImageLocation);
-    $('#randomPostImagePreviewWrapper img').attr({
-      src: icRandomImageDisplayURL,
-      alt: 'An oblique image of the United States coastline taken near ' + icRandomImageLocation + '.'
-    });
-
-    $('#randomImageHeader').text('Random photo selected for you near ' + icRandomImageLocation);
-    $('#mapRandomImageDisplay').attr({
-      src: icRandomImageDisplayURL,
-      alt: 'An oblique image of the United States coastline taken near ' + icRandomImageLocation + '.'
-    });
-
-    icCurrentImageLatLon = new google.maps.LatLng(icRandomImageLatitude, icRandomImageLongitude);
-    icCurrentImageMarker.setPosition(icCurrentImageLatLon);
-    icMap.setCenter(icCurrentImageLatLon);
-    icMap.setZoom(13);
-  }
 EOL;
 
 $mapDocumentReadyScript = <<<EOL
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places&callback=initializeMaps";
-    document.body.appendChild(script);
+    initializeMaps();
 
     $(window).resize(function() {
         dynamicSizing();
     });
 
-    $('#mapHide').click(function() {
-      icCurrentImageMarker.setMap();
-      $('#mapWrapper').fadeToggle();
-    });
     $('#mapMarkerToggle').click(function() {
-      toggleMarkers();
+      markerControl();
     });
+
     $('#centerMapButton').click(function() {
-      icMap.setCenter(icCurrentImageLatLon);
-      icMap.setZoom(13);
+      map.setView(currentImageLatLon, 11);
       $('#selectedMapImage').hide();
       $('#mapRandomButtonControlWrapper').show();
     });
+
     $('#mapLoadImageButton').click(function() {
-      window.location.href = icSelectedMapImage;
+      window.location.href = selectedMapImage;
+    });
+
+    $('#mapHide').click(function() {
+      $('#mapWrapper').fadeToggle();
     });
 
     $('#randomButton, #mapRandomButton').click(function() {
         var newProjectData = {
-            projectId: icProjectId,
-            userId: $userId
+            projectId: projectId,
+            userId: userId
         };
         $.getJSON('ajax/projectChanger.php', newProjectData, processRandomImageChange);
     });
 
     $('#projectSelect').change(function() {
-        icProjectId = $('#projectSelect option:selected').val();
+        projectId = $('#projectSelect option:selected').val();
         var newProjectData = {
-            projectId: icProjectId,
-            userId: $userId
+            projectId: projectId,
+            userId: userId
         };
         $.getJSON('ajax/projectChanger.php', newProjectData, processRandomImageChange);
     });
@@ -366,22 +291,22 @@ $mapDocumentReadyScript = <<<EOL
     $('#mapButton').click(function() {
       $('#mapWrapper').fadeToggle(400, function() {
         dynamicSizing();
-        google.maps.event.trigger(icMap, "resize");
-        icMap.setCenter(icCurrentImageLatLon);
-        icMarkersShown = false;
-        toggleMarkers();
-        icCurrentImageMarker.setMap(icMap);
+        map.invalidateSize(false);
+        map.setView(currentImageLatLon, 11);
       });
     });
+
+
     $('#tagButton, #mapTagButton').click(function() {
-      window.location.href = "classification.php?projectId=" + icProjectId + "&imageId=" + icRandomImageId;
+      window.location.href = "classification.php?projectId=" + projectId + "&imageId=" + randomImageId;
     });
+
 EOL;
 
 $mapHTML = <<<EOL
   <div id="mapWrapper">
         <div id="mapContent">
-            <h1>iCoast Map Navigator
+            <h1>USGS iCoast Map Navigator
               <button title="Click to exit from map view with no changes." id="mapHide" class="clickableButton">
                 X
               </button>
@@ -436,14 +361,13 @@ $mapHTML = <<<EOL
 
           </div>
           <div id="rightMapColumn" class="mapColumn">
-            <input id="pac-input" class="controls" type="text" placeholder="Search Box">
             <div id="mapCanvas">
             </div>
             <img id="mapLoadingBar" class="loadingBar" title="Loading other available image data..."
                 src="images/system/loading.gif" alt="A spinning icon indicatin page content is loading.">
             <div id="mapLegend">
               <div class="mapLegendRow">
-                <p id="mapInstruction">ZOOM-IN TO SELECT A POST-STORM PHOTO</p>
+                <p id="mapInstruction">ZOOM-IN TO SELECT A<br>POST-STORM PHOTO</p>
               </div>
               <div class="mapLegendRow">
                 <div class="mapLegendRowIcon">

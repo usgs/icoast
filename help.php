@@ -7,7 +7,7 @@ $pageBody = <<<EOL
         <div id="contentWrapper">
             <div id="helpWrapper">
 
-                <h1>iCoast Help and FAQs</h1>
+                <h1>USGS iCoast Help and FAQs</h1>
                 <div id="faqs">
                     <h2>FAQs</h2>
                     <p>Click any question to reveal the answer</p>
@@ -15,7 +15,7 @@ $pageBody = <<<EOL
                         title="Use this button to show all the FAQ answers with one click" />
                     <input type="button" class="clickableButton disabledClickableButton" id="hideAllFaqs"
                         value="Hide All FAQs" title="Use this button to hide all the FAQ answers with one click"/>
-                    <h3>Logging Into iCoast</h3>
+                    <h3 id="loginFAQ">Logging Into USGS iCoast</h3>
                         <div class="faq">
                             <div class="faqQuestion">
                                 <p>+</p>
@@ -23,9 +23,43 @@ $pageBody = <<<EOL
                             </div>
                             <div class="faqAnswer">
                                 <p>USGS has chosen to use <a href="http://openid.net/get-an-openid/what-is-openid/">
-                                    OpenID</a> through Google to lighten the burden on the public of creating
-                                    multiple user names and passwords. If you have problems logging in,
-                                    please contact <a href="mailto:icoast@usgs.gov">
+                                    OpenID</a> authentication and Google based credentials to lighten the
+                                    burden on the public of creating multiple user names and passwords. Using
+                                    externally issued credentials in this manner also increases user security
+                                    by reducing the number of places in which sensitive information such as
+                                    IDs and Passwords is stored.</p>
+                            </div>
+                        </div>
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
+                                <p>I don't have a Google Account. How do I get one? Can I register with Google
+                                    using an existing non-Google email address?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>By clicking the <span class="italic">Login or Register with Google</span>
+                                    button on the iCoast <span class="italic">Login</span>
+                                    page you will be redirected to a Google server which handles the login
+                                    process. Below the Email and Password boxes is a link to create a new
+                                    account with Google. You can use any email address to create a Google
+                                    account by selecting the option to use your own address when asked to choose
+                                    your username. If you have problems logging into iCoast, please contact the
+                                    iCoast administrators at <a href="mailto:icoast@usgs.gov">
+                                    icoast@usgs.gov</a>.</p>
+                            </div>
+                        </div>
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
+                                <p>What information is shared between Google and the USGS iCoast system?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>After iCoast has successfully authenticated the user via a Google server,
+                                    the iCoast system only stores the user's Google username, which is the
+                                    email used to login to Google Accounts. USGS does not share any information
+                                    about you or your actions within the iCoast system with Google. Google is
+                                    primarily used as a secure authentication medium. If you have any security
+                                    questions or other concerns, please contact <a href="mailto:icoast@usgs.gov">
                                     icoast@usgs.gov</a>.</p>
                             </div>
                         </div>
@@ -42,7 +76,20 @@ $pageBody = <<<EOL
                         </div>
 
 
-                    <h3>iCoast Tools</h3>
+                    <h3 id="loginFAQ">Using the USGS iCoast System</h3>
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
+                                <p>What is the best screen resolution for using iCoast?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>iCoast is designed to dynamically adapt to the size of your screen but it
+                                    requires a minimum resolution of 1280 pixels wide and 786 pixels high.
+                                    Screens or windows smaller than this resolution may require the user to
+                                    excessively scroll and may find it difficult to use iCoast.</p>
+                            </div>
+                        </div>
+
                         <div class="faq">
                             <div class="faqQuestion">
                                 <p>+</p>
@@ -145,7 +192,7 @@ $pageBody = <<<EOL
                                 <p>Can you put a scale bar on each aerial photograph?</p>
                             </div>
                             <div class="faqAnswer">
-                                <p>No, it is difficult to provide an accurate scale bar for every aerial
+                                <p>No, it is difficult to provide an accurate scale bar for every
                                     photograph because of the variability in altitude, distance offshore,
                                     and field of view of each flight.</p>
                             </div>
