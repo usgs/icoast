@@ -241,25 +241,25 @@ $feedbackJavascript = <<<EOL
 
     function positionFeedbackDiv() {
         moveFooter();
-//        if ($('#contentWrapper').length) {
-//            var contentHeight = $('#contentWrapper').outerHeight() + 135;
-//        } else {
-//            var contentHeight = $('#classificationWrapper').outerHeight() + 135;
-//        }
 
+        var windowWidth = $(window).width();
         var windowHeight = $(window).height();
-//        if (contentHeight < windowHeight) {
-//            var feedbackYPosition = contentHeight
-//        } else {
-            var feedbackYPosition = windowHeight
-//        }
+
+        if (windowWidth >= 1233) {
+            var forceHide = false;
+            $('#feedbackWrapper').show();
+        } else {
+            var forceHide = true;
+            $('#feedbackWrapper').hide();
+        }
+
+        var feedbackYPosition = windowHeight
+
         feedbackYPosition -= (100 + feedbackHeight);
         if (feedbackYPosition < 135) {
             feedbackYPosition = 135
         }
-//        if (feedbackYPosition > (contentHeight - feedbackHeight)) {
-//            feedbackYPosition = (contentHeight - feedbackHeight)
-//        }
+
         feedbackYPosition += 'px';
 
         $('#feedbackWrapper').css({
@@ -267,7 +267,7 @@ $feedbackJavascript = <<<EOL
         });
 
 
-        if ($('#feedbackWrapper').css('display') === 'none') {
+        if ($('#feedbackWrapper').css('display') === 'none' && forceHide === false) {
             $('#feedbackWrapper').show();
         }
     }

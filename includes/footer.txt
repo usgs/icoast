@@ -13,7 +13,7 @@
 		<a href="http://www.doi.gov/">U.S. Department of the Interior</a> |
 		<a href="http://www.usgs.gov/">U.S. Geological Survey</a><br />
 		URL: <?php print $pageUrl?><br />
-		Page Contact Information: <a href="mailto:icoast@usgs.gov">iCoast Administrator</a><br />
+		Page Contact Information: <a href="mailto:icoast@usgs.gov">USGS iCoast Administrator</a><br />
 		Page Last Modified: <?php print $fileModifiedDateTime ?>
 	</p>
 </div>

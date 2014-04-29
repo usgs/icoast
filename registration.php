@@ -5,7 +5,7 @@ require('includes/pageCode/registrationCode.php');
 
 $pageBody = <<<EOL
     <div id = "contentWrapper">
-        <h1>iCoast Registration</h1>
+        <h1>USGS iCoast Registration</h1>
         <p>No account for <span class="userData">$userEmail</span> has been found within iCoast.<br>
             Please complete the following information to build your iCoast profile.</p>
         <form method="post" action="registration.php" id="registerForm">

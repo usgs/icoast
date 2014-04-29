@@ -18,7 +18,7 @@ $pageBody = <<<EOL
             </div>
         </div>
         <div id="welcomeTextColumn">
-            <h1>Logged Out of iCoast</h1>
+            <h1>Logged Out of USGS iCoast</h1>
             <p>You have successfully logged out of iCoast</p>
             <form method="post" action="index.php">
                 <div class="formFieldRow standAloneFormElement">

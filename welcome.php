@@ -17,7 +17,7 @@ $pageBody = <<<EOL
             </div>
         </div>
         <div id="welcomeTextColumn">
-        <h1>Welcome $welcomeBackHTML to iCoast</h1>
+        <h1>Welcome $welcomeBackHTML to USGS iCoast</h1>
         <p>You are logged in as <span class="userData">$userEmail</span><br>
             If this is not you, logout then login with your Google Account.</p>
         $variableContent

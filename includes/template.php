@@ -8,13 +8,13 @@ require("includes/templateCode.php");
         <title><?php print $pageTitle ?></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <meta name="description" content=" “iCoast - Did the Coast Change?” is a USGS research project to
+        <meta name="description" content=" “USGS iCoast - Did the Coast Change?” is a USGS research project to
               construct and deploy a citizen science web application that asks volunteers to compare pre- and
               post-storm aerial photographs and identify coastal changes using predefined tags. This
               crowdsourced data will help USGS improve predictive models of coastal change and educate the
               public about coastal vulnerability to extreme storms.">
         <meta name="author" content="Snell, Poore, Liu">
-        <meta name="keywords" content="iCoast, Department of the Interior, USGS, hurricane, , hurricanes,
+        <meta name="keywords" content="USGS iCoast, iCoast, Department of the Interior, USGS, hurricane, , hurricanes,
               extreme weather, coastal flooding, coast, beach, flood, floods, erosion, inundation, overwash,
               marine science, dune, photographs, aerial photographs, prediction, predictions, coastal change,
               coastal change hazards, hurricane sandy, beaches">

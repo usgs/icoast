@@ -7,8 +7,8 @@ $pageBody = <<<EOL
         <div id="contentWrapper">
             <div id="aboutWrapper">
 
-                <h1>About “iCoast - Did the Coast Change?”</h1>
-                <h2>Purpose of iCoast</h2>
+                <h1>About “USGS iCoast - Did the Coast Change?”</h1>
+                <h2>Purpose of USGS iCoast</h2>
 
                  <img src="images/system/indexImages/classify.jpg"
                      alt="A screenshot of the iCoast application\'s classification page where users can
@@ -19,7 +19,7 @@ $pageBody = <<<EOL
                     coastal damages. The USGS has not been able to use these images to the fullest extent
                     due to a lack of the information processing capacity and personnel needed to analyze the
                     thousands of images they collect after each storm. Computers cannot yet automatically
-                    identify coastal changes adequately. Human perception is still needed. “iCoast - Did the
+                    identify coastal changes adequately. Human perception is still needed. “USGS iCoast - Did the
                     Coast Change?” is a USGS research project to construct and deploy a citizen science web
                     application that asks volunteers to compare pre- and post-storm aerial photographs and
                     identify coastal changes using predefined tags. This crowdsourced data will help USGS
@@ -70,7 +70,7 @@ $pageBody = <<<EOL
 
 
 
-                <h2>Benefits and Broader Impact of iCoast</h2>
+                <h2>Benefits and Broader Impact of USGS iCoast</h2>
 
                 <img src="images/system/aboutImages/coastalDamage.jpg"
                      alt="An taken from ground level image looking along a beach showing considerable damage
@@ -86,7 +86,7 @@ $pageBody = <<<EOL
                     science educators to further science, technology, engineering, and math (STEM) education.
                     </p>
 
-                <h2>The iCoast Team</h2>
+                <h2>The USGS iCoast Team</h2>
                 <div class="teamColumn">
                     <div>
                         <img src="images/system/aboutImages/sbliu.jpg" height="100" width="100" alt="Image of Sophia Liu"
@@ -110,14 +110,6 @@ $pageBody = <<<EOL
                         <h3>Richard Snell</h3>
                         <p><span class="teamPosition">Application Developer</span><br>
                             USGS Web Application Developer</p>
-                    </div>
-
-                    <div>
-                        <img src="images/system/aboutImages/agoodman.jpg" height="100" width="100" alt="Image of Aubrey Goodman"
-                            title="Aubrey Goodman" />
-                        <h3>Aubrey Goodman</h3>
-                        <p><span class="teamPosition">Prototype Developer</span><br>
-                            <a href="http://migrantstudios.com/">Migrant Studios Information Architect</a></p>
                     </div>
                 </div>
                 <div class="teamColumn">
@@ -145,26 +137,25 @@ $pageBody = <<<EOL
                         <p><span class="teamPosition">Coastal Scientist</span><br>
                             USGS Geologist and Aerial Photographer</p>
                     </div>
-
-                    <div>
-                        <img src="images/system/aboutImages/dkrohn.jpg" height="100" width="100" alt="Image of Dennis Krohn"
-                            title="Dennis Krohn" />
-                        <h3>Dennis Krohn</h3>
-                        <p><span class="teamPosition">Coastal Scientist</span><br>
-                            USGS Geologist and Aerial Videographer</p>
-                    </div>
                 </div>
-                <h2>Attributions and Acknowledgements</h2>
-                <p id="aboutAttributions">
-                    <span class="captionTitle">Geocoding:</span> Location names derived using the <a href="http://www.geonames.org/">GeoNames</a> Gazetteer. License: <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a><br>
-                    <span class="captionTitle">ToolTips:</span> <a href="http://code.drewwilson.com/entry/tiptip-jquery-plugin">TipTip</a>. Dual licensed: <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a><br>
-                    <span class="captionTitle">Zoom Tool:</span> <a href="http://www.elevateweb.co.uk/image-zoom">Elevate Zoom</a>. Dual licensed: <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a><br>
-                    <span class="captionTitle">Map Marker Clustering:</span> <a href="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclustererplus/docs/reference.html">MarkerClusterPlus</a>. License: <a hre="http://www.apache.org/licenses/LICENSE-2.0">Apache License, V 2.0</a><br>
-                    <span class="captionTitle">Form Validation:</span> <a href="http://jqueryvalidation.org">jQuery Validation Plugin</a>. License: <a href="http://opensource.org/licenses/mit-license.php">MIT</a><br>
-                    <span class="captionTitle">OpenId Validation:</span> <a href="https://code.google.com/p/lightopenid">lightopenid</a>. License: <a href="http://opensource.org/licenses/mit-license.php">MIT</a><br>
-                    <span class="captionTitle">Map Icon:</span> Created by <a href="http://simpleicon.com">Simple Icon</a>. License: <a href="http://simpleicon.com/license-agreement/">Simple Icon</a><br>
-                    <span class="captionTitle">Dice Icon:</span> Created by <a href="http://www.visualpharm.com">VisualPharm</a>. License: <a href="http://www.visualpharm.com/free_icons.html">VisualPharm</a><br>
-                    <span class="captionTitle">Map Markers:</span> <a href="http://mapicons.nicolasmollet.com">Map Icons Collection</a>. License: <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported</a>
+                <p class="aboutAttributions">The USGS iCoast project is funded by the Coastal and Marine
+                    Geology Program (<a href="http://marine.usgs.gov/">CMGP</a>) and the National Geospatial
+                    Program (NGP) through the Center of Excellence for Geospatial Information Science
+                    (<a href="http://cegis.usgs.gov/">CEGIS</a>).</p>
+                <h2>Attributions</h2>
+                <p class="aboutAttributions">References to or use of non-U.S. Department of the Interior (DOI)
+                    products does not constitute an endorsement by the DOI.</p>
+                <p class="aboutAttributions">
+                    <span class="captionTitle">Geocoding:</span> Location names derived using the <a href="http://www.geonames.org/">GeoNames</a> Gazetteer. <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a><br>
+                    <span class="captionTitle">ToolTips:</span> <a href="http://code.drewwilson.com/entry/tiptip-jquery-plugin">TipTip</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> Licenses<br>
+                    <span class="captionTitle">Zoom Tool:</span> <a href="http://www.elevateweb.co.uk/image-zoom">Elevate Zoom</a>. Dual licensed: <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> Licenses<br>
+                    <span class="captionTitle">Map Marker Clustering:</span> <a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet.markercluster</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a><br>
+                    <span class="captionTitle">Map Search:</span> <a href="https://github.com/smeijer/L.GeoSearch">Leaflet.GeoSearch</a>. <a href="https://github.com/smeijer/L.GeoSearch/blob/master/LICENSE">License</a><br>
+                    <span class="captionTitle">Form Validation:</span> <a href="http://jqueryvalidation.org">jQuery Validation Plugin</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a><br>
+                    <span class="captionTitle">OpenId Validation:</span> <a href="https://code.google.com/p/lightopenid">lightopenid</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a> <br>
+                    <span class="captionTitle">Map Icon:</span> Created by <a href="http://simpleicon.com">Simple Icon</a>. <a href="http://simpleicon.com/license-agreement/">License</a><br>
+                    <span class="captionTitle">Dice Icon:</span> Created by <a href="http://www.visualpharm.com">VisualPharm</a>. <a href="http://www.visualpharm.com/free_icons.html">License</a><br>
+                    <span class="captionTitle">Map Markers:</span> <a href="http://mapicons.nicolasmollet.com">Map Icons Collection</a>. <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>
                 </p>
             </div>
         </div>

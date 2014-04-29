@@ -6,7 +6,7 @@ $feedbackPageHTML = <<<EOL
     </div>
     <div id="feedbackWrapper">
         <div id="feedbackToggle" title="Click to open the Feedback Panel so you can provide us with details
-            of any bugs, suggestions or feature requests for iCoast">
+            of any bugs, suggestions or feature requests for USGS iCoast">
             <p>Feedback</p>
         </div>
         <div id="feedbackContent">
@@ -18,7 +18,7 @@ $feedbackPageHTML = <<<EOL
                 <input type="hidden" name="clientAgent" value="$clientAgent">
                 <input type="hidden" name="eventSummary" value="User Feedback">
                 <div id="feedbackPanel1" class="feedbackPanel">
-                    <h1>iCoast Feedback</h1>
+                    <h1>USGS iCoast Feedback</h1>
                     $feedbackPanel1
                 </div>
                 <div id="feedbackPanel2" class="feedbackPanel">

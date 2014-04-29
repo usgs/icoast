@@ -32,7 +32,7 @@ $javaScriptLinks = '';
 
 switch ($pageName) {
     case "home":
-        $pageTitle = "iCoast - Home";
+        $pageTitle = "USGS iCoast - Home";
         $mainNav = '<ul>';
         $mainNav .= '<li class="activePageLink">Home</li>';
         if ($userData) {
@@ -50,7 +50,7 @@ switch ($pageName) {
         break;
 
     case "registration":
-        $pageTitle = "iCoast - User Registration";
+        $pageTitle = "USGS iCoast - User Registration";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -62,7 +62,7 @@ EOL;
         break;
 
     case "welcome":
-        $pageTitle = "iCoast: Welcome to iCoast";
+        $pageTitle = "USGS iCoast: Welcome to USGS iCoast";
         $mainNav = <<<EOL
       <ul>
         <li><a href="index.php">Home</a></li>
@@ -77,7 +77,7 @@ EOL;
         break;
 
     case "classify":
-        $pageTitle = "iCoast: Classification";
+        $pageTitle = "USGS iCoast: Classification";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -91,7 +91,7 @@ EOL;
         break;
 
     case "start":
-        $pageTitle = "iCoast: Choose Your Photo";
+        $pageTitle = "USGS iCoast: Choose Your Photo";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -105,7 +105,7 @@ EOL;
         break;
 
     case "complete":
-        $pageTitle = "iCoast: Annotation Summary";
+        $pageTitle = "USGS iCoast: Annotation Summary";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -119,7 +119,7 @@ EOL;
         break;
 
     case "profile":
-        $pageTitle = "iCoast: User Profile";
+        $pageTitle = "USGS iCoast: User Profile";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -133,7 +133,7 @@ EOL;
         break;
 
     case "help":
-        $pageTitle = "iCoast: Help";
+        $pageTitle = "USGS iCoast: Help";
         $mainNav = '<ul>';
         $mainNav .= '<li><a href="index.php">Home</a></li>';
         if ($userData) {
@@ -151,7 +151,7 @@ EOL;
         break;
 
     case "about":
-        $pageTitle = 'iCoast: About "iCoast - Did the Coast Change"';
+        $pageTitle = 'USGS iCoast: About "USGS iCoast - Did the Coast Change"';
         $mainNav = '<ul>';
         $mainNav .= '<li><a href="index.php">Home</a></li>';
         if ($userData) {
@@ -169,7 +169,7 @@ EOL;
         break;
 
     case "logout":
-        $pageTitle = "iCoast - User Logout";
+        $pageTitle = "USGS iCoast - User Logout";
         $mainNav = <<<EOL
             <ul>
               <li><a href="index.php">Home</a></li>
@@ -187,18 +187,13 @@ EOL;
 
 $javaScript .= <<<EOL
     function moveFooter() {
-        //console.log('IN MOVE FOOTER');
         $('#usgsfooter').css({
             position: 'relative',
             top: 0
         });
-        //console.log($('#usgsfooter').css('position'));
         var footerTopOffset = $('#usgsfooter').offset().top;
-        //console.log('footerTopOffset: ' + footerTopOffset);
         var footerHeight = $('#usgsfooter').outerHeight();
-        //console.log('footerHeight: ' + footerHeight);
         var windowHeight = $(window).height();
-        //console.log('windowHeight: ' + windowHeight);
 
         if (footerTopOffset < (windowHeight - footerHeight)) {
             //console.log('<');

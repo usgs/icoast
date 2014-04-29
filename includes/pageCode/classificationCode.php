@@ -2,8 +2,11 @@
 
 $pageName = "classify";
 $cssLinkArray[] = 'css/tipTip.css';
+$cssLinkArray[] = 'css/leaflet.css';
+
 $embeddedCSS = '';
 $javaScriptLinkArray[] = '//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/elevateZoom.js';
 $javaScriptLinkArray[] = 'scripts/tipTip.js';
 
@@ -860,35 +863,36 @@ EOT;
 
 $javaScript = <<<EOL
     icDisplayedTask = 1;
-    icMap = null;
-    icCurrentImageLatLon = null;
+    var map = null;
+    var currentImageLatLon = null;
     icCurrentImageMarker = null;
     icProjectId = '';
 
     function initializeMaps() {
-        icCurrentImageLatLon = new google.maps.LatLng
-                ($postImageLatitude, $postImageLongitude);
-        var mapOptions = {
-            center: icCurrentImageLatLon,
-            zoom: 12,
-            mapTypeId: google.maps.MapTypeId.HYBRID
-        };
-        icMap = new google.maps.Map(document.getElementById("mapInsert"),
-                mapOptions);
-        var input = (document.getElementById('pac-input'));
-        icMap.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+        currentImageLatLon = L.latLng($postImageLatitude, $postImageLongitude);
 
-        var mapCurrentIcon = {
-            size: new google.maps.Size(32, 37),
-            url: 'images/system/photoCurrent.png'
-        };
-        icCurrentImageMarker = new google.maps.Marker({
-            position: icCurrentImageLatLon,
-            animation: google.maps.Animation.DROP,
-            icon: mapCurrentIcon,
-            clickable: false,
-            map: icMap
-        });
+        map = L.map("mapInsert").setView(currentImageLatLon, 12);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+        }).addTo(map);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.control.scale({
+            position: 'topright',
+            metric: false
+        }).addTo(map);
+
+        var mapCurrentIcon = L.icon({
+            iconSize: [32, 37],
+            iconAnchor: [16, 37],
+            iconUrl: 'images/system/photoCurrent.png',
+            popupAnchor: [16, 18]
+          });
+          currentImageMarker = L.marker(currentImageLatLon,
+          {
+              clickable: false,
+              icon: mapCurrentIcon
+          }).addTo(map);
+
     }
 
     function hideLoader(isPost) {
@@ -1063,13 +1067,13 @@ $javaScript = <<<EOL
         });
 
         $(window).scrollTop($('#navigationBar').position().top);
-        
+
     } // End dynamicSizing
 
     function iCoastTitle() {
         if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar p').outerWidth() + 20)) {
             if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar p').length == 0) {
-                $('#navigationBar').append('<p>iCoast - Did the Coast Change?</p>');
+                $('#navigationBar').append('<p>USGS iCoast - Did the Coast Change?</p>');
             } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar p').length) {
                 $('#navigationBar p').remove();
             }
@@ -1288,16 +1292,12 @@ $jQueryDocumentDotReadyCode .= <<<EOL
      icDisplayedTask = 1;
      setMinGroupHeaderWidth(icDisplayedTask);
 
-     $('#centerMapButton').click(function() {
-         icMap.setCenter(icCurrentImageLatLon);
-     });
-
      var databaseAnnotationInitialization = 'loadEvent=True$annotationMetaDataQueryString';
      console.log(databaseAnnotationInitialization);
      $.post('ajax/annotationLogger.php', databaseAnnotationInitialization);
      $(window).resize(function() {
          dynamicSizing(icDisplayedTask);
-         icMap.setCenter(icCurrentImageLatLon);
+         map.setView(currentImageLatLon);
          iCoastTitle();
      });
      dynamicSizing(icDisplayedTask);
