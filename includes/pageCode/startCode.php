@@ -1,36 +1,25 @@
 <?php
 
-$pageName = "start";
 $cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
 $cssLinkArray[] = 'css/leafletGeoSearch.css';
 
-$embeddedCSS = '';
 $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearchProvider.js';
-$javascript = '';
-$jQueryDocumentDotReadyCode = '';
 
 
-require 'includes/userFunctions.php';
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
+require_once('includes/userFunctions.php');
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-
-
-
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: index.php');
-    exit;
-}
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
 
 $filtered = TRUE;
 $userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 $variableContent = '';
 $allProjects = array();

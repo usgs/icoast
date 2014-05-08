@@ -1,29 +1,18 @@
 <?php
 
-$pageName = "welcome";
-$cssLinkArray = array();
-$embeddedCSS = '';
-$javaScriptLinkArray = array();
-$javaScript = '';
-$jQueryDocumentDotReadyCode = '';
+require_once('includes/userFunctions.php');
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-require 'includes/globalFunctions.php';
-require 'includes/userFunctions.php';
-require $dbmsConnectionPath;
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
 
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode']) || !isset($_GET['userType'])) {
+if (!isset($_GET['userType'])) {
     header('Location: index.php');
     exit;
 }
-
-$userData = FALSE;
 $userType = $_GET['userType'];
-$userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
-
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
-
 $userEmail = $userData['masked_email'];
 
 $startTaggingButtonHTML = <<<EOL

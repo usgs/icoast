@@ -3,7 +3,8 @@
 //print "In mapUpdater<br>";
 require_once('../includes/globalFunctions.php');
 require_once('../includes/userFunctions.php');
-require $dbmsConnectionPathDeep;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 define("IMAGES_PER_MAP", 10);
 $northernLimit = (is_numeric($_GET['north']) ? $_GET['north'] : null);

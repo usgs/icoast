@@ -1,8 +1,116 @@
 <?php
+
 //error_reporting(0);
 date_default_timezone_set('UTC');
-$dbmsConnectionPath = '../../icoast/DBMSConnection.php';
-$dbmsConnectionPathDeep = '../../../icoast/DBMSConnection.php';
+
+function detect_pageName() {
+    $filePath = rtrim($_SERVER['PHP_SELF'], '/');
+    $substrStart = strrpos($filePath, '/') + 1;
+    $substrLength = strrpos($filePath, '.') - $substrStart;
+    return substr($filePath, $substrStart, $substrLength);
+}
+
+function DB_file_location() {
+    $filePath = rtrim($_SERVER['PHP_SELF'], '/');
+    $pageDepthInSite = substr_count($filePath, '/');
+    return str_repeat('../', $pageDepthInSite) . '../icoast/DBMSConnection.php';
+}
+
+function file_modified_date_time($pageModifiedTime, $pageCodeModifiedTime) {
+    if ($pageModifiedTime >= $pageCodeModifiedTime) {
+        $fileModifiedTime = $pageModifiedTime;
+    } else {
+        $fileModifiedTime = $pageCodeModifiedTime;
+    }
+    $fileDateTime = new DateTime("@" . $fileModifiedTime);
+    $fileDateTime->setTimeZone(new DateTimeZone('America/New_York'));
+    $adjustedFileDateTime = $fileDateTime->format('U') + $fileDateTime->getOffset();
+    return date('F jS, Y H:i', $adjustedFileDateTime) . " EDT";
+}
+
+function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE, $logout = FALSE) {
+    if ($securePage) {
+        if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
+            header('Location: index.php?error=cookies');
+            exit;
+        }
+        $userId = $_COOKIE['userId'];
+        $authCheckCode = $_COOKIE['authCheckCode'];
+
+        $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect, $adminCheck, $enabledCheck);
+        if ($userData) {
+            $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+        }
+    } else {
+        if (isset($_COOKIE['userId']) || isset($_COOKIE['authCheckCode'])) {
+            $userId = $_COOKIE['userId'];
+            $authCheckCode = $_COOKIE['authCheckCode'];
+
+            $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE, $adminCheck, $enabledCheck);
+            if ($userData) {
+                $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+            }
+        } else {
+            $userData = FALSE;
+        }
+    }
+
+    return $userData;
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to authenticate user against 'users' table of the database from credentials stored in
+ * user cookies.
+ *
+ * @param string $dbc A mysqli database connection object.
+ * @param integer $userId The database user_id number of the user account from the userId cookie.
+ * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
+ * @return array On success returns an array containing all fields from the users database record.
+ */
+function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE, $adminCheck = FALSE,
+        $enabledCheck = TRUE) {
+    $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
+    $params = array(
+        'userId' => $userId,
+        'authCheckCode' => $authCheckCode);
+    $STH = run_prepared_query($DBH, $query, $params);
+    $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
+    if (count($userData) == 0) {
+        if ($redirect) {
+            generate_cookie_credentials($DBH, $userId, TRUE);
+            header('Location: index.php?error=auth');
+            exit;
+        } else {
+            return FALSE;
+        }
+    } else {
+        $userData = $userData[0];
+        if ($adminCheck) {
+            if ($userData['account_type'] <= 1 || $userData['account_type'] >= 5) {
+                if ($redirect) {
+                    header('Location: index.php?error=admin');
+                    exit;
+                } else {
+                    return FALSE;
+                }
+            }
+        }
+        if ($enabledCheck) {
+            if ($userData['is_enabled'] == 0) {
+                if ($redirect) {
+                    generate_cookie_credentials($DBH, $userId, TRUE);
+                    header('Location: index.php?error=disabled');
+                    exit;
+                } else {
+                    return FALSE;
+                }
+            }
+        }
+        return $userData;
+    }
+}
+
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to generate new user authentication credential cookies and matching database entries
@@ -24,45 +132,14 @@ function generate_cookie_credentials($DBH, $userId, $logout = FALSE) {
             setcookie('userId', $userId, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
             setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
         } else {
-            setcookie('userId', '', time() - 360 * 24, '/', '', 0, 1);
-            setcookie('authCheckCode', '', time() - 360 * 24, '/', '', 0, 1);
+            setcookie('userId', '', time() - 60 * 60 * 24, '/', '', 0, 1);
+            setcookie('authCheckCode', '', time() - 60 * 60 * 24, '/', '', 0, 1);
         }
         return $authCheckCode;
     } else {
         //  Placeholder for error management
         print 'User Cookie Generation Error: User Id Not found';
         exit;
-    }
-}
-
-// -------------------------------------------------------------------------------------------------
-/**
- * Function to authenticate user against 'users' table of the database from credentials stored in
- * user cookies.
- *
- * @param string $dbc A mysqli database connection object.
- * @param integer $userId The database user_id number of the user account from the userId cookie.
- * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
- * @return array On success returns an array containing all fields from the users database record.
- */
-function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE) {
-    $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
-    $params = array(
-        'userId' => $userId,
-        'authCheckCode' => $authCheckCode);
-    $STH = run_prepared_query($DBH, $query, $params);
-    $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
-    if (count($userData) == 0) {
-        if ($redirect) {
-            header('Location: index.php');
-            exit;
-        } else {
-            return FALSE;
-        }
-
-        exit;
-    } else {
-        return $userData[0];
     }
 }
 
@@ -408,7 +485,7 @@ function retrieve_image_metadata($imageIds) {
  * @return string|boolean On success returns a formatted string <b>OR</b><br>
  * On failure returns boolean FALSE.
  */
-function build_image_location_string($imageMetadata, $shortResult=FALSE) {
+function build_image_location_string($imageMetadata, $shortResult = FALSE) {
     /* print "<p><b>In build_image_location_string function.</b><br>Arguments:<br><pre>";
       print_r($imageMetadata);
       print "</pre></p>"; */

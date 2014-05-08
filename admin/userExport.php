@@ -19,9 +19,9 @@ if (!$userData) {
 }
 $authCheckCode = generate_cookie_credentials($DBH, $userId);
 
-if ($userData['account_type'] != 2) {
+if ($userData['account_type'] != 4) {
     print "Insufficient Permissions<br>Access Denied.";
-//    header('Location: index.php');
+    header('Location: index.php');
     exit;
 }
 

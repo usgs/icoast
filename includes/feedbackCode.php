@@ -1,7 +1,8 @@
 <?php
 
 require_once('includes/globalFunctions.php');
-require_once($dbmsConnectionPath);
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 if (!isset($userId)) {
     $userId = 0;

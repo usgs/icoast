@@ -1,15 +1,10 @@
 <?php
-$pageName = "logout";
-$cssLinkArray = array();
-$embeddedCSS = '';
-$javaScriptLinkArray = array();
-$javaScript = '';
-$jQueryDocumentDotReadyCode = '';
 
-$userData = FALSE;
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
+$pageCodeModifiedTime = filemtime(__FILE__);
 
 if (isset($_COOKIE['userId'])) {
   generate_cookie_credentials($DBH, $_COOKIE['userId'], TRUE);

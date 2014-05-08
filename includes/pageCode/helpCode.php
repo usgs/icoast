@@ -1,25 +1,11 @@
 <?php
 
-$pageName = "help";
-$cssLinkArray = array();
-$embeddedCSS = '';
-$javaScriptLinkArray = array();
-$javaScript = '';
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
-$userData = FALSE;
-
-if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
-
-    $userId = $_COOKIE['userId'];
-    $authCheckCode = $_COOKIE['authCheckCode'];
-
-    $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE);
-    if ($userData) {
-        $authCheckCode = generate_cookie_credentials($DBH, $userId);
-    }
-}
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH, FALSE);
 
 $jQueryDocumentDotReadyCode = <<<EOL
 

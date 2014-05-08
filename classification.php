@@ -1,5 +1,7 @@
 <?php
 ob_start();
+$pageModifiedTime = filemtime(__FILE__);
+
 require_once('includes/pageCode/classificationCode.php');
 
 $pageBody = <<<EOL
@@ -63,4 +65,4 @@ $pageBody = <<<EOL
     </div>
 EOL;
 
-require('includes/template.php');
+require_once('includes/template.php');

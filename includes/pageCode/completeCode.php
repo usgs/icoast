@@ -1,29 +1,30 @@
 <?php
 
-$pageName = "complete";
 $cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
-$embeddedCSS = '';
 $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
+$javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
+$javaScriptLinkArray[] = 'scripts/leafletGeoSearchProvider.js';
 
-require 'includes/globalFunctions.php';
-require 'includes/userFunctions.php';
-require $dbmsConnectionPath;
 
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode']) || !isset($_GET['projectId']) || !isset($_GET['imageId'])) {
+require_once('includes/globalFunctions.php');
+require_once('includes/userFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
+
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
+$userId = $userData['user_id'];
+
+if (!isset($_GET['projectId']) || !isset($_GET['imageId'])) {
     header('Location: index.php');
     exit;
 }
 
 $filtered = TRUE;
-$userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
 $projectId = $_GET['projectId'];
 $postImageId = $_GET['imageId'];
-
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 if (!$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project')) {
     //  Placeholder for error management

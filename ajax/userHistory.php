@@ -2,7 +2,8 @@
 
 require('../includes/globalFunctions.php');
 require('../includes/userFunctions.php');
-require($dbmsConnectionPathDeep);
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 $projectId = $_POST['projectId'];
 $userId = $_POST['userId'];

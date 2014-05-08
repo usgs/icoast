@@ -1,6 +1,5 @@
 <?php
 
-$pageName = "profile";
 $cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
 $embeddedCSS = '#historyControlWrapper p:first-of-type {margin-top: 0px; padding-top: 10px;}';
@@ -8,20 +7,14 @@ $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = "scripts/jquery.validate.min.js";
 
-require 'includes/globalFunctions.php';
-require 'includes/userFunctions.php';
-require $dbmsConnectionPath;
+require_once('includes/globalFunctions.php');
+require_once('includes/userFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: index.php');
-    exit;
-}
-
-$userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
-
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
+$userId = $userData['user_id'];
 
 $timeZone1HTML = '';
 $timeZone2HTML = '';
@@ -524,7 +517,7 @@ $javaScript = <<<EOT
             thisMarker.on('mouseout', function() {
                 map.closePopup(markerPopup);
             });
-    
+
             markers.addLayer(thisMarker);
 
 

@@ -120,11 +120,6 @@ a:hover {
 
 }
 
-#navigationBar li:first-of-type {
-    /*    padding: 8px 15px 8px 0px;*/
-    padding: 0 15px 0 5px;
-}
-
 #navigationBar li:last-of-type {
     border-right: none;
 }
@@ -141,12 +136,13 @@ a:hover {
 }
 
 .activePageLink {
-    background-color: #284D68;
+    background-color: #284D68 !important;
     /*color: #45a1c8;*/
     color: #FFFFFF;
 }
 
-#navigationBar a {
+#navigationBar a,
+#adminNavigationBar a {
     text-decoration: none;
     color: white;
 }
@@ -156,17 +152,18 @@ a:hover {
     color: #E56969;
 }
 
-#adminPanelLink {
+#adminHomeLink {
     background-color: #E56969;
     width: 150px;
     text-align: center;
 }
 
-#adminPanelLink a {
+#adminHomeLink a {
     color: black;
 }
 
-#navigationBar a:hover {
+#navigationBar a:hover,
+#adminNavigationBar a:hover {
     color: #D3E2F0;
 }
 
@@ -241,67 +238,47 @@ input::-moz-focus-inner {
     padding: 0;
 }
 
-/*Google Maps*/
-
-/*Fix for Google Maps Zoom Control Display Bug*/
-#mapCanvas img, #mapInsert img {
+#mapCanvas img,
+#mapInsert img {
     border-radius: 0;
-    max-width: none;
-    display: inline;
 }
 
-/*Google Maps Search Box Styling*/
-.controls {
-    margin-top: 25px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    height: 32px;
-    outline: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*All admin pages*/
+
+#adminPageWrapper {
+    min-width: 1233px;
+    max-width: 1920px;
 }
 
-/*Google Maps Search Box Styling*/
-#pac-input {
-    background-color: #fff;
-    padding: 0 11px 0 13px;
-    width: 50%;
-    font-family: Roboto;
-    font-size: 15px;
-    font-weight: 300;
-    text-overflow: ellipsis;
+#adminNavigationBar {
+    background-color: #666666;
+    float: left;
+    width: 180px;
+    overflow: hidden;
+    border-right: 1px solid #FFFFFF;
 }
 
-/*Google Maps Search Box Styling*/
-#pac-input:focus {
-    border-color: #4d90fe;
-    margin-left: -1px;
-    padding-left: 14px;  /* Regular padding-left + 1. */
-    /*width: 401px;*/
-}
-/*Google Maps Search Results Styling*/
-.pac-container {
-    font-family: Roboto;
-    z-index: 10000;
-}
-/*Google Maps Styling*/
-#type-selector {
-    color: #fff;
-    background-color: #4d90fe;
-    padding: 5px 11px 0px 11px;
-}
-/*Google Maps Styling*/
-#type-selector label {
-    font-family: Roboto;
-    font-size: 13px;
-    font-weight: 300;
-}
-/*Google Maps Styling*/
-#target {
-    width: 345px;
+#adminNavigationBar li {
+    font-weight: bold;
+    color: #FFFFFF;
+    border-bottom: 1px solid #FFFFFF;
+    display: inline-block;
+    font-size: 17px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 15px 0 17px;
+    width: 100%;
 }
 
+#adminContentWrapper {
+    font-family: Arial,Helvetica,Vardana,sans-serif;
+    background-color: #D3E2F0;
+    font-size: 18px;
+    padding: 1px 20px 10px 20px;
+    overflow: hidden;
+    text-align: center;
+}
 
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -814,7 +791,8 @@ label.error {
 }
 
 #alertBoxWrapper {
-    display:table;
+    display: none;
+    /*display:table;*/
     position: fixed;
     top: 0;
     left: 0;
@@ -905,7 +883,7 @@ label.error {
 
 #indexTextColumn {
     margin-left: 700px;
-    height: 450px;
+/*    height: 450px;*/
     text-align: left;
     margin-bottom: 20px;
 }
@@ -1421,3 +1399,4 @@ Width needs to be altered to be dynamic!*/
     background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
 }
+
