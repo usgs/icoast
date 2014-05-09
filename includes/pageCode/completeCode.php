@@ -2,6 +2,7 @@
 
 $cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
+$cssLinkArray[] = 'css/leafletGeoSearch.css';
 $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
