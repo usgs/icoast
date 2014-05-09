@@ -21,34 +21,35 @@ $adminLevel = $userData['account_type'];
 
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// QUERY TYPE
-$eventType = 'all';
-if (isset($_GET['eventType'])) {
-    $eventType = $_GET['eventType'];
-}
-
 $eventLogQuery = "SELECT e.*, u.masked_email "
         . "FROM event_log e "
         . "LEFT JOIN users u "
         . "ON e.user_id = u.user_id";
-switch ($_GET['eventType']) {
 
-    case "all":
-    default:
-        if ($adminLevel == 3 || $adminLevel == 2) {
-            $userAdministeredProjects = find_administered_projects($DBH, $userId);
-            $projectString = where_in_string_builder($userAdministeredProjects);
-            $eventLogQuery = " WHERE event_type = 3  AND event_code IN ($projectString)";
-        }
-        break;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FILTERS
+
+$project = null;
+$userAdministeredProjects = find_administered_projects($DBH, $userId);
+if (isset($_GET['project']) && settype($_GET['project'], 'integer')) {
+    $project = $_GET['project'];
+
+
 }
 
 
 
 
 
+if ($adminLevel == 3 || $adminLevel == 2) {
+    $projectString = where_in_string_builder($userAdministeredProjects);
+    if (stripos($eventLogQuery, ' WHERE ') !== FALSE) {
+        $eventLogQuery = " AND event_type = 3  AND event_code IN ($projectString)";
+    } else {
+        $eventLogQuery = " WHERE event_type = 3  AND event_code IN ($projectString)";
+    }
+
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // READ OR CLOSED EVENTS
