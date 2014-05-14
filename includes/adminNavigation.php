@@ -1,6 +1,4 @@
 <?php
-
-require_once('includes/globalFunctions.php');
 $pageName = detect_pageName();
 $adminNavigationActive = TRUE;
 

@@ -1,6 +1,41 @@
 <?php
 
-require_once('includes/globalFunctions.php');
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to find the project_id of all projects a user has admin control of.
+ *
+ * This function accepts the user name of a user and checks the project_administrators table of the iCoast DB
+ * to see if this user has been granted admin rights to any projects. Results are returned in the form of a
+ * single dimension indexed array where each value is the id of an administered project. An empty array is
+ * returned if no projects are administered by the user.
+ *
+ * @param object $DBH A PDO object representing a database connection.
+ * @param int $userId Database ID of the user to be queried.
+ * @return array Returns a single dimension indexed array. Each value is the database project ID of an
+ *      administered project. Empty array if no projects found.
+ */
+function admin_level_to_text($adminLevel) {
+    switch ($adminLevel) {
+        case 2:
+            return '<span title="Your iCoast access rights allow you to manipulate and maintain existing projects that '
+            . 'you have been granted access to. You are unable to create or delete projects. '
+            . 'If you feel these access rights are incorrect please contact an iCoast System Administrator.">'
+            . 'Project Editor</span>';
+            break;
+        case 3:
+            return '<span title ="Your iCoast access rights allows you to create new projects and subsequently '
+            . 'delete those projects. You can also manipulate and maintain projects you create as well as '
+            . 'other projects that you have been granted access to.">Project Administrator</span>';
+            break;
+        case 4:
+            return "<span title=\"Your iCoast access rights allow you to control all aspects of iCoast's operation. "
+            . "As a system administrator you can create new projects as well as manipulate, maintain and delete "
+            . "existing projects. You can manage user accounts and user privilidges. You can also "
+            . "manipulate system settings.\">System Administrator</span>";
+            break;
+    }
+}
 
 // -------------------------------------------------------------------------------------------------
 /**

@@ -1,9 +1,10 @@
 <?php
 //////////
 // => Define required files and initial includes
-require_once('includes/globalFunctions.php');
-require_once('includes/adminFunctions.php');
-require $dbmsConnectionPath;
+require_once('../includes/globalFunctions.php');
+require_once('../includes/adminFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 //////////
 $filtered = TRUE;
 $projectId = 1;

@@ -142,6 +142,9 @@ if (!isset($cssLinkArray)) {
     $cssLinkArray = array();
 }
 $cssLinks = '';
+if (isset($adminNavigationActive)) {
+    $cssLinkArray[] = "css/icoastAdmin.css";
+}
 if (count($cssLinkArray) > 0) {
     foreach ($cssLinkArray as $link) {
         $cssLinks .= "<link rel='stylesheet' href='$link'>\n\r";

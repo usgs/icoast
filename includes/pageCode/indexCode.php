@@ -32,7 +32,7 @@ EOL;
 }
 
 $loginAccountInfoText = <<<EOL
-    <p><span class="captionTitle">Note:</span> Any Google based account, included standard Gmail accounts or those managed by you or your
+    <p><span class="captionTitle">Note:</span> Any Google based account, including standard Gmail accounts or those managed by you or your
         organization, can be used to create an iCoast account.</p>
         <p>(Examples: aperson@gmail.com, aperson@usgs.gov, aperson@university.edu)</p>
     <p><a href="help.php#loginFAQ">Why Google?</a></p>
