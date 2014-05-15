@@ -10,7 +10,6 @@ $pageModifiedTime = filemtime(__FILE__);
 
 // END PAGE PHP
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CODE PAGE PHP
@@ -60,39 +59,44 @@ if (isset($_GET['sourceFunction'])) {
     $searchParams['sourceFunction'] = $_GET['sourceFunction'];
 }
 
-if (isset($_POST['read'])) {
+if (isset($_GET['read'])) {
     $searchParams['read'] = TRUE;
 }
 
-if (isset($_POST['closed']) && $_POST['closed'] == 1) {
+if (isset($_GET['closed']) && $_GET['closed'] == 1) {
     $searchParams['closed'] = TRUE;
 }
 
-if (isset($_POST['orderBy'])) {
-    $searchParams['orderBy'] = $_POST['orderBy'];
+if (isset($_GET['orderBy'])) {
+    $searchParams['orderBy'] = $_GET['orderBy'];
 }
 
 
-if (isset($_POST['sortDirection'])) {
-    $searchParams['sortOrder'] = $_POST['sortDirection'];
+if (isset($_GET['sortDirection'])) {
+    $searchParams['sortOrder'] = $_GET['sortDirection'];
 }
 
-if (isset($_POST['startRow'])) {
-    $searchParams['startResultRow'] = $_POST['startRow'];
+if (isset($_GET['startRow'])) {
+    $searchParams['startResultRow'] = $_GET['startRow'];
 }
 
-if (isset($_POST['resultSize'])) {
+if (isset($_GET['resultSize'])) {
     $searchParams['resultSize'] = 10;
 }
 
+$ajaxDataObjectCount = 0;
 $ajaxDataObject = 'ajaxData = {';
 foreach ($searchParams as $key => $value) {
-    $javascriptVariables .= "$key: $value";
+    $ajaxDataObjectCount ++;
+    if ($ajaxDataObjectCount == 1) {
+        $ajaxDataObject .= "$key: $value";
+    } else {
+        $ajaxDataObject .= ", $key: $value";
+    }
 }
+$ajaxDataObject .= "};\n\r";
 
-$ajaxDataObject .= '}';
-
-
+echo $ajaxDataObject;
 
 // END CODE PAGE PHP
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +104,6 @@ $ajaxDataObject .= '}';
 
 require("includes/feedback.php");
 require("includes/templateCode.php");
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -127,34 +130,37 @@ require("includes/templateCode.php");
         <link rel="stylesheet" href="http://www.usgs.gov/styles/common.css" />
         <link rel="stylesheet" href="css/custom.css">
         <link rel="stylesheet" href="css/tipTip.css">
-        <?php
-        print $cssLinks;
-        ?>
-        <style>
 <?php
-print $feedbackEmbeddedCSS . "\n\r";
-print $embeddedCSS;
+print $cssLinks;
 ?>
+        <style>
+        <?php
+        print $feedbackEmbeddedCSS . "\n\r";
+        print $embeddedCSS;
+        ?>
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script src="scripts/tipTip.js"></script>
-        <?php print $javaScriptLinks; ?>
+<?php print $javaScriptLinks; ?>
         <script>
-<?php print $feedbackJavascript . "\n\r"; ?>
+        <?php print $feedbackJavascript . "\n\r";
+            print $javaScript . "\n\r"; ?>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // JAVASCRIPT
 
 
-    function runAjaxEventQuery() {
-        <?php print $ajaxDataObject ?>
-        $.post('ajax/eventLogViewer.php', ajaxData, displayEvents, 'json');
-    }
+            function runAjaxEventQuery() {
+<?php print $ajaxDataObject ?>
+                $.post('ajax/eventLogViewer.php', ajaxData, displayEvents, 'json');
+            }
 
-    function displayEvents(ajaxResult) {
-
-    }
+            function displayEvents(ajaxResult) {
+                if (ajaxResult.controlData.errors. in ajaxResult) {
+                    $('#eventLogWrapper').hide();
+                }
+            }
 
 
 
@@ -169,7 +175,7 @@ print $embeddedCSS;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // JAVASCRIPT DOCUMENT.READY
-
+            runAjaxEventQuery();
 
 
 
@@ -177,7 +183,8 @@ print $embeddedCSS;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-<?php print $feedbackjQueryDocumentDotReadyCode . "\n\r"; ?>
+<?php   print $feedbackjQueryDocumentDotReadyCode . "\n\r";
+        print $jQueryDocumentDotReadyCode . "\n\r";?>
             (function(i, s, o, g, r, a, m) {
                 i['GoogleAnalyticsObject'] = r;
                 i[r] = i[r] || function() {
@@ -198,12 +205,12 @@ print $embeddedCSS;
     </head>
     <body>
         <!--Header-->
-        <?php require('includes/header.txt') ?>
+<?php require('includes/header.txt') ?>
 
         <!--Page Body-->
         <a href="#skipmenu" title="Skip this menu"></a>
         <div id='navigationBar'>
-            <?php print $mainNav ?>
+<?php print $mainNav ?>
         </div>
         <a id="skipmenu"></a>
 
@@ -211,18 +218,20 @@ print $embeddedCSS;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // PAGE HTML CODE -->
         <div id="adminPageWrapper">
-            <?php print $adminNavHTML ?>
+<?php print $adminNavHTML ?>
             <div id="adminContentWrapper">
                 <div id="adminBanner">
                     <p>You are logged in as <span class="userData"><?php print $maskedEmail ?></span>. Your admin level is
                         <span class="userData"><?php print $adminLevelText ?></span></p>
                 </div>
                 <h1>iCoast Event Log Viewer</h1>
-                <div id="eventLogTableWrapper">
-                    <h2>Events Summary</h2>
-                </div>
-                <div id="eventDetailsWrapper">
-                    <h2>Event Details</h2>
+                <div id="eventLogWrapper">
+                    <div id="eventTableWrapper">
+                        <h2>Events Summary</h2>
+                    </div>
+                    <div id="eventDetailsWrapper">
+                        <h2>Event Details</h2>
+                    </div>
                 </div>
                 <div id="eventLogErrorWrapper">
                     <p>Error Text</p>
@@ -238,17 +247,17 @@ print $embeddedCSS;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////-->
 
 
-        <?php
-        print $feedbackPageHTML;
-        require('includes/footer.txt');
-        ?>
+<?php
+print $feedbackPageHTML;
+require('includes/footer.txt');
+?>
 
         <div id="alertBoxWrapper">
             <div id="alertBoxCenteringWrapper">
                 <div id="alertBox">
-                    <?php print $alertBoxContent; ?>
+<?php print $alertBoxContent; ?>
                     <div id="alertBoxControls">
-                        <?php print $alertBoxDynamicControls; ?>
+                    <?php print $alertBoxDynamicControls; ?>
                         <input type="button" id="closeAlertBox" class="clickableButton" value="Close">
                     </div>
                 </div>
