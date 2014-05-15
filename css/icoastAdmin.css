@@ -1,0 +1,57 @@
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*All admin pages*/
+
+#adminPageWrapper {
+    min-width: 1233px;
+    max-width: 1920px;
+}
+
+#adminNavigationBar {
+    background-color: #666666;
+    float: left;
+    width: 180px;
+    overflow: hidden;
+    border-right: 1px solid #FFFFFF;
+}
+
+#adminNavigationBar li {
+    font-weight: bold;
+    color: #FFFFFF;
+    border-bottom: 1px solid #FFFFFF;
+    display: inline-block;
+    font-size: 17px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 15px 0 17px;
+    width: 100%;
+}
+
+#adminContentWrapper {
+    font-family: Arial,Helvetica,Vardana,sans-serif;
+    background-color: #D3E2F0;
+    font-size: 18px;
+    padding: 1px 20px 10px 20px;
+    overflow: hidden;
+    text-align: center;
+}
+
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Admin Event Viewer Page */
+
+#eventTableWrapper {
+    float: left;
+    width: 58%;
+    padding-right: 10px;
+}
+
+#eventDetailsWrapper {
+    float: left;
+    width: 38%;
+    padding-left: 10px;
+}
+
+#eventLogErrorWrapper {
+    display: none;
+}
