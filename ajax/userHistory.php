@@ -63,7 +63,7 @@ for ($i = 0; $i < count($userAnnotations); $i++) {
     $userAnnotations[$i]['project_name'] = $projectDirectory[$annotationProjectId];
 
     $userAnnotations[$i]['time_spent'] = timeDifference($annotationStartTime, $annotationEndTime, FALSE);
-    $userAnnotations[$i]['annotation_time'] = formattedAnnotationTime($annotationEndTime, $userTimeZone, FALSE);
+    $userAnnotations[$i]['annotation_time'] = formattedTime($annotationEndTime, $userTimeZone, FALSE);
     $userAnnotations[$i]['number_of_tags'] = tagsInAnnotation($DBH, $annotationId);
 
     $annotationImageMetadata = retrieve_entity_metadata($DBH, $annotationImageId, 'image');

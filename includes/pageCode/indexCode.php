@@ -48,7 +48,7 @@ if (!$openid->mode) {
 EOL;
         if ($redirectError == "admin") {
             $variableContent .= <<<EOL
-                    <p class="loginError">Your user account has insufficient privileges to access the
+                    <p class="error">Your user account has insufficient privileges to access the
                         requested page. If you believe you should have elevated permissions within iCoast then
                         please contact the iCoast System Administrator at
                         <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
@@ -65,20 +65,20 @@ EOL;
     } else {
         if ($redirectError == 'auth') {
             $variableContent = <<<EOL
-                <p class="loginError">Your local authentication credentials have lost synchronization with the
+                <p class="error">Your local authentication credentials have lost synchronization with the
                     server and your login has been reset. Please click the button below to log back in to
                     iCoast using Google. If this problem persists then please contact the iCoast System
                     Administrator at <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
 EOL;
         } else if ($redirectError == 'disabled') {
             $variableContent = <<<EOL
-                    <p class="loginError">Sorry, your iCoast account is currently disabled. If you believe this has
+                    <p class="error">Sorry, your iCoast account is currently disabled. If you believe this has
                         been done in error then please contact the iCoast System Administrator at
                         <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
 EOL;
         } else if ($redirectError == "cookies") {
             $variableContent = <<<EOL
-                    <p class="loginError">You have attempted to access a page that requires you to be logged in.
+                    <p class="error">You have attempted to access a page that requires you to be logged in.
                         Please login and try the page again. If this error persists then first ensure that your
                         browser is set to accept cookies before contacting the iCoast System Administrator
                         for assistance at <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
@@ -108,7 +108,7 @@ EOL;
     }
 } elseif ($openid->mode == 'cancel') {
     $variableContent = <<<EOL
-          <p class="loginError">Authentication process was cancelled. Click the button below to start the login process again</p>
+          <p class="error">Authentication process was cancelled. Click the button below to start the login process again</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>
@@ -117,7 +117,7 @@ EOL;
 } else {
     if (!$openid->validate()) {
         $variableContent = <<<EOL
-          <p class="loginError">Authentication failed. Click the button below to try again.</p>
+          <p class="error">Authentication failed. Click the button below to try again.</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>
@@ -159,7 +159,7 @@ EOL;
                         exit;
                     } else {
                         $variableContent = <<<EOL
-          <p class="loginError">Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
+          <p class="error">Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>

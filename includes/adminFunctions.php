@@ -1,6 +1,5 @@
 <?php
 
-
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to find the project_id of all projects a user has admin control of.
@@ -19,20 +18,20 @@ function admin_level_to_text($adminLevel) {
     switch ($adminLevel) {
         case 2:
             return '<span title="Your iCoast access rights allow you to manipulate and maintain existing projects that '
-            . 'you have been granted access to. You are unable to create or delete projects. '
-            . 'If you feel these access rights are incorrect please contact an iCoast System Administrator.">'
-            . 'Project Editor</span>';
+                    . 'you have been granted access to. You are unable to create or delete projects. '
+                    . 'If you feel these access rights are incorrect please contact an iCoast System Administrator.">'
+                    . 'Project Editor</span>';
             break;
         case 3:
             return '<span title ="Your iCoast access rights allows you to create new projects and subsequently '
-            . 'delete those projects. You can also manipulate and maintain projects you create as well as '
-            . 'other projects that you have been granted access to.">Project Administrator</span>';
+                    . 'delete those projects. You can also manipulate and maintain projects you create as well as '
+                    . 'other projects that you have been granted access to.">Project Administrator</span>';
             break;
         case 4:
             return "<span title=\"Your iCoast access rights allow you to control all aspects of iCoast's operation. "
-            . "As a system administrator you can create new projects as well as manipulate, maintain and delete "
-            . "existing projects. You can manage user accounts and user privilidges. You can also "
-            . "manipulate system settings.\">System Administrator</span>";
+                    . "As a system administrator you can create new projects as well as manipulate, maintain and delete "
+                    . "existing projects. You can manage user accounts and user privilidges. You can also "
+                    . "manipulate system settings.\">System Administrator</span>";
             break;
     }
 }
@@ -51,13 +50,23 @@ function admin_level_to_text($adminLevel) {
  * @return array Returns a single dimension indexed array. Each value is the database project ID of an
  *      administered project. Empty array if no projects found.
  */
-function find_administered_projects($DBH, $userId) {
+function find_administered_projects($DBH, $userId, $name = FALSE) {
     $userAdministeredProjects = array();
-    $userAdministeredProjectsQuery = "SELECT project_id FROM project_administrators WHERE user_id = :userId";
+    $nameColumn = "";
+    $nameTable = "";
+    if ($name) {
+        $nameColumn = ", p.name";
+        $nameJoin = "JOIN projects p ON pa.project_id = p.project_id";
+    }
+    $userAdministeredProjectsQuery = "SELECT pa.project_id $nameColumn FROM project_administrators pa $nameJoin WHERE user_id = :userId";
     $userAdministeredProjectsParams['userId'] = $userId;
     $userAdministeredProjectsResult = run_prepared_query($DBH, $userAdministeredProjectsQuery, $userAdministeredProjectsParams);
-    while ($row = $userAdministeredProjectsResult->fetch(PDO::FETCH_ASSOC)) {
-        $userAdministeredProjects[] = $row['project_id'];
+    while ($result = $userAdministeredProjectsResult->fetch(PDO::FETCH_ASSOC)) {
+        if ($name) {
+            $userAdministeredProjects[] = $result;
+        } else {
+            $userAdministeredProjects[] = $result['project_id'];
+        }
     }
     return $userAdministeredProjects;
 }
@@ -92,7 +101,7 @@ function image_match($postCollectionId, $preCollectionId) {
     /* Gather the data to process. Includes an array of all post event images containing complete
      * metadata ($postImageSet) and a string containing all dataset ID's of the pre collection
      * datasets for use in the match query string */
-    if (is_numeric($postCollectionId) AND (is_numeric($preCollectionId))) {
+    if (is_numeric($postCollectionId) AND ( is_numeric($preCollectionId))) {
         // Find datasets included in the post-event collection.
         $postCollectionDatasets = find_datasets_in_collection($postCollectionId);
         if ($postCollectionDatasets) {
@@ -406,7 +415,7 @@ function image_resizer($imagesToResize) {
  * Returns FALSE on failure
  */
 function admin_access() {
-
+    
 }
 
 ?>

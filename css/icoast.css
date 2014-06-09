@@ -187,6 +187,11 @@ a:hover {
     line-height: 20px;
     font-weight: bold;
     box-shadow: 3px 3px 3px #888888;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .clickableButton:hover, .clickableButton:active {
@@ -197,6 +202,16 @@ a:hover {
 
 .italic {
     font-style: italic;
+}
+
+.error,
+.unreadEvent,
+#closedEventText {
+    color: red;
+}
+
+#openEventText {
+    color: forestgreen;
 }
 
 /*input[type="radio"]:checked + .clickableButton {
@@ -257,7 +272,8 @@ input::-moz-focus-inner {
     text-align: center;
 }
 
-#contentWrapper p {
+#contentWrapper p,
+#adminPageWrapper p {
     margin: 10px 20px;
     line-height: 1.2;
 }
@@ -301,13 +317,16 @@ input::-moz-focus-inner {
     padding-left: 10px;
 }
 
-#historyTableWrapper {
+#historyTableWrapper,
+#eventTableWrapper,
+#eventDetailsContent {
     background: #FFFFFF;
     border-radius: 5px;
     border: 1px solid black;
 }
 
-#historyTableWrapper th {
+#historyTableWrapper th,
+#eventTableWrapper th {
     font-weight: bold;
     text-align: center;
 }
@@ -409,7 +428,8 @@ th, td {
     padding: 3px 10px 5px 10px;
 }
 
-#profileTableWrapper tr {
+#profileTableWrapper tr,
+#eventTableWrapper tr {
     border-bottom: 1px solid black;
 }
 
@@ -845,7 +865,7 @@ label.error {
 
 #indexTextColumn {
     margin-left: 700px;
-/*    height: 450px;*/
+    /*    height: 450px;*/
     text-align: left;
     margin-bottom: 20px;
 }
@@ -860,10 +880,6 @@ label.error {
 
 #indexTextColumn form {
     text-align: center;
-}
-
-.loginError {
-    color: red;
 }
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -1035,7 +1051,8 @@ label.error {
     font-weight: bold;
 }
 
-#faqs .faqQuestion p:first-of-type {
+#faqs .faqQuestion p:first-of-type,
+.individualFilterWrapper p:first-of-type {
     /*Stop selection of text in button*/
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -1047,7 +1064,7 @@ label.error {
     top: 2px;
     height: 15px;
     width: 15px;
-    line-height: 15px;
+    line-height: 15px !important;
     display: block;
     border: 1px solid black;
     text-align: center;
@@ -1265,7 +1282,8 @@ label.error {
     box-shadow: 6px 6px 6px #222222;
 }
 
-input[type="checkbox"]:checked + .tag, input[type="radio"]:checked + .tag {
+input[type="checkbox"]:checked + .tag, 
+input[type="radio"]:checked + .tag {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);

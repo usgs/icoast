@@ -17,10 +17,61 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 $userId = $userData['user_id'];
 $adminLevel = $userData['account_type'];
+$userTimeZone = $userData['time_zone'];
+$userAdministeredProjects = find_administered_projects($DBH, $userId, FALSE);
 
 
 
-$eventLogQuery = "SELECT e.*, u.masked_email "
+
+if (isset($_POST['action']) && isset($_POST['eventId'])) {
+    $updatePermission = FALSE;
+    if ($adminLevel == 2 || $adminLevel == 3) {
+        $updatePermissionCheckQuery = 'SELECT event_type, event_code FROM event_log WHERE eventId = :eventId';
+        $updatePermissionCheckParams['eventId'] = $_POST['eventId'];
+        $updatePermissionCheckResult = run_prepared_query($DBH, $updatePermissionCheckQuery, $updatePermissionCheckParams);
+        $eventPermissionData = $updatePermissionCheckResult->fetch(PDO::FETCH_ASSOC);
+        if ($eventPermissionData['event_code'] == 3 && in_array($eventPermissionData[event_code], $userAdministeredProjects)) {
+            $updatePermission = TRUE;
+        }
+    } else {
+        $updatePermission = TRUE;
+    }
+
+    if ($updatePermission) {
+        switch ($_POST['action']) {
+            case 'markRead':
+                $updateQuery = "UPDATE event_log SET event_ack=1 WHERE id=:eventId LIMIT 1";
+                break;
+            case 'markUnread':
+                $updateQuery = "UPDATE event_log SET event_ack=0 WHERE id=:eventId LIMIT 1";
+                break;
+            case 'markClosed':
+                $updateQuery = "UPDATE event_log SET event_ack=1, event_closed=1 WHERE id=:eventId LIMIT 1";
+                break;
+            case 'markOpen':
+                $updateQuery = "UPDATE event_log SET event_ack=1, event_closed=0 WHERE id=:eventId LIMIT 1";
+                break;
+        }
+        $updateParams['eventId'] = $_POST['eventId'];
+        $result = run_prepared_query($DBH, $updateQuery, $updateParams);
+        if ($result) {
+            print 1;
+            exit;
+        } else {
+            // Error
+            print 0;
+            exit;
+        }
+    } else {
+        // Error
+        print 0;
+        exit;
+    }
+}
+
+
+$eventCountQueryStart = "SELECT COUNT(*) FROM event_log";
+$eventLogQueryStart = $eventLogQuery = "SELECT e.*, u.masked_email "
         . "FROM event_log e "
         . "LEFT JOIN users u "
         . "ON e.user_id = u.user_id";
@@ -32,12 +83,11 @@ $eventLogParams = array();
 $project = null;
 $eventType = null;
 $user = null;
-$userAdministeredProjects = find_administered_projects($DBH, $userId);
 $errors = array();
-
 if (isset($_POST['project']) && settype($_POST['project'], 'integer')) {
-    $project = $_POST['project'];
-    if ($adminLevel == 4 || (($adminLevel == 3 || $adminLevel == 2) && in_array($project, $userAdministeredProjects))) {
+//    print "In Project";
+    $project = $_POST ['project'];
+    if ($adminLevel == 4 || (( $adminLevel == 3 || $adminLevel == 2) && in_array($project, $userAdministeredProjects))) {
         $eventLogQuery .= database_where_query_builder($eventLogQuery);
         $eventLogQuery .= " event_type = 3 AND event_code = :project";
         $eventLogParams['project'] = $project;
@@ -48,8 +98,9 @@ if (isset($_POST['project']) && settype($_POST['project'], 'integer')) {
     }
 }
 
-if (isset($_POST['eventType']) && settype($_POST['eventType'], 'integer') && is_null($project)) {
-    $eventType = $_POST['eventType'];
+if (isset($_POST ['eventType']) && settype($_POST['eventType'], 'integer') && is_null($project)) {
+//    print "In Event";
+    $eventType = $_POST ['eventType'];
     if ($adminLevel == 4 && ($eventType >= 1 && $eventType <= 3)) {
         $eventLogQuery .= database_where_query_builder($eventLogQuery);
         $eventLogQuery .= " event_type = :eventType";
@@ -60,6 +111,7 @@ if (isset($_POST['eventType']) && settype($_POST['eventType'], 'integer') && is_
         $eventType = null;
     }
 }
+
 
 if (isset($_POST['user']) && settype($_POST['user'], 'integer')) {
     $user = $_POST['user'];
@@ -78,15 +130,15 @@ if (isset($_POST['sourceURL'])) {
 if (isset($_POST['sourceScript'])) {
     $sourceScript = $_POST['sourceScript'];
     $eventLogQuery .= database_where_query_builder($eventLogQuery);
-    $eventLogQuery .= " source_url LIKE :sourceScript";
+    $eventLogQuery .= " source_script LIKE :sourceScript";
     $eventLogParams['sourceScript'] = "%$sourceScript";
 }
 
 if (isset($_POST['sourceFunction'])) {
     $sourceFunction = $_POST['sourceFunction'];
     $eventLogQuery .= database_where_query_builder($eventLogQuery);
-    $eventLogQuery .= " source_url LIKE :sourceFunction";
-    $eventLogParams['sourceFunction'] = "%$sourceFunction";
+    $eventLogQuery .= " source_function = :sourceFunction";
+    $eventLogParams['sourceFunction'] = "$sourceFunction";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,29 +190,16 @@ $orderBy = FALSE;
 if (isset($_POST['orderBy'])) {
     $orderBy = $_POST['orderBy'];
     switch ($orderBy) {
-        case 'user':
-            $eventLogQuery .= " ORDER BY user_id";
-            break;
-        case 'type':
-            $eventLogQuery .= " ORDER BY event_type";
-            break;
-        case 'url':
-            $eventLogQuery .= " ORDER BY source_url";
-            break;
-        case 'script':
-            $eventLogQuery .= " ORDER BY source_script";
-            break;
-        case 'function':
-            $eventLogQuery .= " ORDER BY source_function";
-            break;
-        case 'project':
-            $eventLogQuery .= " ORDER BY event_code";
-            break;
+        case 'user_id':
+        case 'event_type':
+        case 'source_url':
+        case 'source_script':
+        case 'source_function':
+        case 'event_code':
         case 'read':
-            $eventLogQuery .= " ORDER BY event_ack";
-            break;
         case 'closed':
-            $eventLogQuery .= " ORDER BY event_closed";
+        case 'id':
+            $eventLogQuery .= " ORDER BY $orderBy";
             break;
         case 'time':
         default:
@@ -172,11 +211,11 @@ if (isset($_POST['orderBy'])) {
 }
 
 
-if (isset($_POST['sortDirection']) && $_POST['sortDirection'] == 'ASC') {
-    $sortOrder = 'ASC';
+if (isset($_POST['sortDirection']) && $_POST['sortDirection'] == 'asc') {
+    $sortOrder = 'asc';
     $eventLogQuery .= " ASC";
 } else {
-    $sortOrder = 'DESC';
+    $sortOrder = 'desc';
     $eventLogQuery .= " DESC";
 }
 
@@ -200,27 +239,78 @@ if (isset($_POST['resultSize'])) {
         case 100:
             $resultSize = $_POST['resultSize'];
             break;
+        case 10:
+        default:
+            $resultSize = 10;
     }
 } else {
     $resultSize = 10;
 }
 
-$eventLogQuery .= " LIMIT $startResultRow, $resultSize";
+$eventCountQuery = str_replace($eventLogQueryStart, $eventCountQueryStart, $eventLogQuery);
 
+$eventLogQuery .= " LIMIT  $startResultRow, $resultSize";
 
-
-//print $eventLogQuery;
+//print $eventLogQuery . '<br>';;
 if (count($errors) === 0) {
     $eventLogResult = run_prepared_query($DBH, $eventLogQuery, $eventLogParams);
     $events = $eventLogResult->fetchAll(PDO::FETCH_ASSOC);
+
+    $projectQuery = "SELECT project_id, name FROM projects";
+    $projectsResult = $DBH->query($projectQuery);
+    while ($project = $projectsResult->fetch(PDO::FETCH_ASSOC)) {
+        $allProjects[$project['project_id']] = $project['name'];
+    }
+
+    for ($i = 0; $i < count($events); $i++) {
+        // Convert project id to project name if applicable.
+        if ($events[$i]['event_type'] == 3) {
+            if (array_key_exists($events[$i]['event_code'], $allProjects)) {
+                $events[$i]['event_code'] = $allProjects[$events[$i]['event_code']];
+            }
+        }
+
+        // Format time and convert to user timezone.
+        $events[$i]['short_time'] = formattedTime($events[$i]['event_time'], $userTimeZone, FALSE);
+        $events[$i]['long_time'] = formattedTime($events[$i]['event_time'], $userTimeZone, TRUE);
+        $events[$i]['event_time'] = strtotime($events[$i]['event_time']);
+
+// Format Event Type
+        switch ($events[$i]['event_type']) {
+            case 1:
+                $events[$i]['event_type'] = "System Error";
+                break;
+            case 2:
+                $events[$i]['event_type'] = "System Feedback";
+                break;
+            case 3:
+                $events[$i]['event_type'] = "Project Feedback";
+                break;
+        }
+
+        // Create short page name
+        //        print $events[$i]['source_url'];
+        $sourcePath = rtrim($events[$i]['source_url'], '/');
+        $substrStart = strrpos($sourcePath, '/') + 1;
+        $events[$i]['page_name'] = substr($sourcePath, $substrStart);
+
+        // Replace null fields with empty string.
+        foreach ($events[$i] as $key => $value) {
+            if (is_null($value)) {
+                $events[$i][$key] = "";
+            }
+        }
+    }
+    $eventCountResult = run_prepared_query($DBH, $eventCountQuery, $eventLogParams);
+    $events['controlData']['resultCount'] = $eventCountResult->fetchColumn();
 } else {
     foreach ($errors as $error) {
-        $events['controlData']['errors'][] = $error;
+        $events['errors'][] = $error;
     }
 }
 
-print '<pre>';
-print_r($events);
-print '</pre>';
+//print '<pre>';
+//print_r($events);
+//print '</pre>';
 
 echo json_encode($events);

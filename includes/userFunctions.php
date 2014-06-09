@@ -64,55 +64,6 @@ function timeZoneIdToTextConverter($timeZoneId) {
     }
 }
 
-// -------------------------------------------------------------------------------------------------
-/**
- * Creates a formatted string showing a time converted from UTC to a users recorded time zone
- *
- * @param string $time A date/time string representing the start time in a valid Date and Time Format
- *        (http://www.php.net/manual/en/datetime.formats.php)
- * @param int $userTimeZone An integer from 1 to 7 representing the users time zone.
- * @return string A formatted string with the supplied time converted to correct time zone
- *         (example: March 3, 2014 at 7:50 AM)
- */
-function formattedAnnotationTime($time, $userTimeZone, $verbose = TRUE) {
-    switch ($userTimeZone) {
-        case 1:
-            $timeZoneString = ('America/New_York');
-            break;
-        case 2:
-            $timeZoneString = ('America/Chicago');
-            break;
-        case 3:
-            $timeZoneString = ('America/Denver');
-            break;
-        case 4:
-            $timeZoneString = ('America/Phoenix');
-            break;
-        case 5:
-            $timeZoneString = ('America/Los_Angeles');
-            break;
-        case 6:
-            $timeZoneString = ('America/Anchorage');
-            break;
-        case 7:
-            $timeZoneString = ('Pacific/Honolulu');
-            break;
-        case 8:
-            $timeZoneString = ('UTC');
-            break;
-        default:
-            // Placeholder for error reporting
-            exit('Invalid user time zone specified. Should be 1 - 8 (Eastern to Hawaii or UTC');
-            break;
-    }
-    $annotationTime = new DateTime($time, new DateTimeZone('UTC'));
-    $annotationTime->setTimezone(new DateTimeZone($timeZoneString));
-    if ($verbose) {
-        return $annotationTime->format('F j\, Y \a\t g:i A');
-    } else {
-        return $annotationTime->format('d/m/y h:iA');
-    }
-}
 
 // -------------------------------------------------------------------------------------------------
 /**

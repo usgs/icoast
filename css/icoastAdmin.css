@@ -30,26 +30,161 @@
     font-family: Arial,Helvetica,Vardana,sans-serif;
     background-color: #D3E2F0;
     font-size: 18px;
-    padding: 1px 20px 10px 20px;
+    padding: 1px 35px 10px 20px;
     overflow: hidden;
     text-align: center;
 }
 
-
+input[type="checkbox"]:checked + .clickableButton, 
+input[type="radio"]:checked + .clickableButton {
+    background: #e56969;
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    border-width: 3px;
+    margin: 4px 6px;
+}
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*Admin Event Viewer Page */
 
-#eventTableWrapper {
+#eventSummaryWrapper table,
+#eventSummaryWrapper p,
+.eventDetailRow {
+    font-size: 14px;
+    line-height: 1.2em;
+}
+
+// Event log filter
+
+#eventLogFilterWrapper {
+    overflow: hidden;
+}
+
+.eventLogFilterColumn {
+    width: 31%;
+    margin: 0 1% 0 1%;
+    float:left;
+    text-align: left;
+}
+
+.individualFilterWrapper,
+#applyFilterWrapper {
+    clear: both;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px 10px 10px 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.individualFilterWrapper p {
+    margin: 0 0 0 32px !important;
+}
+
+.individualFilterWrapper p:first-of-type {
+    margin: 0 0 0 8px !important;
+}
+
+#applyFilterWrapper {
+    padding-bottom: 2px;
+    margin: 0 1%;
+}
+
+#applyFilterWrapper p {
+    margin: 0;
+}
+
+.individualFilterControlWrapper {
+    display: none;
+    text-align: center;
+}
+
+.filterSelectBox {
+    /*width: 215px;*/
+}
+
+// Event Log Table
+#eventLogWrapper {
+    clear: both;
+}
+
+#eventSummaryWrapper {
     float: left;
     width: 58%;
-    padding-right: 10px;
+    padding-right: 2%;
+    overflow: hidden;
+}
+
+#eventSummaryWrapper table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#eventSummaryWrapper th {
+    padding-right: 20px;
+}
+
+.headContent {
+    width: 100%;
+    position: relative;
+}
+
+#eventSummaryWrapper td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.closedEvent {
+    color: #666666;
+}
+
+.eventIdColumn {
+    width: 25px;
+}
+
+.sortArrow {
+    position: absolute;
+    right: -18px;
+    top: 6px;
 }
 
 #eventDetailsWrapper {
     float: left;
     width: 38%;
-    padding-left: 10px;
+    padding-left: 2%;
+}
+
+#eventDetailsContent {
+    display: none;
+    padding: 5px 5px 0 5px;
+}
+
+#eventDetailsText {
+    margin: 10px;
+}
+
+.eventDetailRow {
+    clear: both;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.eventRowName {
+    font-weight: bold;
+    text-align: right;
+    float: left;
+    width: 125px;
+}
+
+.eventRowValue {
+    margin-left: 135px;
+    text-align: left;
+}
+
+.eventRowName p,
+.eventRowValue p {
+    margin: 0 !important;
 }
 
 #eventLogErrorWrapper {

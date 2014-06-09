@@ -52,7 +52,7 @@ EOL;
             $lastAnnotation = $annotations[0];
             $lastProjectId = $lastAnnotation['project_id'];
             $formattedLastAnnotationTime =
-                    formattedAnnotationTime($lastAnnotation['initial_session_end_time'], $userData['time_zone']);
+                    formattedTime($lastAnnotation['initial_session_end_time'], $userData['time_zone']);
 
             if ($numberOfAnnotations != $userData['completed_annotation_count']) {
                 $setAnnotationCountQuery = "UPDATE users SET completed_annotation_count = :numberOfAnnotations WHERE user_id = :userId";

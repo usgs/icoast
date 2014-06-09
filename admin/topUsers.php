@@ -32,16 +32,23 @@ $queryResult = run_prepared_query($DBH, $query, $queryParams);
 $result = $queryResult->fetchAll(PDO::FETCH_ASSOC);
 
 $userAnnotations = array();
+$usersWithAnnotations = 0;
 foreach ($result as $result) {
     $email = mysql_aes_decrypt($result['encrypted_email'], $result['encryption_data']);
     $query = "SELECT COUNT(*) FROM annotations WHERE user_id = :userId AND annotation_completed = 1";
     $queryParams['userId'] = $result['user_id'];
     $queryResult = run_prepared_query($DBH, $query, $queryParams);
     $annotationCount = $queryResult->fetchColumn();
+    if ($annotationCount > 0) {
+        $usersWithAnnotations++;
+    }
     $userAnnotations[$email] = $annotationCount;
 }
 
 arsort($userAnnotations);
+
+print 'Total users in system: ' . count($userAnnotations);
+print '<br>Number of users with at least 1 annotation: ' . $usersWithAnnotations;
 
 print '<pre>';
 print_r($userAnnotations);
