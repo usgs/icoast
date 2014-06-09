@@ -153,8 +153,6 @@ $pageBody = <<<EOL
                     <span class="captionTitle">Map Search:</span> <a href="https://github.com/smeijer/L.GeoSearch">Leaflet.GeoSearch</a>. <a href="https://github.com/smeijer/L.GeoSearch/blob/master/LICENSE">License</a><br>
                     <span class="captionTitle">Form Validation:</span> <a href="http://jqueryvalidation.org">jQuery Validation Plugin</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a><br>
                     <span class="captionTitle">OpenId Validation:</span> <a href="https://code.google.com/p/lightopenid">lightopenid</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a> <br>
-                    <span class="captionTitle">Map Icon:</span> Created by <a href="http://simpleicon.com">Simple Icon</a>. <a href="http://simpleicon.com/license-agreement/">License</a><br>
-                    <span class="captionTitle">Dice Icon:</span> Created by <a href="http://www.visualpharm.com">VisualPharm</a>. <a href="http://www.visualpharm.com/free_icons.html">License</a><br>
                     <span class="captionTitle">Map Markers:</span> <a href="http://mapicons.nicolasmollet.com">Map Icons Collection</a>. <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>
                 </p>
             </div>
