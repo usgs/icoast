@@ -105,7 +105,7 @@ function formattedTime($time, $userTimeZone, $verbose = TRUE) {
     if ($verbose) {
         return $annotationTime->format('F j\, Y \a\t g:i A');
     } else {
-        return $annotationTime->format('d/m/y h:iA');
+        return $annotationTime->format('m/d/y h:iA');
     }
 }
 

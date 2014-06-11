@@ -176,6 +176,7 @@ a:hover {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
     vertical-align: middle;
+    display: inline-block;
 
     margin: 8px;
     border: 1px solid black;
@@ -206,7 +207,8 @@ a:hover {
 
 .error,
 .unreadEvent,
-#closedEventText {
+#closedEventText,
+.redHighlight {
     color: red;
 }
 
@@ -1282,7 +1284,7 @@ label.error {
     box-shadow: 6px 6px 6px #222222;
 }
 
-input[type="checkbox"]:checked + .tag, 
+input[type="checkbox"]:checked + .tag,
 input[type="radio"]:checked + .tag {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);

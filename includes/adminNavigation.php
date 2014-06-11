@@ -11,11 +11,11 @@ if ($pageName == 'adminHome') {
     $pageTitle = "USGS iCoast - Administration Home";
 }
 
-if ($pageName == 'tagEditor') {
-    $adminNavHTML .= ' <li class="activePageLink">Tag Editor</li>';
-    $pageTitle = "USGS iCoast - Tag Editor";
+if ($pageName == 'projectEditor') {
+    $adminNavHTML .= ' <li class="activePageLink">Project Editor</li>';
+    $pageTitle = "USGS iCoast - Project Editor";
 } else {
-    $adminNavHTML .= '<li><a href="tagEditor.php">Tag Editor</a></li>';
+    $adminNavHTML .= '<li><a href="projectEditor.php">Project Editor</a></li>';
 }
 
 if ($pageName =='eventViewer') {

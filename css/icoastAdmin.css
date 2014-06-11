@@ -35,7 +35,7 @@
     text-align: center;
 }
 
-input[type="checkbox"]:checked + .clickableButton, 
+input[type="checkbox"]:checked + .clickableButton,
 input[type="radio"]:checked + .clickableButton {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
@@ -55,10 +55,9 @@ input[type="radio"]:checked + .clickableButton {
     line-height: 1.2em;
 }
 
-// Event log filter
-
 #eventLogFilterWrapper {
     overflow: hidden;
+    display: none;
 }
 
 .eventLogFilterColumn {
@@ -104,7 +103,7 @@ input[type="radio"]:checked + .clickableButton {
     /*width: 215px;*/
 }
 
-// Event Log Table
+/* Event Log Table*/
 #eventLogWrapper {
     clear: both;
 }
