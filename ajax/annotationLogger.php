@@ -5,7 +5,8 @@
 //print '</pre><br>';
 
 require_once('../includes/globalFunctions.php');
-require $dbmsConnectionPathDeep;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 function validateUser($DBH, $userId, $authCheckCode) {
   $validUser = TRUE;
@@ -25,12 +26,15 @@ function validateUser($DBH, $userId, $authCheckCode) {
 
   if ($user['is_enabled'] == 0) {
     $validUser = FALSE;
-    $errorMsg = 'User account is disabled';
+    $errorMsg = 'User account is disabled' . $user;
   }
 
   return array('validationResult' => $validUser,
       'errorMsg' => $errorMsg);
 }
+
+
+
 
 $annotationSessionId = $_POST['annotationSessionId'];
 $userId = $_POST['userId'];
@@ -49,14 +53,6 @@ if (!$validUser['validationResult']) {
   print "User authentication error: {$validUser['errorMsg']}";
   exit;
 }
-
-
-
-
-
-
-
-
 
 
 $annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = $userId AND "

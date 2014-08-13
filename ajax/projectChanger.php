@@ -2,7 +2,8 @@
 
 require '../includes/globalFunctions.php';
 require '../includes/userFunctions.php';
-require $dbmsConnectionPathDeep;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 $filtered = TRUE;
 $projectId = $_GET['projectId'];

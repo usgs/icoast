@@ -1,7 +1,8 @@
 <?php
 
 require_once('../includes/globalFunctions.php');
-require $dbmsConnectionPathDeep;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 $eventDataError = array();
 $eventData = array();

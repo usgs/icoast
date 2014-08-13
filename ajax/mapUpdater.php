@@ -3,7 +3,8 @@
 //print "In mapUpdater<br>";
 require_once('../includes/globalFunctions.php');
 require_once('../includes/userFunctions.php');
-require $dbmsConnectionPathDeep;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 define("IMAGES_PER_MAP", 10);
 $northernLimit = (is_numeric($_GET['north']) ? $_GET['north'] : null);
@@ -18,13 +19,12 @@ $imagesToDisplay = Array();
 
 $projectData = retrieve_entity_metadata($DBH, $projectId, 'project');
 if ($projectData) {
-  $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
+    $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
 }
 if ($projectDatasets) {
-  $idsToQuery = where_in_string_builder($projectDatasets);
+    $idsToQuery = where_in_string_builder($projectDatasets);
 }
 //print $idsToQuery;
-
 //$query = "SELECT dataset_id FROM datasets WHERE dataset_id IN $idsToQuery" .
 //    "ORDER BY region_id, position_in_region";
 //$queryResult = run_database_query($query);
@@ -33,10 +33,10 @@ if ($projectDatasets) {
 //}
 
 $imagesInBoundsQuery = "SELECT image_id, filename, latitude, longitude, feature, city, state, position_in_set, dataset_id" .
-    " FROM images WHERE (latitude BETWEEN :southernLimit AND :northernLimit) AND " .
-    "(longitude BETWEEN :westernLimit AND :easternLimit) AND " .
-    "has_display_file = 1 AND is_globally_disabled = 0 AND " .
-    "dataset_id IN ($idsToQuery) ORDER BY dataset_id, position_in_set";
+        " FROM images WHERE (latitude BETWEEN :southernLimit AND :northernLimit) AND " .
+        "(longitude BETWEEN :westernLimit AND :easternLimit) AND " .
+        "has_display_file = 1 AND is_globally_disabled = 0 AND " .
+        "dataset_id IN ($idsToQuery) ORDER BY dataset_id, position_in_set";
 $imagesInBoundsParams = array(
     'southernLimit' => $southernLimit,
     'northernLimit' => $northernLimit,
@@ -50,11 +50,11 @@ $STH = run_prepared_query($DBH, $imagesInBoundsQuery, $imagesInBoundsParams);
 $imagesInBounds = $STH->fetchAll(PDO::FETCH_ASSOC);
 //print 'Images In Bounds =' . count($imagesInBounds);
 if (count($imagesInBounds) > 0) {
-  $count = 0;
-  foreach ($imagesInBounds as $imageMatchData) {
-    $imagesToDisplay[] = $imageMatchData;
-    $count++;
-  }
+    $count = 0;
+    foreach ($imagesInBounds as $imageMatchData) {
+        $imagesToDisplay[] = $imageMatchData;
+        $count++;
+    }
 }
 
 
@@ -64,16 +64,6 @@ if (count($imagesInBounds) > 0) {
 
 
 //print 'Count = ' . $count;
-
-
-
-
-
-
-
-
-
-
 ////  $imagesToDisplay = $queryResult->fetch_all(MYSQL_ASSOC);
 //}
 //echo 'Unfiltered images to display<pre>';
@@ -85,7 +75,7 @@ if (count($imagesInBounds) > 0) {
 
 
 $annotatedImages = array();
-$annotatedImagesQuery = "SELECT image_id FROM annotations WHERE user_id = :userId AND project_id = :projectId";
+$annotatedImagesQuery = "SELECT image_id FROM annotations WHERE user_id = :userId AND project_id = :projectId AND annotation_completed = 1";
 $annotatedImagesParams = array(
     'userId' => $userId,
     'projectId' => $projectId
@@ -95,9 +85,9 @@ $annotatedImagesResults = $STH->fetchAll(PDO::FETCH_ASSOC);
 //$queryResult = run_database_query($query);
 //print '$annotatedImagesResults =' . count($annotatedImagesResults);
 if (count($annotatedImagesResults) > 0) {
-  foreach ($annotatedImagesResults as $imageId) {
-    $annotatedImages[] = $imageId['image_id'];
-  }
+    foreach ($annotatedImagesResults as $imageId) {
+        $annotatedImages[] = $imageId['image_id'];
+    }
 }
 //echo 'Annotated Images<pre>';
 //print_r($annotatedImages);
@@ -115,9 +105,9 @@ $noMatchImageResults = $STH->fetchAll(PDO::FETCH_ASSOC);
 //$queryResult = run_database_query($query);
 //print '$noMatchImageResults =' . count($noMatchImageResults);
 if (count($noMatchImageResults) > 0) {
-  foreach ($noMatchImageResults as $imageMatchData) {
-    $noMatchImageList[] = $imageMatchData['post_image_id'];
-  }
+    foreach ($noMatchImageResults as $imageMatchData) {
+        $noMatchImageList[] = $imageMatchData['post_image_id'];
+    }
 }
 //echo 'Non Matching Images<pre>';
 //print_r($noMatchImageList);
@@ -126,36 +116,68 @@ if (count($noMatchImageResults) > 0) {
 //echo 'Non Matching Images<pre>';
 //print_r($imagesToDisplay[0]);
 //echo '</pre>';
-for ($i = 0; $i < count($imagesToDisplay); $i++) {
 
-//  echo $count . ": " . $i . ': ' . $imagesToDisplay[$i]['image_id'] . ' ';
-  if (in_array($imagesToDisplay[$i]['image_id'], $annotatedImages) ||
-      in_array($imagesToDisplay[$i]['image_id'], $noMatchImageList) ||
-      $imagesToDisplay[$i]['image_id'] == $currentImageId) {
-//    echo '- REMOVING ' . $imagesToDisplay[$i]['image_id'] . '<br>';
-    array_splice($imagesToDisplay, $i, 1);
-    $i--;
-  } else {
-//    echo '- NO MATCH<br>';
-  }
-//  $count++;
+
+$userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
+if ($userGroups) {
+//    print '<pre>';
+//    print_r($userGroups);
+//    print '</pre>';
+    $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
+    if ($imageGroups) {
+//        print '<pre>';
+//        print_r($imageGroups);
+//        print '</pre>';
+        $userAssignedImageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
+//                print '<pre>';
+//        print_r($userAssignedImageIdPool);
+//        print '</pre>';
+        if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
+            for ($i = 0; $i < count($userAssignedImageIdPool); $i++) {
+//                print "$i: Checking " . $userAssignedImageIdPool[$i] . '<br>';
+                if (has_user_annotated_image($DBH, $userAssignedImageIdPool[$i], $userId) !== 0) {
+//                    print 'Removing ' . $userAssignedImageIdPool[$i] . '<br>';
+                    array_splice($userAssignedImageIdPool, $i, 1);
+                    $i--;
+                }
+            }
+        }
+    }
 }
 
 
+if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
+    for ($i = 0; $i < count($imagesToDisplay); $i++) {
 
+//  echo $count . ": " . $i . ': ' . $imagesToDisplay[$i]['image_id'] . ' ';
+        if (in_array($imagesToDisplay[$i]['image_id'], $annotatedImages) ||
+                in_array($imagesToDisplay[$i]['image_id'], $noMatchImageList) ||
+                !in_array($imagesToDisplay[$i]['image_id'], $userAssignedImageIdPool) ||
+                $imagesToDisplay[$i]['image_id'] == $currentImageId) {
+//    echo '- REMOVING ' . $imagesToDisplay[$i]['image_id'] . '<br>';
+            array_splice($imagesToDisplay, $i, 1);
+            $i--;
+        } else {
+//    echo '- NO MATCH<br>';
+        }
+    }
+} else {
+    for ($i = 0; $i < count($imagesToDisplay); $i++) {
 
-
-
-
+//  echo $count . ": " . $i . ': ' . $imagesToDisplay[$i]['image_id'] . ' ';
+        if (in_array($imagesToDisplay[$i]['image_id'], $annotatedImages) ||
+                in_array($imagesToDisplay[$i]['image_id'], $noMatchImageList) ||
+                $imagesToDisplay[$i]['image_id'] == $currentImageId) {
+//    echo '- REMOVING ' . $imagesToDisplay[$i]['image_id'] . '<br>';
+            array_splice($imagesToDisplay, $i, 1);
+            $i--;
+        } else {
+//    echo '- NO MATCH<br>';
+        }
+    }
+}
+//  $count++;
 //print 'images to display = ' . count($imagesToDisplay);
-
-
-
-
-
-
-
-
 //echo 'Filtered Images to Display<pre>';
 //print_r($imagesToDisplay);
 //echo '</pre>';
@@ -208,10 +230,10 @@ for ($i = 0; $i < count($imagesToDisplay); $i++) {
 //}
 
 for ($i = 0; $i < count($imagesToDisplay); $i++) {
-  $imagesToDisplay[$i]['image_url'] = "images/datasets/{$imagesToDisplay[$i]['dataset_id']}/main/{$imagesToDisplay[$i]['filename']}";
-  $imagesToDisplay[$i]['location_string'] = build_image_location_string($imagesToDisplay[$i]);
+    $imagesToDisplay[$i]['image_url'] = "images/datasets/{$imagesToDisplay[$i]['dataset_id']}/main/{$imagesToDisplay[$i]['filename']}";
+    $imagesToDisplay[$i]['location_string'] = build_image_location_string($imagesToDisplay[$i]);
 //  $imagesToDisplay[$i]['collation_number'] = $imagesPerMarker;
-  array_splice($imagesToDisplay[$i], 4, 5);
+    array_splice($imagesToDisplay[$i], 4, 5);
 }
 
 echo json_encode($imagesToDisplay);

@@ -1,26 +1,20 @@
 <?php
 
-$pageName = "home";
-$cssLinkArray = array();
-$embeddedCSS = '';
-$javaScriptLinkArray = array();
-$userData = FALSE;
+require_once('includes/openid.php');
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH, FALSE);
 
-require 'includes/openid.php';
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
-
-if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
-
-    $userId = $_COOKIE['userId'];
-    $authCheckCode = $_COOKIE['authCheckCode'];
-
-    $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE);
+if (isset($_GET['error'])) {
+    $redirectError = $_GET['error'];
+} else {
+    $redirectError = FALSE;
 }
 
 if ($userData) {
-    $authCheckCode = generate_cookie_credentials($DBH, $userId);
     $buttonHTML = <<<EOL
             <div class="formFieldRow standAloneFormElement">
                 <input type="submit" class="clickableButton formButton" id="enterICoastButton"
@@ -38,7 +32,7 @@ EOL;
 }
 
 $loginAccountInfoText = <<<EOL
-    <p><span class="captionTitle">Note:</span> Any Google based account, included standard Gmail accounts or those managed by you or your
+    <p><span class="captionTitle">Note:</span> Any Google based account, including standard Gmail accounts or those managed by you or your
         organization, can be used to create an iCoast account.</p>
         <p>(Examples: aperson@gmail.com, aperson@usgs.gov, aperson@university.edu)</p>
     <p><a href="help.php#loginFAQ">Why Google?</a></p>
@@ -46,20 +40,60 @@ EOL;
 
 $openid = new LightOpenID('http://' . $_SERVER['HTTP_HOST']);
 
+$variableContent = '';
 if (!$openid->mode) {
     if ($userData) {
         $variableContent = <<<EOL
-          <p>You are already logged in as <span class="userData">{$userData['masked_email']}</span>.</p>
-          <p>Click the button below to enter iCoast.</p>
+            <p>You are already logged in as <span class="userData">{$userData['masked_email']}</span>.</p>
+EOL;
+        if ($redirectError == "admin") {
+            $variableContent .= <<<EOL
+                    <p class="error">Your user account has insufficient privileges to access the
+                        requested page. If you believe you should have elevated permissions within iCoast then
+                        please contact the iCoast System Administrator at
+                        <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
+EOL;
+        } else {
+            $variableContent .= "<p>Click the button below to enter iCoast.</p>";
+        }
+        $variableContent .= <<<EOL
           <form action="welcome.php" method="get">
             <input type="hidden" name="userType" value="existing" />
             $buttonHTML
           </form>
 EOL;
     } else {
-        $variableContent = <<<EOL
-          <p>Click the button below to <span class="italic">Login</span> or <span class="italic">Register</span>
-              using Google.</p>
+        if ($redirectError == 'auth') {
+            $variableContent = <<<EOL
+                <p class="error">Your local authentication credentials have lost synchronization with the
+                    server and your login has been reset. Please click the button below to log back in to
+                    iCoast using Google. If this problem persists then please contact the iCoast System
+                    Administrator at <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
+EOL;
+        } else if ($redirectError == 'disabled') {
+            $variableContent = <<<EOL
+                    <p class="error">Sorry, your iCoast account is currently disabled. If you believe this has
+                        been done in error then please contact the iCoast System Administrator at
+                        <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
+EOL;
+        } else if ($redirectError == "cookies") {
+            $variableContent = <<<EOL
+                    <p class="error">You have attempted to access a page that requires you to be logged in.
+                        Please login and try the page again. If this error persists then first ensure that your
+                        browser is set to accept cookies before contacting the iCoast System Administrator
+                        for assistance at <a href="mailto:icoast.usgs.gov">icoast@usgs.gov</a>.</p>
+                    <p>Click the button below to <span class="italic">Login</span> or <span class="italic">Register</span>
+                        using Google.</p>
+EOL;
+        } else {
+            $variableContent = <<<EOL
+                <p>Click the button below to <span class="italic">Login</span> or <span class="italic">Register</span>
+                    using Google.</p>
+EOL;
+        }
+
+
+        $variableContent .= <<<EOL
           <form action="?login" method="post">
             $buttonHTML
           </form>
@@ -74,7 +108,7 @@ EOL;
     }
 } elseif ($openid->mode == 'cancel') {
     $variableContent = <<<EOL
-          <p class="loginError">Authentication process was cancelled. Click the button below to start the login process again</p>
+          <p class="error">Authentication process was cancelled. Click the button below to start the login process again</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>
@@ -83,7 +117,7 @@ EOL;
 } else {
     if (!$openid->validate()) {
         $variableContent = <<<EOL
-          <p class="loginError">Authentication failed. Click the button below to try again.</p>
+          <p class="error">Authentication failed. Click the button below to try again.</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>
@@ -125,7 +159,7 @@ EOL;
                         exit;
                     } else {
                         $variableContent = <<<EOL
-          <p class="loginError">Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
+          <p class="error">Appliaction Failure. Unable to contact database. Please try again in a few minutes or advise an administrator of this problem.</p>
           <form action="?login" method="post">
                 $buttonHTML
           </form>

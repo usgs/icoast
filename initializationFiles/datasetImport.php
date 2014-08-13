@@ -13,10 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     //////////
     // => Development variables to be moved or replaced by release
+
     $dbmsServer = '';
     $dbmsUser = '';
     $dbmsPassword = '';
     $dbmsDatabase = "";
+
     $dbc = new mysqli($dbmsServer, $dbmsUser, $dbmsPassword, $dbmsDatabase);
     $collectionId = $dbc->real_escape_string($_POST['collection']);
     $isDatasetEnabled = 1;

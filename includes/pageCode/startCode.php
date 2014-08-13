@@ -1,36 +1,25 @@
 <?php
 
-$pageName = "start";
 $cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
 $cssLinkArray[] = 'css/leafletGeoSearch.css';
 
-$embeddedCSS = '';
 $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearchProvider.js';
-$javascript = '';
-$jQueryDocumentDotReadyCode = '';
 
 
-require 'includes/userFunctions.php';
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
+require_once('includes/userFunctions.php');
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-
-
-
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: index.php');
-    exit;
-}
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
 
 $filtered = TRUE;
 $userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 $variableContent = '';
 $allProjects = array();
@@ -93,10 +82,16 @@ EOL;
 EOL;
 }
 
-if ($numberOfProjects >=1) {
+if ($numberOfProjects >= 1) {
     $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
     $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
 // Find post image metadata $postImageMetadata
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty') {
+        $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id']);
+    }
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty' || $newRandomImageId === FALSE) {
+        exit("An error was detected while generating a new image. $newRandomImageId");
+    }
     if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId, 'image')) {
         //  Placeholder for error management
         exit("Image $newRandomImageId not found in Database");
@@ -110,7 +105,7 @@ if ($numberOfProjects >=1) {
 
 
 
-        $variableContent = <<<EOL
+    $variableContent = <<<EOL
 <h2 id="currentProjectText">Current Project: $projectName</h2>
 <div id="randomPostImagePreviewWrapper">
     <p>Here is a random photo near<br><span id="projectName" class="captionTitle">$newRandomImageLocation</span></p>

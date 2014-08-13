@@ -1,13 +1,13 @@
 <?php
 
 $pageName = "registration";
-$cssLinkArray = array();
-$embeddedCSS = '';
 $javaScriptLinkArray[] = "scripts/jquery.validate.min.js";
-$javaScript = '';
 
-require 'includes/globalFunctions.php';
-require $dbmsConnectionPath;
+require_once('includes/globalFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
+
+$pageCodeModifiedTime = filemtime(__FILE__);
 
 if (!isset($_COOKIE['registrationEmail'])) {
     header("Location: index.php");

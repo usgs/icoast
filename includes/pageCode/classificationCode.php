@@ -1,10 +1,8 @@
 <?php
 
-$pageName = "classify";
 $cssLinkArray[] = 'css/tipTip.css';
 $cssLinkArray[] = 'css/leaflet.css';
 
-$embeddedCSS = '';
 $javaScriptLinkArray[] = '//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js';
 $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/elevateZoom.js';
@@ -15,18 +13,15 @@ $javaScriptLinkArray[] = 'scripts/tipTip.js';
 // => Define required files and initial includes
 require_once('includes/globalFunctions.php');
 require_once('includes/userFunctions.php');
-require $dbmsConnectionPath;
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
-if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-    header('Location: index.php');
-    exit;
-}
+$pageCodeModifiedTime = filemtime(__FILE__);
+$userData = authenticate_user($DBH);
+$userId = $userData['user_id'];
+$authCheckCode = $userData['auth_check_code'];
 
 $filtered = TRUE;
-$userId = $_COOKIE['userId'];
-$authCheckCode = $_COOKIE['authCheckCode'];
-$userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode);
-$authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 $projectId = "";
 if (empty($_POST['projectId']) && empty($_GET['projectId'])) {

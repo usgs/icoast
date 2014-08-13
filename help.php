@@ -1,7 +1,8 @@
 <?php
-
 ob_start();
-require("includes/pageCode/helpCode.php");
+$pageModifiedTime = filemtime(__FILE__);
+
+require_once("includes/pageCode/helpCode.php");
 
 $pageBody = <<<EOL
         <div id="contentWrapper">
@@ -76,7 +77,7 @@ $pageBody = <<<EOL
                         </div>
 
 
-                    <h3 id="loginFAQ">Using the USGS iCoast System</h3>
+                    <h3>Using the USGS iCoast System</h3>
                         <div class="faq">
                             <div class="faqQuestion">
                                 <p>+</p>
@@ -202,4 +203,4 @@ $pageBody = <<<EOL
         </div>
 EOL;
 
-require("includes/template.php");
+require_once("includes/template.php");

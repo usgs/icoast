@@ -1,8 +1,165 @@
 <?php
+
 //error_reporting(0);
 date_default_timezone_set('UTC');
-$dbmsConnectionPath = '../../icoast/DBMSConnection.php';
-$dbmsConnectionPathDeep = '../../../icoast/DBMSConnection.php';
+
+function detect_pageName() {
+    $filePath = rtrim($_SERVER['PHP_SELF'], '/');
+    $substrStart = strrpos($filePath, '/') + 1;
+    $substrLength = strrpos($filePath, '.') - $substrStart;
+    return substr($filePath, $substrStart, $substrLength);
+}
+
+function DB_file_location() {
+    $filePath = rtrim($_SERVER['PHP_SELF'], '/');
+    $pageDepthInSite = substr_count($filePath, '/');
+    return str_repeat('../', $pageDepthInSite) . 'icoast/DBMSConnection.php';
+}
+
+function file_modified_date_time($pageModifiedTime, $pageCodeModifiedTime) {
+    if ($pageModifiedTime >= $pageCodeModifiedTime) {
+        $fileModifiedTime = $pageModifiedTime;
+    } else {
+        $fileModifiedTime = $pageCodeModifiedTime;
+    }
+    $fileDateTime = new DateTime("@" . $fileModifiedTime);
+    $fileDateTime->setTimeZone(new DateTimeZone('America/New_York'));
+    $adjustedFileDateTime = $fileDateTime->format('U') + $fileDateTime->getOffset();
+    return date('F jS, Y H:i', $adjustedFileDateTime) . " EDT";
+}
+
+function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE, $logout = FALSE) {
+    if ($securePage) {
+        if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
+            header('Location: index.php?error=cookies');
+            exit;
+        }
+        $userId = $_COOKIE['userId'];
+        $authCheckCode = $_COOKIE['authCheckCode'];
+
+        $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect, $adminCheck, $enabledCheck);
+        if ($userData) {
+            $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+        }
+    } else {
+        if (isset($_COOKIE['userId']) || isset($_COOKIE['authCheckCode'])) {
+            $userId = $_COOKIE['userId'];
+            $authCheckCode = $_COOKIE['authCheckCode'];
+
+            $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE, $adminCheck, $enabledCheck);
+            if ($userData) {
+                $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+            }
+        } else {
+            $userData = FALSE;
+        }
+    }
+
+    return $userData;
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Creates a formatted string showing a time converted from UTC to a users recorded time zone
+ *
+ * @param string $time A date/time string representing the start time in a valid Date and Time Format
+ *        (http://www.php.net/manual/en/datetime.formats.php)
+ * @param int $userTimeZone An integer from 1 to 7 representing the users time zone.
+ * @return string A formatted string with the supplied time converted to correct time zone
+ *         (example: March 3, 2014 at 7:50 AM)
+ */
+function formattedTime($time, $userTimeZone, $verbose = TRUE) {
+    switch ($userTimeZone) {
+        case 1:
+            $timeZoneString = ('America/New_York');
+            break;
+        case 2:
+            $timeZoneString = ('America/Chicago');
+            break;
+        case 3:
+            $timeZoneString = ('America/Denver');
+            break;
+        case 4:
+            $timeZoneString = ('America/Phoenix');
+            break;
+        case 5:
+            $timeZoneString = ('America/Los_Angeles');
+            break;
+        case 6:
+            $timeZoneString = ('America/Anchorage');
+            break;
+        case 7:
+            $timeZoneString = ('Pacific/Honolulu');
+            break;
+        case 8:
+            $timeZoneString = ('UTC');
+            break;
+        default:
+            // Placeholder for error reporting
+            exit('Invalid user time zone specified. Should be 1 - 8 (Eastern to Hawaii or UTC');
+            break;
+    }
+    $annotationTime = new DateTime($time, new DateTimeZone('UTC'));
+    $annotationTime->setTimezone(new DateTimeZone($timeZoneString));
+    if ($verbose) {
+        return $annotationTime->format('F j\, Y \a\t g:i A');
+    } else {
+        return $annotationTime->format('m/d/y h:iA');
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Function to authenticate user against 'users' table of the database from credentials stored in
+ * user cookies.
+ *
+ * @param string $dbc A mysqli database connection object.
+ * @param integer $userId The database user_id number of the user account from the userId cookie.
+ * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
+ * @return array On success returns an array containing all fields from the users database record.
+ */
+function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE) {
+    $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
+    $params = array(
+        'userId' => $userId,
+        'authCheckCode' => $authCheckCode);
+    $STH = run_prepared_query($DBH, $query, $params);
+    $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
+    if (count($userData) == 0) {
+        if ($redirect) {
+            generate_cookie_credentials($DBH, $userId, TRUE);
+            header('Location: index.php?error=auth');
+            exit;
+        } else {
+            return FALSE;
+        }
+    } else {
+        $userData = $userData[0];
+        if ($adminCheck) {
+            if ($userData['account_type'] <= 1 || $userData['account_type'] >= 5) {
+                if ($redirect) {
+                    header('Location: index.php?error=admin');
+                    exit;
+                } else {
+                    return FALSE;
+                }
+            }
+        }
+        if ($enabledCheck) {
+            if ($userData['is_enabled'] == 0) {
+                if ($redirect) {
+                    generate_cookie_credentials($DBH, $userId, TRUE);
+                    header('Location: index.php?error=disabled');
+                    exit;
+                } else {
+                    return FALSE;
+                }
+            }
+        }
+        return $userData;
+    }
+}
+
 // -------------------------------------------------------------------------------------------------
 /**
  * Function to generate new user authentication credential cookies and matching database entries
@@ -24,45 +181,14 @@ function generate_cookie_credentials($DBH, $userId, $logout = FALSE) {
             setcookie('userId', $userId, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
             setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
         } else {
-            setcookie('userId', '', time() - 360 * 24, '/', '', 0, 1);
-            setcookie('authCheckCode', '', time() - 360 * 24, '/', '', 0, 1);
+            setcookie('userId', '', time() - 60 * 60 * 24, '/', '', 0, 1);
+            setcookie('authCheckCode', '', time() - 60 * 60 * 24, '/', '', 0, 1);
         }
         return $authCheckCode;
     } else {
         //  Placeholder for error management
         print 'User Cookie Generation Error: User Id Not found';
         exit;
-    }
-}
-
-// -------------------------------------------------------------------------------------------------
-/**
- * Function to authenticate user against 'users' table of the database from credentials stored in
- * user cookies.
- *
- * @param string $dbc A mysqli database connection object.
- * @param integer $userId The database user_id number of the user account from the userId cookie.
- * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
- * @return array On success returns an array containing all fields from the users database record.
- */
-function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE) {
-    $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
-    $params = array(
-        'userId' => $userId,
-        'authCheckCode' => $authCheckCode);
-    $STH = run_prepared_query($DBH, $query, $params);
-    $userData = $STH->fetchAll(PDO::FETCH_ASSOC);
-    if (count($userData) == 0) {
-        if ($redirect) {
-            header('Location: index.php');
-            exit;
-        } else {
-            return FALSE;
-        }
-
-        exit;
-    } else {
-        return $userData[0];
     }
 }
 
@@ -311,38 +437,66 @@ function retrieve_image_id_pool($DBH, $searchIds, $imageGroupSearch = FALSE, $fi
 
 // Build the search query
     $whereString = where_in_string_builder($searchIds);
-    $imageIdQuery = "SELECT image_id FROM ";
     switch ($imageGroupSearch) {
         case FALSE: // $searchIds represent datasets to be queried in images table
-            $imageIdQuery .= "images WHERE dataset_id IN ($whereString)";
+            $imageIdQuery = "SELECT image_id FROM images WHERE dataset_id IN ($whereString)";
             if ($filtered == TRUE) {
-// Pool results should exclude disabled images or those without display images
+                // Pool results should exclude disabled images or those without display images
                 $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
             }
+            //  $imageIdParams['whereString'] = $whereString;
+            $imageIdParams = array();
+            $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
+            $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+            //  $imageIdResult = run_database_query($imageIdQuery);
+            // Build the array to return.
+            if (count($imageIdResult) > 0) {
+                foreach ($imageIdResult as $imageId) {
+                    $imageIdsReturn[] = $imageId['image_id'];
+                }
+            }
+            return $imageIdsReturn;
             break;
+
+
         case TRUE: // $searchIds represent image_group ids to be queried in image_groups table
-            $imageIdQuery .= "image_groups WHERE image_group_id IN $whereString";
-            if ($filtered == TRUE) {
-// Pool results should exclude disabled images or those without display images
-                $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
+            $imageGroupQuery = "SELECT image_id, group_range, show_every_nth_image "
+                    . "FROM image_groups "
+                    . "WHERE image_group_id IN ($whereString)";
+            $imageGroupParams = array();
+            $STH = run_prepared_query($DBH, $imageGroupQuery, $imageGroupParams);
+            $imageGroupResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+            if (count($imageGroupResult) > 0) {
+                foreach ($imageGroupResult as $imageGroup) {
+                    $imageId = $imageGroup['image_id'];
+                    $groupRange = $imageGroup['group_range'];
+                    $showEveryNthImage = $imageGroup['show_every_nth_image'];
+                    if ($groupRange == 1) {
+                        $imageIdsReturn[] = $imageId;
+                    } else if ($groupRange > 1) {
+                        for ($i = $imageId; $i < $imageId + $groupRange; $i = $i + $showEveryNthImage) {
+                            $imageIdsReturn[] = $i;
+                        }
+                    }
+                }
+                if ($filtered === TRUE) {
+                    $whereString = where_in_string_builder($imageIdsReturn);
+                    $imageFilterQuery = "SELECT image_id FROM images WHERE image_id IN ($whereString) "
+                            . "AND is_globally_disabled = 0 AND has_display_file = 1";
+                    $imageFilterParams = array();
+                    $imageFilterResult = run_prepared_query($DBH, $imageFilterQuery, $imageFilterParams);
+                    $imageIdsReturn = array();
+                    while ($filteredImage = $imageFilterResult->fetch(PDO::FETCH_ASSOC)) {
+                        $imageIdsReturn[] = $filteredImage['image_id'];
+                    }
+                }
+
             }
+            return $imageIdsReturn;
             break;
-        default: // Invalid input supplied
-//print "RETURNING: FALSE<br>";
-            return FALSE;
     }
-//  $imageIdParams['whereString'] = $whereString;
-    $imageIdParams = array();
-    $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
-    $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
-//  $imageIdResult = run_database_query($imageIdQuery);
-// Build the array to return.
-    foreach ($imageIdResult as $imageId) {
-        $imageIdsReturn[] = $imageId['image_id'];
-    }
-// print "RETURNING: imageIdsReturn Array<br>";
-// print_r($imageIdsReturn);
-    return $imageIdsReturn;
+    //print "RETURNING: FALSE<br>";
+    return FALSE;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -408,7 +562,7 @@ function retrieve_image_metadata($imageIds) {
  * @return string|boolean On success returns a formatted string <b>OR</b><br>
  * On failure returns boolean FALSE.
  */
-function build_image_location_string($imageMetadata, $shortResult=FALSE) {
+function build_image_location_string($imageMetadata, $shortResult = FALSE) {
     /* print "<p><b>In build_image_location_string function.</b><br>Arguments:<br><pre>";
       print_r($imageMetadata);
       print "</pre></p>"; */
@@ -480,22 +634,22 @@ function find_datasets_in_collection($DBH, $collectionId) {
  */
 function utc_to_timezone($time, $format, $longitude = NULL) {
 // print "<p><b>In utc_to_timezone function.</b><br>Arguments:<br>$time<br>$longitude<br>$format</p>";
-    // Define PHP settings, constants, and variables
+// Define PHP settings, constants, and variables
     $error = false;
-    // Validate the inputs
+// Validate the inputs
     if (is_null($time) OR is_null($format) OR !is_string($format)) {
         $error = true;
     }
-    // Create DateTime Object
+// Create DateTime Object
     if (!$error AND is_numeric($time)) {
         $timeObject = new DateTime('@' . $time);
     } elseif (!$error AND is_string($time)) {
         $timeObject = new DateTime($time, new DateTimeZone('UTC'));
     }
     if ($timeObject) {
-        // if longitude is given set the timezone and adjust $timeObject for it)
+// if longitude is given set the timezone and adjust $timeObject for it)
         If (!is_null($longitude) && is_numeric($longitude)) {
-            // Determine image timezone
+// Determine image timezone
             if ($longitude >= -85.388) {
                 $timeZone = 'America/New_York';
             } elseif ($longitude < -85.388 AND $longitude >= -105) {
@@ -507,14 +661,14 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
                 $timeObject->setTimezone(new DateTimeZone($timeZone));
             }
         }
-        //Format the time to the given format.
+//Format the time to the given format.
         $formattedTime = $timeObject->format($format);
         if ($formattedTime) {
-            //print "RETURNING: $formattedTime<br>";
+//print "RETURNING: $formattedTime<br>";
             return $formattedTime;
         }
     }
-    //print "RETURNING: FALSE<br>";
+//print "RETURNING: FALSE<br>";
     return FALSE;
 }
 
@@ -534,18 +688,18 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
  */
 function retrieve_entity_metadata($DBH, $ids, $entity) {
 //   print "<p><b>In retrieve_collection_metadata function.</b><br>Arguments:";
-//    print "<br>Entity: $entity";
-//    if (is_array($ids)) {
-//    print "<br>An array of values.</p>";
+    //    print "<br>Entity: $entity";
+    //    if (is_array($ids)) {
+    //    print "<br>An array of values.</p>";
 //    print "<pre>";
 //    print_r($ids);
 //    print "</pre>";
 //    } else {
 //    print "<br>IDs: $ids</p>";
 //    }
-    // Define PHP settings and Variables
+// Define PHP settings and Variables
     $returnData = array();
-    // Check validity of input data
+// Check validity of input data
     if (!is_null($ids) && (is_numeric($ids) || is_array($ids)) && !is_null($entity) &&
             is_string($entity)) {
         switch ($entity) {
@@ -565,11 +719,23 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
                 $table = 'projects';
                 $column = 'project_id';
                 break;
+            case 'tasks':
+                $table = 'task_metadata';
+                $column = 'project_id';
+                break;
+            case 'groups':
+                $table = 'tag_group_metadata';
+                $column = 'tag_group_id';
+                break;
+            case 'tags':
+                $table = 'tags';
+                $column = 'tag_id';
+                break;
             default:
                 print "RETURNING: FALSE";
                 return FALSE;
         }
-        // Build and run the query
+// Build and run the query
         $idsToQuery = where_in_string_builder($ids);
         $metadataQuery = "SELECT * FROM $table WHERE $column IN ($idsToQuery)";
 //    $metadataParams['idsToQuery'] = $idsToQuery;
@@ -588,4 +754,24 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
     }
 //   print "RETURNING: FALSE<br>";
     return FALSE;
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Determines and returns the ordinal suffix for a number
+ *
+ * Function to determine and return the ordinal suffix for a number
+ *
+ * @param int $num The number to analyse
+ * @return string The supplied number including the ordinal suffix.
+ */
+function ordinal_suffix($num) {
+    if ($num < 11 || $num > 13) {
+        switch ($num % 10) {
+            case 1: return "{$num}st";
+            case 2: return "{$num}nd";
+            case 3: return "{$num}rd";
+        }
+    }
+    return "{$num}th";
 }

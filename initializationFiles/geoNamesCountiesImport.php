@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $dbmsUser = '';
     $dbmsPassword = '';
     $dbmsDatabase = "";
+
     $dbc = new mysqli($dbmsServer, $dbmsUser, $dbmsPassword, $dbmsDatabase);
 
     //////////

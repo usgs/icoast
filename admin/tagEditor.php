@@ -1,9 +1,10 @@
 <?php
 //////////
 // => Define required files and initial includes
-require_once('includes/globalFunctions.php');
-require_once('includes/adminFunctions.php');
-require $dbmsConnectionPath;
+require_once('../includes/globalFunctions.php');
+require_once('../includes/adminFunctions.php');
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 //////////
 $filtered = TRUE;
 $projectId = 1;
@@ -632,7 +633,7 @@ function build_annotation_list_html($projectId) {
         <?php
         /////////
 // => Check user permissions to access the page.
-        if ($permissionLevel == 2) {
+        if ($permissionLevel == 4) {
             if (isset($_POST['submissionType'])) {
 //      $data = array();
 //      foreach ($_POST as $key => $value) {
@@ -643,7 +644,7 @@ function build_annotation_list_html($projectId) {
 //      print_r($data);
 //      print '</pre>';
 
-
+print $_SERVER['PHP_SELF'];
 
 
                 foreach ($_POST as $key => $value) {

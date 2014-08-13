@@ -1,6 +1,8 @@
 <?php
+ob_start();
+$pageModifiedTime = filemtime(__FILE__);
 
-require('includes/pageCode/profileCode.php');
+require_once('includes/pageCode/profileCode.php');
 $pageBody = <<<EOL
         <div id="contentWrapper">
             <h1>Your USGS iCoast Profile and Tagging History</h1>
@@ -270,4 +272,4 @@ $pageBody = <<<EOL
 
 EOL;
 
-require('includes/template.php');
+require_once('includes/template.php');

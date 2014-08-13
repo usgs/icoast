@@ -120,11 +120,6 @@ a:hover {
 
 }
 
-#navigationBar li:first-of-type {
-    /*    padding: 8px 15px 8px 0px;*/
-    padding: 0 15px 0 5px;
-}
-
 #navigationBar li:last-of-type {
     border-right: none;
 }
@@ -141,12 +136,13 @@ a:hover {
 }
 
 .activePageLink {
-    background-color: #284D68;
+    background-color: #284D68 !important;
     /*color: #45a1c8;*/
     color: #FFFFFF;
 }
 
-#navigationBar a {
+#navigationBar a,
+#adminNavigationBar a {
     text-decoration: none;
     color: white;
 }
@@ -156,7 +152,18 @@ a:hover {
     color: #E56969;
 }
 
-#navigationBar a:hover {
+#adminHomeLink {
+    background-color: #E56969;
+    width: 150px;
+    text-align: center;
+}
+
+#adminHomeLink a {
+    color: black;
+}
+
+#navigationBar a:hover,
+#adminNavigationBar a:hover {
     color: #D3E2F0;
 }
 
@@ -169,6 +176,7 @@ a:hover {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
     vertical-align: middle;
+    display: inline-block;
 
     margin: 8px;
     border: 1px solid black;
@@ -180,6 +188,11 @@ a:hover {
     line-height: 20px;
     font-weight: bold;
     box-shadow: 3px 3px 3px #888888;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .clickableButton:hover, .clickableButton:active {
@@ -190,6 +203,17 @@ a:hover {
 
 .italic {
     font-style: italic;
+}
+
+.error,
+.unreadEvent,
+#closedEventText,
+.redHighlight {
+    color: red;
+}
+
+#openEventText {
+    color: forestgreen;
 }
 
 /*input[type="radio"]:checked + .clickableButton {
@@ -231,68 +255,10 @@ input::-moz-focus-inner {
     padding: 0;
 }
 
-/*Google Maps*/
-
-/*Fix for Google Maps Zoom Control Display Bug*/
-#mapCanvas img, #mapInsert img {
+#mapCanvas img,
+#mapInsert img {
     border-radius: 0;
-    max-width: none;
-    display: inline;
 }
-
-/*Google Maps Search Box Styling*/
-.controls {
-    margin-top: 25px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    height: 32px;
-    outline: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/*Google Maps Search Box Styling*/
-#pac-input {
-    background-color: #fff;
-    padding: 0 11px 0 13px;
-    width: 50%;
-    font-family: Roboto;
-    font-size: 15px;
-    font-weight: 300;
-    text-overflow: ellipsis;
-}
-
-/*Google Maps Search Box Styling*/
-#pac-input:focus {
-    border-color: #4d90fe;
-    margin-left: -1px;
-    padding-left: 14px;  /* Regular padding-left + 1. */
-    /*width: 401px;*/
-}
-/*Google Maps Search Results Styling*/
-.pac-container {
-    font-family: Roboto;
-    z-index: 10000;
-}
-/*Google Maps Styling*/
-#type-selector {
-    color: #fff;
-    background-color: #4d90fe;
-    padding: 5px 11px 0px 11px;
-}
-/*Google Maps Styling*/
-#type-selector label {
-    font-family: Roboto;
-    font-size: 13px;
-    font-weight: 300;
-}
-/*Google Maps Styling*/
-#target {
-    width: 345px;
-}
-
-
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*All Pages except About and Classification*/
@@ -308,15 +274,18 @@ input::-moz-focus-inner {
     text-align: center;
 }
 
-#contentWrapper p {
+#contentWrapper p,
+#adminPageWrapper p {
     margin: 10px 20px;
     line-height: 1.2;
 }
-#contentWrapper th, #contentWrapper td  {
+#contentWrapper th, #contentWrapper td,
+#adminPageWrapper th, #adminPageWrapper td {
     font: inherit;
 }
 
-.statisticsTable td:first-of-type {
+.statisticsTable td:first-of-type,
+#updateSummaryTable td:first-of-type {
     text-align: right;
     font-weight:bold !important;
 }
@@ -352,13 +321,16 @@ input::-moz-focus-inner {
     padding-left: 10px;
 }
 
-#historyTableWrapper {
+#historyTableWrapper,
+#eventTableWrapper,
+#eventDetailsContent {
     background: #FFFFFF;
     border-radius: 5px;
     border: 1px solid black;
 }
 
-#historyTableWrapper th {
+#historyTableWrapper th,
+#eventTableWrapper th {
     font-weight: bold;
     text-align: center;
 }
@@ -460,7 +432,8 @@ th, td {
     padding: 3px 10px 5px 10px;
 }
 
-#profileTableWrapper tr {
+#profileTableWrapper tr,
+#eventTableWrapper tr {
     border-bottom: 1px solid black;
 }
 
@@ -479,11 +452,12 @@ th, td {
 
 .formFieldRow label,
 .formFieldRow input,
-.formFieldRow select {
+.formFieldRow select,
+.formFieldRow textarea {
     float:left;
 }
 
-.formFieldRow label {
+.formFieldRow label:first-of-type {
     width: 40%;
     margin-right: 5px;
     line-height: 50px;
@@ -701,6 +675,14 @@ label.error {
     padding: 0 10px;
 }
 
+.leaflet-control-layers-list {
+    text-align: left;
+}
+
+.leaflet-control-layers-list input {
+    display: inline !important;
+}
+
 #mapHide {
 
     position: relative;
@@ -803,6 +785,44 @@ label.error {
     line-height: 14px;
 }
 
+#alertBoxWrapper {
+    display: none;
+    /*display:table;*/
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 625px;
+    min-width: 1193px;
+    z-index: 9999;
+    background: rgba(0, 0, 0, .6);
+    font-size: 16px;
+}
+
+#alertBoxCenteringWrapper {
+    display: table-cell;
+    vertical-align: middle;
+
+}
+
+#alertBox {
+    text-align: center;
+    margin: auto;
+    width: 70%;
+    background-color: white;
+    border-radius: 5px;
+    padding: 25px 25px 25px 25px;
+}
+
+#alertBox #alertBoxTitle {
+    margin: 0 0 20px 0;
+}
+
+#alertBoxControls {
+    margin-top: 12px;
+}
+
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*Home Page*/
@@ -858,7 +878,7 @@ label.error {
 
 #indexTextColumn {
     margin-left: 700px;
-    height: 450px;
+    /*    height: 450px;*/
     text-align: left;
     margin-bottom: 20px;
 }
@@ -873,10 +893,6 @@ label.error {
 
 #indexTextColumn form {
     text-align: center;
-}
-
-.loginError {
-    color: red;
 }
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -1048,7 +1064,8 @@ label.error {
     font-weight: bold;
 }
 
-#faqs .faqQuestion p:first-of-type {
+#faqs .faqQuestion p:first-of-type,
+.individualFilterWrapper p:first-of-type {
     /*Stop selection of text in button*/
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -1060,7 +1077,7 @@ label.error {
     top: 2px;
     height: 15px;
     width: 15px;
-    line-height: 15px;
+    line-height: 15px !important;
     display: block;
     border: 1px solid black;
     text-align: center;
@@ -1278,7 +1295,8 @@ label.error {
     box-shadow: 6px 6px 6px #222222;
 }
 
-input[type="checkbox"]:checked + .tag, input[type="radio"]:checked + .tag {
+input[type="checkbox"]:checked + .tag,
+input[type="radio"]:checked + .tag {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
@@ -1339,7 +1357,7 @@ input[type="checkbox"], input[type="radio"] {
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Width needs to be altered to be dynamic!*/
 #progressTrackerItemWrapper {
-    width: 160px;
+    /*width: 160px;*/
     margin: 8px 0 8px -50%;
     height: 30px;
 }
@@ -1374,3 +1392,5 @@ Width needs to be altered to be dynamic!*/
     background: -ms-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
 }
+
+

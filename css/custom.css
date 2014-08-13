@@ -11,7 +11,8 @@ TO DISPLAY A CUSTOM BANNER COLOR (NO IMAGE):
 If you would rather display a color instead of a banner image, change the "background: url" portion to point to "" and set the background color (#006633) to whatever color you wish to display.
 NOTE: You can use either hexadecimal color codes (i.e. - #006633, #063) or HTML color names (i.e. - "black"). */
 #usgscolorband {
-	background: #040535 url('../images/system/banner.jpg') 178px 0px repeat-x;
+    /*	background: #040535 url('../images/system/banner.jpg') 178px 0px repeat-x;*/
+    background: #020333 url('../images/system/hurricaneBanner.jpg') 178px 0px no-repeat;
 }
 /* ================SITE TITLE===================*/
 /* TO DISPLAY A CUSTOM SITE TITLE BAR:
@@ -26,10 +27,10 @@ NOTE: You can use either hexadecimal color codes (i.e. - #000000) or HTML color 
 /* TO CHANGE THE TEXT SIZE OF THE CONTENT:
 By default, USGS has set the font size to "small" in order to provide a consistent size for content across all pages. If you would prefer not to have a pre-defined font size for your pages, change the "font-size" attributes below to "font-size: 100%;". */
 body {
-	font-size: 100%;
+    font-size: 100%;
 }
 th, td {
-	font-size: 100%;
+    font-size: 100%;
 }
 #usgsfootertext {
     line-height: 1.3em;

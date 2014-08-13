@@ -1,7 +1,8 @@
 <?php
-
 ob_start();
-require('includes/pageCode/registrationCode.php');
+$pageModifiedTime = filemtime(__FILE__);
+
+require_once('includes/pageCode/registrationCode.php');
 
 $pageBody = <<<EOL
     <div id = "contentWrapper">
@@ -68,4 +69,4 @@ $pageBody = <<<EOL
     </div>
 EOL;
 
-require("includes/template.php");
+require_once("includes/template.php");

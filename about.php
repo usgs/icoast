@@ -1,7 +1,8 @@
 <?php
-
 ob_start();
-require("includes/pageCode/aboutCode.php");
+$pageModifiedTime = filemtime(__FILE__);
+
+require_once("includes/pageCode/aboutCode.php");
 
 $pageBody = <<<EOL
         <div id="contentWrapper">
@@ -86,6 +87,10 @@ $pageBody = <<<EOL
                     science educators to further science, technology, engineering, and math (STEM) education.
                     </p>
 
+                <h2>iCoast In The News</h2>
+
+                <p class="aboutAttributions">iCoast was featured on the USGS home page as a top story. <a href="http://www.usgs.gov/blogs/features/usgs_top_story/usgs-icoast-did-the-coast-change/">USGS Science Features: Top Story</a>
+
                 <h2>The USGS iCoast Team</h2>
                 <div class="teamColumn">
                     <div>
@@ -142,6 +147,10 @@ $pageBody = <<<EOL
                     Geology Program (<a href="http://marine.usgs.gov/">CMGP</a>) and the National Geospatial
                     Program (NGP) through the Center of Excellence for Geospatial Information Science
                     (<a href="http://cegis.usgs.gov/">CEGIS</a>).</p>
+
+                <h2>Open Source and iCoast</h2>
+                <p class="aboutAttributions"><a href="https://github.com/usgs/icoast">Fork iCoast on GitHub</a>
+                <p class="aboutAttributions">Unless otherwise noted below, this software is in the public domain because it contains materials that originally came from the United States Geological Survey, an agency of the United States Department of Interior. For more information, see the official <a href="http://www.usgs.gov/visual-id/credit_usgs.html#copyright">USGS copyright policy</a></p>
                 <h2>Attributions</h2>
                 <p class="aboutAttributions">References to or use of non-U.S. Department of the Interior (DOI)
                     products does not constitute an endorsement by the DOI.</p>
@@ -159,4 +168,4 @@ $pageBody = <<<EOL
         </div>
 EOL;
 
-require("includes/template.php");
+require_once("includes/template.php");

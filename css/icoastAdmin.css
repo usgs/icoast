@@ -1,0 +1,358 @@
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*All admin pages*/
+
+#adminPageWrapper {
+    min-width: 1233px;
+    max-width: 1920px;
+    background-color: #666666;
+}
+
+#adminNavigationBar {
+    background-color: #666666;
+    float: left;
+    width: 180px;
+    overflow: hidden;
+    border-right: 1px solid #FFFFFF;
+}
+
+#adminNavigationBar li {
+    font-weight: bold;
+    color: #FFFFFF;
+    border-bottom: 1px solid #FFFFFF;
+    display: inline-block;
+    font-size: 17px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 15px 0 17px;
+    width: 100%;
+}
+
+#adminContentWrapper {
+    font-family: Arial,Helvetica,Vardana,sans-serif;
+    background-color: #D3E2F0;
+    font-size: 18px;
+    padding: 1px 35px 10px 20px;
+    overflow: hidden;
+    text-align: center;
+}
+
+input[type="checkbox"]:checked + .clickableButton,
+input[type="radio"]:checked + .clickableButton {
+    background: #e56969;
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    border-width: 3px;
+    margin: 6px;
+}
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Admin Event Viewer Page */
+
+#eventSummaryWrapper table,
+#eventSummaryWrapper p,
+.eventDetailRow {
+    font-size: 14px;
+    line-height: 1.2em;
+}
+
+#eventLogFilterWrapper {
+    overflow: hidden;
+    display: none;
+}
+
+.eventLogFilterColumn {
+    width: 31%;
+    margin: 0 1% 0 1%;
+    float:left;
+    text-align: left;
+}
+
+.individualFilterWrapper,
+#applyFilterWrapper {
+    clear: both;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px 10px 10px 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.individualFilterWrapper p {
+    margin: 0 0 0 32px !important;
+}
+
+.individualFilterWrapper p:first-of-type {
+    margin: 0 0 0 8px !important;
+}
+
+#applyFilterWrapper {
+    padding-bottom: 2px;
+    margin: 0 1%;
+}
+
+#applyFilterWrapper p {
+    margin: 0;
+}
+
+.individualFilterControlWrapper {
+    display: none;
+    text-align: center;
+}
+
+.filterSelectBox {
+    /*width: 215px;*/
+}
+
+/* Event Log Table*/
+#eventLogWrapper {
+    clear: both;
+}
+
+#eventSummaryWrapper {
+    float: left;
+    width: 58%;
+    padding-right: 2%;
+    overflow: hidden;
+}
+
+#eventSummaryWrapper table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#eventSummaryWrapper th {
+    padding-right: 20px;
+}
+
+.headContent {
+    width: 100%;
+    position: relative;
+}
+
+#eventSummaryWrapper td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.closedEvent {
+    color: #666666;
+}
+
+.eventIdColumn {
+    width: 25px;
+}
+
+.sortArrow {
+    position: absolute;
+    right: -18px;
+    top: 6px;
+}
+
+#eventDetailsWrapper {
+    float: left;
+    width: 38%;
+    padding-left: 2%;
+}
+
+#eventDetailsContent {
+    display: none;
+    padding: 5px 5px 0 5px;
+}
+
+#eventDetailsText {
+    margin: 10px;
+}
+
+.eventDetailRow {
+    clear: both;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.eventRowName {
+    font-weight: bold;
+    text-align: right;
+    float: left;
+    width: 125px;
+}
+
+.eventRowValue {
+    margin-left: 135px;
+    text-align: left;
+}
+
+.eventRowName p,
+.eventRowValue p {
+    margin: 0 !important;
+}
+
+#eventLogErrorWrapper {
+    display: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#chosenProjectNotificationWrapper p,
+#chosenProjectNotificationWrapper form {
+    display: inline-block;
+}
+
+hr {
+    width: 70%;
+}
+
+#projectSelectForm label {
+    font-weight: bold;
+    width: 43%
+}
+
+#projectSelectForm select {
+    width: 250px;
+}
+
+#editActionForm label {
+    width: 135px;
+    height: 50px;
+    padding: 10px;
+    line-height: 50px;
+}
+
+#editActionForm input {
+    width: 135px;
+}
+
+#editProjectDetailsForm label,
+#editTaskDetailsForm label,
+#editGroupDetailsForm label,
+#editTagDetailsForm label {
+    width: 40%;
+}
+#editProjectDetailsForm .formFieldRow input,
+#editTaskDetailsForm .formFieldRow input,
+#editGroupDetailsForm .formFieldRow input,
+#editTagDetailsForm .formFieldRow input {
+    width: 400px;
+}
+
+#editProjectDetailsForm textarea,
+#editTaskDetailsForm textarea,
+#editGroupDetailsForm textarea,
+#editTagDetailsForm textarea {
+    width: 400px;
+    height: 150px;
+}
+
+#editProjectDetailsForm input[type="radio"]+label,
+#editTaskDetailsForm input[type="radio"]+label,
+#editGroupDetailsForm input[type="radio"]+label,
+#editGroupDetailsForm .color,
+#editTagDetailsForm input[type="radio"]+label {
+    width: 100px !important;
+}
+
+#editProjectDetailsForm input[type="radio"]:checked+label,
+#editTaskDetailsForm input[type="radio"]:checked+label,
+#editTaskDetailsForm input[type="radio"]:checked+label {
+    margin-top: 6px;
+}
+
+#editGroupDetailsForm .color,
+#editGroupDetailsForm .color.disabledClickableButton:hover {
+    margin-top: 8px;
+}
+
+#editGroupDetailsForm .color:hover {
+    margin-top: 7px;
+}
+
+#actionSummary h3,
+#actionControls h3 {
+    font-size: 1.1em;
+}
+
+#actionControls input[type="textbox"],
+#actionControls textarea,
+#actionControls .color {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+#updateSummaryTable {
+    width: 80%;
+}
+
+#updateSummaryTable td:first-of-type {
+    width: 300px;
+}
+
+.threeColumnOrSplit {
+    overflow: hidden;
+}
+
+.threeColumnOrSplit>div {
+    float: left;
+    width: 10%;
+}
+
+.threeColumnOrSplit>div:first-of-type,
+.threeColumnOrSplit>div:last-of-type {
+    width: 45%;
+}
+
+#taskSelectBox,
+#createNewTaskButton {
+    width: 275px;
+}
+
+.twoColumnSplit>div {
+    float: left;
+    width: 50%;
+}
+
+#propertyOrderTable,
+#propertyOrderTable td {
+    border: 1px black solid;
+    text-align: center;
+}
+
+#propertyOrderTable thead {
+    background-color: #EEEEEE;
+    font-weight: bold;
+}
+
+#currentProperty {
+    background-color: green;
+}
+
+.disabledProperty {
+    background-color: red;
+}
+
+.updateFormSubmissionControls {
+    margin-top: 15px;
+}
+
+.updateFormSubmissionControls,
+.twoColumnSplit+div,
+.threeColumnOrSplit+div {
+    clear: both;
+}
+
+#groupSelectBox {
+    width: 297px;
+}
+
+

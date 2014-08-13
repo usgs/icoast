@@ -1,5 +1,5 @@
 <?php
-require("feedback.php");
+require("includes/feedback.php");
 require("includes/templateCode.php");
 ?>
 <!DOCTYPE html>
@@ -41,11 +41,20 @@ print $embeddedCSS;
         <?php print $javaScriptLinks; ?>
         <script>
 <?php
-print $feedbackJavascript . "\n\r";
-print $javaScript . "\n\r";
-print $jQueryDocumentDotReadyCode;
-print $feedbackjQueryDocumentDotReadyCode . "\n\r";
+            print $feedbackJavascript . "\n\r";
+            print $javaScript . "\n\r";
+            print $jQueryDocumentDotReadyCode;
+            print $feedbackjQueryDocumentDotReadyCode . "\n\r";
 ?>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-49706884-1', 'icoast.us');
+            ga('require', 'displayfeatures');
+            ga('send', 'pageview');
+
         </script>
     </head>
     <body>
@@ -64,6 +73,18 @@ print $feedbackjQueryDocumentDotReadyCode . "\n\r";
         print $feedbackPageHTML;
         require('includes/footer.txt');
         ?>
+
+        <div id="alertBoxWrapper">
+            <div id="alertBoxCenteringWrapper">
+                <div id="alertBox">
+                    <?php print $alertBoxContent; ?>
+                    <div id="alertBoxControls">
+                        <?php print $alertBoxDynamicControls; ?>
+                        <input type="button" id="closeAlertBox" class="clickableButton" value="Close">
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </body>
 </html>
