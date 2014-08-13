@@ -4,6 +4,7 @@
 #adminPageWrapper {
     min-width: 1233px;
     max-width: 1920px;
+    background-color: #666666;
 }
 
 #adminNavigationBar {
@@ -42,7 +43,7 @@ input[type="radio"]:checked + .clickableButton {
     background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     border-width: 3px;
-    margin: 4px 6px;
+    margin: 6px;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -189,3 +190,169 @@ input[type="radio"]:checked + .clickableButton {
 #eventLogErrorWrapper {
     display: none;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+#chosenProjectNotificationWrapper p,
+#chosenProjectNotificationWrapper form {
+    display: inline-block;
+}
+
+hr {
+    width: 70%;
+}
+
+#projectSelectForm label {
+    font-weight: bold;
+    width: 43%
+}
+
+#projectSelectForm select {
+    width: 250px;
+}
+
+#editActionForm label {
+    width: 135px;
+    height: 50px;
+    padding: 10px;
+    line-height: 50px;
+}
+
+#editActionForm input {
+    width: 135px;
+}
+
+#editProjectDetailsForm label,
+#editTaskDetailsForm label,
+#editGroupDetailsForm label,
+#editTagDetailsForm label {
+    width: 40%;
+}
+#editProjectDetailsForm .formFieldRow input,
+#editTaskDetailsForm .formFieldRow input,
+#editGroupDetailsForm .formFieldRow input,
+#editTagDetailsForm .formFieldRow input {
+    width: 400px;
+}
+
+#editProjectDetailsForm textarea,
+#editTaskDetailsForm textarea,
+#editGroupDetailsForm textarea,
+#editTagDetailsForm textarea {
+    width: 400px;
+    height: 150px;
+}
+
+#editProjectDetailsForm input[type="radio"]+label,
+#editTaskDetailsForm input[type="radio"]+label,
+#editGroupDetailsForm input[type="radio"]+label,
+#editGroupDetailsForm .color,
+#editTagDetailsForm input[type="radio"]+label {
+    width: 100px !important;
+}
+
+#editProjectDetailsForm input[type="radio"]:checked+label,
+#editTaskDetailsForm input[type="radio"]:checked+label,
+#editTaskDetailsForm input[type="radio"]:checked+label {
+    margin-top: 6px;
+}
+
+#editGroupDetailsForm .color,
+#editGroupDetailsForm .color.disabledClickableButton:hover {
+    margin-top: 8px;
+}
+
+#editGroupDetailsForm .color:hover {
+    margin-top: 7px;
+}
+
+#actionSummary h3,
+#actionControls h3 {
+    font-size: 1.1em;
+}
+
+#actionControls input[type="textbox"],
+#actionControls textarea,
+#actionControls .color {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+#updateSummaryTable {
+    width: 80%;
+}
+
+#updateSummaryTable td:first-of-type {
+    width: 300px;
+}
+
+.threeColumnOrSplit {
+    overflow: hidden;
+}
+
+.threeColumnOrSplit>div {
+    float: left;
+    width: 10%;
+}
+
+.threeColumnOrSplit>div:first-of-type,
+.threeColumnOrSplit>div:last-of-type {
+    width: 45%;
+}
+
+#taskSelectBox,
+#createNewTaskButton {
+    width: 275px;
+}
+
+.twoColumnSplit>div {
+    float: left;
+    width: 50%;
+}
+
+#propertyOrderTable,
+#propertyOrderTable td {
+    border: 1px black solid;
+    text-align: center;
+}
+
+#propertyOrderTable thead {
+    background-color: #EEEEEE;
+    font-weight: bold;
+}
+
+#currentProperty {
+    background-color: green;
+}
+
+.disabledProperty {
+    background-color: red;
+}
+
+.updateFormSubmissionControls {
+    margin-top: 15px;
+}
+
+.updateFormSubmissionControls,
+.twoColumnSplit+div,
+.threeColumnOrSplit+div {
+    clear: both;
+}
+
+#groupSelectBox {
+    width: 297px;
+}
+
+

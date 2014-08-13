@@ -119,9 +119,9 @@ $tagCount = tagsInAnnotation($DBH, $annotationId);
 
 //--------------------------------------------------------------------------------------------------
 // Find image id's of next and previous post images
-$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId);
+$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId, $userId);
 $previousImageId = $postImageArray[0]['image_id'];
-if (!$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
+if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
     //  Placeholder for error management
     exit("Previous Image $previousImageId not found in Database");
 }
@@ -131,9 +131,9 @@ $previousImageDisplayURL = "images/datasets/{$previousImageMetadata['dataset_id'
 $previousImageLocation = build_image_location_string($previousImageMetadata);
 
 $nextImageId = $postImageArray[2]['image_id'];
-if (!$nextImageMetadata = retrieve_entity_metadata($DBH, $nextImageId, 'image')) {
+if ($nextImageId != 0 && !$nextImageMetadata = retrieve_entity_metadata($DBH, $nextImageId, 'image')) {
     //  Placeholder for error management
-    exit("Previous Image $nextImageId not found in Database");
+    exit("Next Image $nextImageId not found in Database");
 }
 $nextImageLatitude = $nextImageMetadata['latitude'];
 $nextImageLongitude = $nextImageMetadata['longitude'];
@@ -145,14 +145,14 @@ $nextImageLocation = build_image_location_string($nextImageMetadata);
 
 
 if ($previousImageId != 0) {
-    $leftCoastalNavigationButtonHTML = '<button class="clickableButton leftCoastalNavButton" type="button" title="Click to show the next POST-storm Photo along the LEFT of the coast from your last annotated photo." id="leftButton"><img src="images/system/leftArrow.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="64" width="41"></button>';
+    $leftCoastalNavigationButtonHTML = '<button class="clickableButton leftCoastalNavButton" type="button" title="Click to show the next available POST-storm Photo to the LEFT of your last annotated photo." id="leftButton"><img src="images/system/leftArrow.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="64" width="41"></button>';
 } else {
-    $leftCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton leftCoastalNavButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/leftArrow.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="64" width="41"></button>';
+    $leftCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton leftCoastalNavButton" type="button" title="No more images are within range in this direction. Use the Map to move along the coat to the next region." id="leftButton" disabled><img src="images/system/leftArrow.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="64" width="41"></button>';
 }
 if ($nextImageId != 0) {
-    $rightCoastalNavigationButtonHTML = '<button class="clickableButton" type="button" title="Click to show the next POST-storm Photo along the RIGHT of the coast from your last annotated photo." id="rightButton"><img src="images/system/rightArrow.png" alt="Image of a right facing arrow. Used to navigate right along the coast" height="64" width="41"></button>';
+    $rightCoastalNavigationButtonHTML = '<button class="clickableButton" type="button" title="Click to show the next available POST-storm Photo to the RIGHT of your last annotated photo." id="rightButton"><img src="images/system/rightArrow.png" alt="Image of a right facing arrow. Used to navigate right along the coast" height="64" width="41"></button>';
 } else {
-    $rightCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton" type="button" title="No more images in the dataset in this direction. Use the Map to move along the coat to the next dataset."><img src="images/system/rightArrow.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="64" width="41"></button>';
+    $rightCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton" type="button" title="No more images within range in this direction. Use the Map to move along the coat to the next region." id="rightButton" disabled><img src="images/system/rightArrow.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="64" width="41"></button>';
 }
 
 
@@ -211,9 +211,15 @@ EOL;
 // Determine the new Random Image for next annotation and prepare random image selection HTML
 if ($numberOfProjects >= 1) {
     $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty') {
+        $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id']);
+    }
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty' || $newRandomImageId === FALSE) {
+        exit("An error was detected while generating a new image");
+    }
     if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId, 'image')) {
         //  Placeholder for error management
-        exit("New random Image $postImageId not found in Database");
+        exit("New random Image $newRandomImageId not found in Database");
     }
     $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
     $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
@@ -313,9 +319,7 @@ EOL;
 
     $jQueryDocumentDotReadyCode = <<<EOL
     $mapDocumentReadyScript
-
-        $('#leftButton').click(function() {
-            var previousImageData = {
+            var leftImageData = {
                 newProjectName: '$projectName',
                 newRandomImageId:  '$previousImageId',
                 newRandomImageLatitude: '$previousImageLatitude',
@@ -323,10 +327,7 @@ EOL;
                 newRandomImageLocation: '$previousImageLocation',
                 newRandomImageDisplayURL: '$previousImageDisplayURL'
             }
-            processRandomImageChange(previousImageData);
-        });
-        $('#rightButton').click(function() {
-            var nextImageData = {
+             var rightImageData = {
                 newProjectName: '$projectName',
                 newRandomImageId:  '$nextImageId',
                 newRandomImageLatitude: '$nextImageLatitude',
@@ -334,7 +335,113 @@ EOL;
                 newRandomImageLocation: '$nextImageLocation',
                 newRandomImageDisplayURL: '$nextImageDisplayURL'
             }
-            processRandomImageChange(nextImageData);
+
+        $('#leftButton').click(function() {
+
+            processRandomImageChange(leftImageData);
+//            console.log('Showing ' + leftImageData.newRandomImageId);
+            var currentImageDetails = {
+                imageId: leftImageData.newRandomImageId,
+                userId: $userId,
+                projectId: $projectId
+            };
+
+            $.getJSON('ajax/traverseTheCoast.php', currentImageDetails, function(adjacentImageData) {
+                leftImageData.newRandomImageId = adjacentImageData.left.newRandomImageId;
+                leftImageData.newRandomImageLatitude = adjacentImageData.left.newRandomImageLatitude;
+                leftImageData.newRandomImageLongitude = adjacentImageData.left.newRandomImageLongitude;
+                leftImageData.newRandomImageLocation = adjacentImageData.left.newRandomImageLocation;
+                leftImageData.newRandomImageDisplayURL = adjacentImageData.left.newRandomImageDisplayURL;
+
+                rightImageData.newRandomImageId = adjacentImageData.right.newRandomImageId;
+                rightImageData.newRandomImageLatitude = adjacentImageData.right.newRandomImageLatitude;
+                rightImageData.newRandomImageLongitude = adjacentImageData.right.newRandomImageLongitude;
+                rightImageData.newRandomImageLocation = adjacentImageData.right.newRandomImageLocation;
+                rightImageData.newRandomImageDisplayURL = adjacentImageData.right.newRandomImageDisplayURL;
+
+                if (leftImageData.newRandomImageId == 0) {
+//                    console.log('Disabling left button.');
+                    $("#leftButton").addClass('disabledClickableButton');
+                    $("#leftButton").attr("disabled", "disabled");
+                    $("#leftButton").attr("title", "No more images are within range in this direction. Use the Map to move along the coat to the next region.");
+
+                } else {
+//                    console.log('Enabling left button.');
+                    $("#leftButton").removeClass('disabledClickableButton');
+                    $("#leftButton").removeAttr("disabled", "disabled");
+                    $("#leftButton").attr("title", "Click to show the next available POST-storm Photo to the LEFT of your last annotated photo.");
+                }
+
+                if (rightImageData.newRandomImageId == 0) {
+//                    console.log('Disabling right button.');
+                    $("#rightButton").addClass('disabledClickableButton');
+                    $("#rightButton").attr("disabled", "disabled");
+                    $("#rightButton").attr("title", "No more images are within range in this direction. Use the Map to move along the coat to the next region.");
+
+                } else {
+//                                console.log('Enabling right button.');
+
+                    $("#rightButton").removeClass('disabledClickableButton');
+                    $("#rightButton").removeAttr("disabled", "disabled");
+                    $("#rightButton").attr("title", "Click to show the next available POST-storm Photo to the RIGHT of your last annotated photo.");
+                }
+//            console.log('Next Up: ' + leftImageData.newRandomImageId);
+             });
+
+        });
+        $('#rightButton').click(function() {
+
+            processRandomImageChange(rightImageData);
+//            console.log('Showing ' + rightImageData.newRandomImageId);
+            var currentImageDetails = {
+                imageId: rightImageData.newRandomImageId,
+                userId: $userId,
+                projectId: $projectId
+            };
+
+            $.getJSON('ajax/traverseTheCoast.php', currentImageDetails, function(adjacentImageData) {
+                leftImageData.newRandomImageId = adjacentImageData.left.newRandomImageId;
+                leftImageData.newRandomImageLatitude = adjacentImageData.left.newRandomImageLatitude;
+                leftImageData.newRandomImageLongitude = adjacentImageData.left.newRandomImageLongitude;
+                leftImageData.newRandomImageLocation = adjacentImageData.left.newRandomImageLocation;
+                leftImageData.newRandomImageDisplayURL = adjacentImageData.left.newRandomImageDisplayURL;
+
+                rightImageData.newRandomImageId = adjacentImageData.right.newRandomImageId;
+                rightImageData.newRandomImageLatitude = adjacentImageData.right.newRandomImageLatitude;
+                rightImageData.newRandomImageLongitude = adjacentImageData.right.newRandomImageLongitude;
+                rightImageData.newRandomImageLocation = adjacentImageData.right.newRandomImageLocation;
+                rightImageData.newRandomImageDisplayURL = adjacentImageData.right.newRandomImageDisplayURL;
+
+                if (leftImageData.newRandomImageId == 0) {
+//                    console.log('Disabling left button.');
+                    $("#leftButton").addClass('disabledClickableButton');
+                    $("#leftButton").attr("disabled", "disabled");
+                    $("#leftButton").attr("title", "No more images are within range in this direction. Use the Map to move along the coat to the next region.");
+
+                } else {
+//                    console.log('Enabling left button.');
+                    $("#leftButton").removeClass('disabledClickableButton');
+                    $("#leftButton").removeAttr("disabled", "disabled");
+                    $("#leftButton").attr("title", "Click to show the next available POST-storm Photo to the LEFT of your last annotated photo.");
+                }
+
+                if (rightImageData.newRandomImageId == 0) {
+//                    console.log('Disabling right button.');
+                    $("#rightButton").addClass('disabledClickableButton');
+                    $("#rightButton").attr("disabled", "disabled");
+                    $("#rightButton").attr("title", "No more images are within range in this direction. Use the Map to move along the coat to the next region.");
+
+                } else {
+//                                console.log('Enabling right button.');
+
+                    $("#rightButton").removeClass('disabledClickableButton');
+                    $("#rightButton").removeAttr("disabled", "disabled");
+                    $("#rightButton").attr("title", "Click to show the next available POST-storm Photo to the RIGHT of your last annotated photo.");
+                }
+
+//            console.log('Next Up: ' + rightImageData.newRandomImageId);
+             });
+
         });
 
         if ($('#projectSelect').length) {

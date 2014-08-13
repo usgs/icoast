@@ -13,7 +13,7 @@ function detect_pageName() {
 function DB_file_location() {
     $filePath = rtrim($_SERVER['PHP_SELF'], '/');
     $pageDepthInSite = substr_count($filePath, '/');
-    return str_repeat('../', $pageDepthInSite) . '../icoast/DBMSConnection.php';
+    return str_repeat('../', $pageDepthInSite) . 'icoast/DBMSConnection.php';
 }
 
 function file_modified_date_time($pageModifiedTime, $pageCodeModifiedTime) {
@@ -57,7 +57,6 @@ function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminChe
 
     return $userData;
 }
-
 
 // -------------------------------------------------------------------------------------------------
 /**
@@ -119,8 +118,7 @@ function formattedTime($time, $userTimeZone, $verbose = TRUE) {
  * @param string $authCheckCode The authentication check code from the authCheckCode cookie.
  * @return array On success returns an array containing all fields from the users database record.
  */
-function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE, $adminCheck = FALSE,
-        $enabledCheck = TRUE) {
+function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE) {
     $query = "SELECT * FROM users WHERE user_id = :userId AND auth_check_code = :authCheckCode LIMIT 1";
     $params = array(
         'userId' => $userId,
@@ -439,38 +437,66 @@ function retrieve_image_id_pool($DBH, $searchIds, $imageGroupSearch = FALSE, $fi
 
 // Build the search query
     $whereString = where_in_string_builder($searchIds);
-    $imageIdQuery = "SELECT image_id FROM ";
     switch ($imageGroupSearch) {
         case FALSE: // $searchIds represent datasets to be queried in images table
-            $imageIdQuery .= "images WHERE dataset_id IN ($whereString)";
+            $imageIdQuery = "SELECT image_id FROM images WHERE dataset_id IN ($whereString)";
             if ($filtered == TRUE) {
-// Pool results should exclude disabled images or those without display images
+                // Pool results should exclude disabled images or those without display images
                 $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
             }
+            //  $imageIdParams['whereString'] = $whereString;
+            $imageIdParams = array();
+            $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
+            $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+            //  $imageIdResult = run_database_query($imageIdQuery);
+            // Build the array to return.
+            if (count($imageIdResult) > 0) {
+                foreach ($imageIdResult as $imageId) {
+                    $imageIdsReturn[] = $imageId['image_id'];
+                }
+            }
+            return $imageIdsReturn;
             break;
+
+
         case TRUE: // $searchIds represent image_group ids to be queried in image_groups table
-            $imageIdQuery .= "image_groups WHERE image_group_id IN $whereString";
-            if ($filtered == TRUE) {
-// Pool results should exclude disabled images or those without display images
-                $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
+            $imageGroupQuery = "SELECT image_id, group_range, show_every_nth_image "
+                    . "FROM image_groups "
+                    . "WHERE image_group_id IN ($whereString)";
+            $imageGroupParams = array();
+            $STH = run_prepared_query($DBH, $imageGroupQuery, $imageGroupParams);
+            $imageGroupResult = $STH->fetchAll(PDO::FETCH_ASSOC);
+            if (count($imageGroupResult) > 0) {
+                foreach ($imageGroupResult as $imageGroup) {
+                    $imageId = $imageGroup['image_id'];
+                    $groupRange = $imageGroup['group_range'];
+                    $showEveryNthImage = $imageGroup['show_every_nth_image'];
+                    if ($groupRange == 1) {
+                        $imageIdsReturn[] = $imageId;
+                    } else if ($groupRange > 1) {
+                        for ($i = $imageId; $i < $imageId + $groupRange; $i = $i + $showEveryNthImage) {
+                            $imageIdsReturn[] = $i;
+                        }
+                    }
+                }
+                if ($filtered === TRUE) {
+                    $whereString = where_in_string_builder($imageIdsReturn);
+                    $imageFilterQuery = "SELECT image_id FROM images WHERE image_id IN ($whereString) "
+                            . "AND is_globally_disabled = 0 AND has_display_file = 1";
+                    $imageFilterParams = array();
+                    $imageFilterResult = run_prepared_query($DBH, $imageFilterQuery, $imageFilterParams);
+                    $imageIdsReturn = array();
+                    while ($filteredImage = $imageFilterResult->fetch(PDO::FETCH_ASSOC)) {
+                        $imageIdsReturn[] = $filteredImage['image_id'];
+                    }
+                }
+
             }
+            return $imageIdsReturn;
             break;
-        default: // Invalid input supplied
-//print "RETURNING: FALSE<br>";
-            return FALSE;
     }
-//  $imageIdParams['whereString'] = $whereString;
-    $imageIdParams = array();
-    $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
-    $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
-//  $imageIdResult = run_database_query($imageIdQuery);
-// Build the array to return.
-    foreach ($imageIdResult as $imageId) {
-        $imageIdsReturn[] = $imageId['image_id'];
-    }
-// print "RETURNING: imageIdsReturn Array<br>";
-// print_r($imageIdsReturn);
-    return $imageIdsReturn;
+    //print "RETURNING: FALSE<br>";
+    return FALSE;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -608,22 +634,22 @@ function find_datasets_in_collection($DBH, $collectionId) {
  */
 function utc_to_timezone($time, $format, $longitude = NULL) {
 // print "<p><b>In utc_to_timezone function.</b><br>Arguments:<br>$time<br>$longitude<br>$format</p>";
-    // Define PHP settings, constants, and variables
+// Define PHP settings, constants, and variables
     $error = false;
-    // Validate the inputs
+// Validate the inputs
     if (is_null($time) OR is_null($format) OR !is_string($format)) {
         $error = true;
     }
-    // Create DateTime Object
+// Create DateTime Object
     if (!$error AND is_numeric($time)) {
         $timeObject = new DateTime('@' . $time);
     } elseif (!$error AND is_string($time)) {
         $timeObject = new DateTime($time, new DateTimeZone('UTC'));
     }
     if ($timeObject) {
-        // if longitude is given set the timezone and adjust $timeObject for it)
+// if longitude is given set the timezone and adjust $timeObject for it)
         If (!is_null($longitude) && is_numeric($longitude)) {
-            // Determine image timezone
+// Determine image timezone
             if ($longitude >= -85.388) {
                 $timeZone = 'America/New_York';
             } elseif ($longitude < -85.388 AND $longitude >= -105) {
@@ -635,14 +661,14 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
                 $timeObject->setTimezone(new DateTimeZone($timeZone));
             }
         }
-        //Format the time to the given format.
+//Format the time to the given format.
         $formattedTime = $timeObject->format($format);
         if ($formattedTime) {
-            //print "RETURNING: $formattedTime<br>";
+//print "RETURNING: $formattedTime<br>";
             return $formattedTime;
         }
     }
-    //print "RETURNING: FALSE<br>";
+//print "RETURNING: FALSE<br>";
     return FALSE;
 }
 
@@ -662,18 +688,18 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
  */
 function retrieve_entity_metadata($DBH, $ids, $entity) {
 //   print "<p><b>In retrieve_collection_metadata function.</b><br>Arguments:";
-//    print "<br>Entity: $entity";
-//    if (is_array($ids)) {
-//    print "<br>An array of values.</p>";
+    //    print "<br>Entity: $entity";
+    //    if (is_array($ids)) {
+    //    print "<br>An array of values.</p>";
 //    print "<pre>";
 //    print_r($ids);
 //    print "</pre>";
 //    } else {
 //    print "<br>IDs: $ids</p>";
 //    }
-    // Define PHP settings and Variables
+// Define PHP settings and Variables
     $returnData = array();
-    // Check validity of input data
+// Check validity of input data
     if (!is_null($ids) && (is_numeric($ids) || is_array($ids)) && !is_null($entity) &&
             is_string($entity)) {
         switch ($entity) {
@@ -693,11 +719,23 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
                 $table = 'projects';
                 $column = 'project_id';
                 break;
+            case 'tasks':
+                $table = 'task_metadata';
+                $column = 'project_id';
+                break;
+            case 'groups':
+                $table = 'tag_group_metadata';
+                $column = 'tag_group_id';
+                break;
+            case 'tags':
+                $table = 'tags';
+                $column = 'tag_id';
+                break;
             default:
                 print "RETURNING: FALSE";
                 return FALSE;
         }
-        // Build and run the query
+// Build and run the query
         $idsToQuery = where_in_string_builder($ids);
         $metadataQuery = "SELECT * FROM $table WHERE $column IN ($idsToQuery)";
 //    $metadataParams['idsToQuery'] = $idsToQuery;
@@ -716,4 +754,24 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
     }
 //   print "RETURNING: FALSE<br>";
     return FALSE;
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Determines and returns the ordinal suffix for a number
+ *
+ * Function to determine and return the ordinal suffix for a number
+ *
+ * @param int $num The number to analyse
+ * @return string The supplied number including the ordinal suffix.
+ */
+function ordinal_suffix($num) {
+    if ($num < 11 || $num > 13) {
+        switch ($num % 10) {
+            case 1: return "{$num}st";
+            case 2: return "{$num}nd";
+            case 3: return "{$num}rd";
+        }
+    }
+    return "{$num}th";
 }

@@ -2,17 +2,14 @@
 
 // -------------------------------------------------------------------------------------------------
 /**
- * Function to find the project_id of all projects a user has admin control of.
+ * Function to convert a database code for adminitration level to html text for inclusion inthe admin page header.
  *
- * This function accepts the user name of a user and checks the project_administrators table of the iCoast DB
- * to see if this user has been granted admin rights to any projects. Results are returned in the form of a
- * single dimension indexed array where each value is the id of an administered project. An empty array is
- * returned if no projects are administered by the user.
+ * This function accepts a code for a level of access to the iCoast system and returns an html string
+ * that details the name and rights available for that permission level.
  *
- * @param object $DBH A PDO object representing a database connection.
- * @param int $userId Database ID of the user to be queried.
- * @return array Returns a single dimension indexed array. Each value is the database project ID of an
- *      administered project. Empty array if no projects found.
+ * @param int An integer that represents in the database a level of access to the iCoast system
+ * @return string HTML text that provides the textual name and details of the rights associated
+ *  with that access level (in a tool-tip).
  */
 function admin_level_to_text($adminLevel) {
     switch ($adminLevel) {
@@ -50,24 +47,40 @@ function admin_level_to_text($adminLevel) {
  * @return array Returns a single dimension indexed array. Each value is the database project ID of an
  *      administered project. Empty array if no projects found.
  */
-function find_administered_projects($DBH, $userId, $name = FALSE) {
-    $userAdministeredProjects = array();
+function find_administered_projects($DBH, $adminLevel, $userId, $includeProjectMetadata = FALSE) {
     $nameColumn = "";
     $nameTable = "";
-    if ($name) {
-        $nameColumn = ", p.name";
-        $nameJoin = "JOIN projects p ON pa.project_id = p.project_id";
-    }
-    $userAdministeredProjectsQuery = "SELECT pa.project_id $nameColumn FROM project_administrators pa $nameJoin WHERE user_id = :userId";
-    $userAdministeredProjectsParams['userId'] = $userId;
-    $userAdministeredProjectsResult = run_prepared_query($DBH, $userAdministeredProjectsQuery, $userAdministeredProjectsParams);
-    while ($result = $userAdministeredProjectsResult->fetch(PDO::FETCH_ASSOC)) {
-        if ($name) {
-            $userAdministeredProjects[] = $result;
-        } else {
-            $userAdministeredProjects[] = $result['project_id'];
+
+    $userAdministeredProjects = array();
+    if ($adminLevel == 4) {
+        if ($includeProjectMetadata) {
+            $metadataColumns = ", name, description";
+        }
+        $allProjectsQuery = "SELECT project_id $metadataColumns FROM projects ORDER BY project_id ASC";
+        foreach ($DBH->query($allProjectsQuery) as $result) {
+            if ($includeProjectMetadata) {
+                $userAdministeredProjects[] = $result;
+            } else {
+                $userAdministeredProjects[] = $result['project_id'];
+            }
+        }
+    } else {
+        if ($includeProjectMetadata) {
+            $metadataColumns = ", p.name, p.description";
+            $nameJoin = "JOIN projects p ON pa.project_id = p.project_id";
+        }
+        $userAdministeredProjectsQuery = "SELECT pa.project_id $metadataColumns FROM project_administrators pa $nameJoin WHERE user_id = :userId ORDER BY project_id ASC";
+        $userAdministeredProjectsParams['userId'] = $userId;
+        $userAdministeredProjectsResult = run_prepared_query($DBH, $userAdministeredProjectsQuery, $userAdministeredProjectsParams);
+        while ($result = $userAdministeredProjectsResult->fetch(PDO::FETCH_ASSOC)) {
+            if ($includeProjectMetadata) {
+                $userAdministeredProjects[] = $result;
+            } else {
+                $userAdministeredProjects[] = $result['project_id'];
+            }
         }
     }
+
     return $userAdministeredProjects;
 }
 
@@ -415,7 +428,7 @@ function image_resizer($imagesToResize) {
  * Returns FALSE on failure
  */
 function admin_access() {
-    
+
 }
 
 ?>

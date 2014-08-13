@@ -1,7 +1,10 @@
 <?php
 require_once('../includes/userFunctions.php');
 require_once('../includes/globalFunctions.php');
-require_once($dbmsConnectionPathDeep);
+
+//require_once($dbmsConnectionPathDeep);
+$dbConnectionFile = DB_file_location();
+require_once($dbConnectionFile);
 
 if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
     print "No Cookie Data<br>Please login to iCoast first.";
@@ -21,7 +24,7 @@ $authCheckCode = generate_cookie_credentials($DBH, $userId);
 
 if ($userData['account_type'] != 4) {
     print "Insufficient Permissions<br>Access Denied.";
-    header('Location: index.php');
+//    header('Location: index.php');
     exit;
 }
 

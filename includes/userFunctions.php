@@ -64,7 +64,6 @@ function timeZoneIdToTextConverter($timeZoneId) {
     }
 }
 
-
 // -------------------------------------------------------------------------------------------------
 /**
  * Finds the number of tags a user selected in a single annotation
@@ -109,26 +108,6 @@ function timeDifference($startDateTime, $endDateTime, $verbose = TRUE) {
     }
 }
 
-// -------------------------------------------------------------------------------------------------
-/**
- * Determines and returns the ordinal suffix for a number
- *
- * Function to determine and return the ordinal suffix for a number
- *
- * @param int $num The number to analyse
- * @return string The supplied number including the ordinal suffix.
- */
-function ordinal_suffix($num) {
-    if ($num < 11 || $num > 13) {
-        switch ($num % 10) {
-            case 1: return "{$num}st";
-            case 2: return "{$num}nd";
-            case 3: return "{$num}rd";
-        }
-    }
-    return "{$num}th";
-}
-
 //require_once("includes/globalFunctions.php");
 // -------------------------------------------------------------------------------------------------
 /**
@@ -165,26 +144,25 @@ function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postColl
             if ($userGroups) {
                 $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
                 if ($imageGroups) {
-                    $imageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
+                    $imageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, TRUE);
                 } else {
-                    $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
+                    $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
                 }
             } else {
-                $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
+                $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
             }
         } else {
-            $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, FALSE);
+            $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
         }
-        if ($imageIdPool AND !$isFiltered) {
+        if (is_array($imageIdPool) && count($imageIdPool) > 0 && !$isFiltered) {
             $imagesCount = count($imageIdPool);
-            $randomId = $imageIdPool[rand(1, $imagesCount)];
+            $randomId = $imageIdPool[rand(0, $imagesCount - 1)];
 // print "RETURNING: $randomId Unifltered Random Image Id<br>";
             return $randomId;
-        }
-        if ($imageIdPool && $isFiltered) {
+        } else if (is_array($imageIdPool) && count($imageIdPool) > 0 && $isFiltered) {
             while (!empty($imageIdPool)) {
                 $imagesCount = count($imageIdPool);
-                $randomIndex = rand(1, $imagesCount);
+                $randomIndex = rand(0, $imagesCount - 1);
                 $randomId = $imageIdPool[$randomIndex];
                 array_splice($imageIdPool, $randomIndex, 1);
                 $imageMatchData = retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $randomId);
@@ -205,9 +183,17 @@ function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postColl
 //print "FILTERING: Failed on is-Enabled";
                 }
             }
+            //////////////////////////////////////////////////////////////////////////////////////////////////
+            ///////////////
+            //////////////
+            //////////////
+            // USER HAS COMPLETED THEIR IMAGE GROUP OF ANNOTATIONS. NO MORE IMAGES
+            return 'allPoolAnnotated';
+        } else if (is_array($imageIdPool) && count($imageIdPool) == 0) {
+            return 'poolEmpty';
         }
     }
-//print "RETURNING: FALSE<br>";
+    print "RETURNING: FALSE<br>";
     return FALSE;
 }
 
@@ -306,7 +292,7 @@ function all_user_annotated_images($userId, $projectId = 0) {
         return false;
     }
 
-    $query = "SELECT image_id FROM annotations WHERE user_id = $userId";
+    $query = "SELECT image_id FROM annotations WHERE user_id = $userId AND annotation_completed = 1";
     if ($projectId > 0) {
         $query .= " AND project_id = $projectId";
     }
@@ -351,9 +337,9 @@ function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $p
         $STH = run_prepared_query($DBH, $imageMatchDataQuery, $imageMatchDataParams);
         $imageMatchData = $STH->fetchAll(PDO::FETCH_ASSOC);
         if (count($imageMatchData) > 0) {
-            /* print "RETURNING: <pre>";
-              print_r($imageMatchData);
-              print '</pre>'; */
+//            print "RETURNING: <pre>";
+//            print_r($imageMatchData);
+//            print '</pre>';
             return $imageMatchData[0];
         }
     }
@@ -376,7 +362,7 @@ function has_user_annotated_image($DBH, $postImageId, $userId, $projectId = 0) {
 // print "<p><b>In has_user_annotated_image function.</b><br>Arguments:<br>$postImageId</p>";
     if (is_numeric($postImageId) && is_numeric($userId) && is_numeric($projectId)) {
         $annotationCheckQuery = "SELECT COUNT(*) FROM annotations WHERE user_id = :userId AND
-        image_id = :postImageId";
+        image_id = :postImageId AND annotation_completed = 1";
         $annotationCheckParams = array(
             'userId' => $userId,
             'postImageId' => $postImageId
@@ -418,7 +404,7 @@ function has_user_annotated_image($DBH, $postImageId, $userId, $projectId = 0) {
  * image group, level 2 keys and values = individual image group fields from image_group_metadata
  * table in iCoast DB <b>OR</b><br> On failure or no image groups found retuns FALSE.
  */
-function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
+function find_assigned_image_groups($DBH, $userGroups, $idOnly = FALSE) {
     /* print "<p><b>In find_assigned_image_groups function</b>.<br>Arguments:<br><pre>";
       print_r($userGroups);
       print "</pre></p>"; */
@@ -434,19 +420,18 @@ function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
 
     $imageGroupIdQuery = "SELECT image_group_id FROM user_group_assignments WHERE user_group_id IN "
             . "($whereString)";
-//  $imageGroupIdParams['whereString'] = $whereString;
     $imageGroupIdParams = array();
     $STH = run_prepared_query($DBH, $imageGroupIdQuery, $imageGroupIdParams);
-    $imageGroups = $STH->fetachAll(PDO::FETCH_ASSOC);
+    $imageGroups = $STH->fetchAll(PDO::FETCH_ASSOC);
 //  $imageGroups = run_database_query($imageGroupIdQuery);
     if (count($imageGroups) > 0) {
         foreach ($imageGroups as $singleImageGroup) {
             $imageGroupIds[] = $singleImageGroup['image_group_id'];
         }
-        if ($IdOnly) {
-            /* print "RETURNING: <pre>";
-              print_r($imageGroupIds);
-              print '</pre>'; */
+        if ($idOnly) {
+//            print '<pre>';
+//            print_r($imageGroupIds);
+//            print '</pre>';
             return $imageGroupIds;
         } else {
 // Potential Function
@@ -461,9 +446,9 @@ function find_assigned_image_groups($DBH, $userGroups, $IdOnly = FALSE) {
             foreach ($imageGroupMetadata as $singleImageGroupMetadata) {
                 $imageGroupResults[] = $singleImageGroupMetadata;
             }
-            /* print "RETURNING: <pre>";
-              print_r($imageGroupResults);
-              print '</pre>'; */
+//            print "RETURNING: <pre>";
+//            print_r($imageGroupResults);
+//            print '</pre>';
             return $imageGroupResults;
         }
     }
@@ -495,18 +480,24 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
     if (!is_null($userId) && is_numeric($userId) && is_numeric($projectId) && is_Bool($idOnly)) {
         $userGroupIdsQuery = "SELECT user_group_id FROM user_groups WHERE user_id = :userId";
         $userGroupIdsParams['userId'] = $userId;
-//    $userGroupIds = run_database_query($userGroupIdsQuery);
         $STH = run_prepared_query($DBH, $userGroupIdsQuery, $userGroupIdsParams);
         $userGroupIds = $STH->fetchAll(PDO::FETCH_ASSOC);
+//        print "User Group Id's";
+//        print '<pre>';
+//        print_r($userGroupIds);
+//        print '</pre>';
         if (count($userGroupIds) > 0) {
             foreach ($userGroupIds as $id) {
-                $idArray[] = $id;
+                $idArray[] = $id['user_group_id'];
             }
+//            print '<pre>';
+//            print_r($idArray);
+//            print '</pre>';
 // Potential Function
             $whereString = where_in_string_builder($idArray);
+//            print $whereString;
             $userGroupDetailsQuery = "SELECT * FROM user_group_metadata WHERE user_group_id IN "
                     . "($whereString)";
-//      $userGroupDetailsParams['whereString'] = $whereString;
             $userGroupDetailsParams = array();
             if ($projectId > 0) {
                 $userGroupDetailsQuery .= " AND project_id = :projectId";
@@ -514,9 +505,14 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
             }
             $STH = run_prepared_query($DBH, $userGroupDetailsQuery, $userGroupDetailsParams);
             $userGroupDetails = $STH->fetchAll(PDO::FETCH_ASSOC);
-//      $userGroupDetails = run_database_query($userGroupDetailsQuery);
 
+//            print '<pre>';
+//            print_r($userGroupDetails);
+//            print '</pre>';
             if (count($userGroupDetails) > 0) {
+//                print '<pre>';
+//                print_r($userGroupDetails);
+//                print '</pre>';
                 foreach ($userGroupDetails as $details) {
                     if ($idOnly) {
                         $userGroupResults[] = $details['user_group_id'];
@@ -527,6 +523,9 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
                 /* print "RETURNING: <pre>";
                   print_r($userGroupResults);
                   print '</pre>'; */
+//                print '<pre>';
+//                print_r($userGroupDetails);
+//                print '</pre>';
                 return $userGroupResults;
             }
         }
@@ -553,7 +552,7 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
  * image was found in which case the 2nd level will contain one key "image_id" with value "0"
  * <b>OR</b><br> On failure returns FALSE.
  */
-function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
+function find_adjacent_images($DBH, $imageId, $projectId = NULL, $userId = NULL) {
     // print "In find_adjacent_images. Image ID = $imageId Project ID = $projectId<br>";
     $adjacentSearchRange = 20;
     $adjacentImageArray = Array();
@@ -569,6 +568,46 @@ function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
             // If project id is supplied retrieve project metadata
             $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
         }
+
+        $hasUserAssignedImages = FALSE;
+        if (!is_null($userId) && is_numeric($userId)) {
+//            print $userId;
+            $userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
+            if ($userGroups) {
+//                print '<pre>';
+//                print_r($userGroups);
+//                print '</pre>';
+                $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
+                if ($imageGroups) {
+//                    print '<pre>';
+//                    print_r($imageGroups);
+//                    print '</pre>';
+                    $userAssignedImageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
+//                    print '<pre>';
+//                    print_r($userAssignedImageIdPool);
+//                    print '</pre>';
+                    if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
+                        for ($i = 0; $i < count($userAssignedImageIdPool); $i++) {
+//                            print "$i: Checking " . $userAssignedImageIdPool[$i] . '<br>';
+                            if (has_user_annotated_image($DBH, $userAssignedImageIdPool[$i], $userId) === 1) {
+//                                print 'Removing ' . $userAssignedImageIdPool[$i] . '<br>';
+                                array_splice($userAssignedImageIdPool, $i, 1);
+                                $i--;
+                            }
+                        }
+                        if (count($userAssignedImageIdPool) > 0) {
+                            $hasUserAssignedImages = TRUE;
+                        }
+                    }
+                }
+            }
+        }
+//        if ($hasUserAssignedImages) {
+//            print 'TRUE';
+//        } else {
+//            print 'FALSE';
+//        }
+
         if (isset($datasetMetadata) && $datasetMetadata) {
             $imagesInDataset = $datasetMetadata['rows_in_set'];
 
@@ -620,15 +659,29 @@ function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
                             }
                             // Initiate an image validity check.
                             if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                if ($adjacentImage['has_display_file'] == 1 &&
-                                        $adjacentImage['is_globally_disabled'] == 0) {
-                                    // Passed check. Add image details to $adjacentImageArray, break the while loop.
-                                    $adjacentImageArray[] = $adjacentImage;
-                                    break 2;
+                                if ($hasUserAssignedImages) {
+                                    if ($adjacentImage['has_display_file'] == 1 &&
+                                            $adjacentImage['is_globally_disabled'] == 0 &&
+                                            in_array($adjacentImage['image_id'], $userAssignedImageIdPool)) {
+                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                                        $adjacentImageArray[] = $adjacentImage;
+                                        break 2;
+                                    } else {
+                                        // Position was found but it didn't pass validity check. Break the foreach loop
+                                        // and start again with the next position number.
+                                        break;
+                                    }
                                 } else {
-                                    // Position was found but it didn't pass validity check. Break the foreach loop
-                                    // and start again with the next position number.
-                                    break;
+                                    if ($adjacentImage['has_display_file'] == 1 &&
+                                            $adjacentImage['is_globally_disabled'] == 0) {
+                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                                        $adjacentImageArray[] = $adjacentImage;
+                                        break 2;
+                                    } else {
+                                        // Position was found but it didn't pass validity check. Break the foreach loop
+                                        // and start again with the next position number.
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -671,14 +724,29 @@ function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
                             }
                             // Initiate an image validity check.
                             if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                if ($adjacentImage['has_display_file'] == 1 &&
-                                        $adjacentImage['is_globally_disabled'] == 0) {
-                                    $adjacentImageArray[] = $adjacentImage;
-                                    break 2;
+                                if ($hasUserAssignedImages) {
+                                    if ($adjacentImage['has_display_file'] == 1 &&
+                                            $adjacentImage['is_globally_disabled'] == 0 &&
+                                            in_array($adjacentImage['image_id'], $userAssignedImageIdPool)) {
+                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                                        $adjacentImageArray[] = $adjacentImage;
+                                        break 2;
+                                    } else {
+                                        // Position was found but it didn't pass validity check. Break the foreach loop
+                                        // and start again with the next position number.
+                                        break;
+                                    }
                                 } else {
-                                    // Position was found but it didn't pass validity check. Break the foreach loop
-                                    // and start again with the next position number.
-                                    break;
+                                    if ($adjacentImage['has_display_file'] == 1 &&
+                                            $adjacentImage['is_globally_disabled'] == 0) {
+                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                                        $adjacentImageArray[] = $adjacentImage;
+                                        break 2;
+                                    } else {
+                                        // Position was found but it didn't pass validity check. Break the foreach loop
+                                        // and start again with the next position number.
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -692,10 +760,10 @@ function find_adjacent_images($DBH, $imageId, $projectId = NULL) {
                         }
                     }
                 }
-                /* print "RETURNING: adjacentImageArray:<br>";
-                  print '<pre>';
-                  print_r($adjacentImageArray);
-                  print '</pre>'; */
+//                print "RETURNING: adjacentImageArray:<br>";
+//                  print '<pre>';
+//                  print_r($adjacentImageArray);
+//                  print '</pre>';
                 return $adjacentImageArray;
             }
         }

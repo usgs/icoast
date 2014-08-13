@@ -12,7 +12,7 @@ if ($pageName == 'adminHome') {
 }
 
 if ($pageName == 'projectEditor') {
-    $adminNavHTML .= ' <li class="activePageLink">Project Editor</li>';
+    $adminNavHTML .= ' <li class="activePageLink"><a href="projectEditor.php">Project Editor</a></li>';
     $pageTitle = "USGS iCoast - Project Editor";
 } else {
     $adminNavHTML .= '<li><a href="projectEditor.php">Project Editor</a></li>';
@@ -20,7 +20,7 @@ if ($pageName == 'projectEditor') {
 
 if ($pageName =='eventViewer') {
     $adminNavHTML .= '<li class="activePageLink">Event Viewer</li>';
-    $pageTitle = "USGS iCoast - ";
+    $pageTitle = "USGS iCoast - Event Log Viewer";
 } else {
     $adminNavHTML .= '<li><a href="eventViewer.php">Event Viewer</a></li>';
 }

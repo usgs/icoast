@@ -40,16 +40,62 @@ $mapScript = <<<EOL
 
 
   function initializeMaps() {
-    currentImageLatLon = L.latLng(randomImageLatitude, randomImageLongitude);
-    map = L.map("mapCanvas", {maxZoom: 18}).setView(currentImageLatLon, 11);
-        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
-        }).addTo(map);
-        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
-        L.control.scale({
+        var esriAttribution = 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community';
+        var tnmAttribution = '<a href="http://www.doi.gov">U.S. Department of the Interior</a> | <a href="http://www.usgs.gov">U.S. Geological Survey</a> | <a href="http://www.usgs.gov/laws/policies_notices.html">Policies</a>';
+
+         var esriBasemapImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: esriAttribution
+        });
+        var esriBoundariesAndPlaces = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}');
+        var esriLayer = L.layerGroup([esriBasemapImagery, esriBoundariesAndPlaces]);
+
+        var tnmBasemapImagerySmall = L.tileLayer('http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
+            attribution: tnmAttribution,
+            maxZoom: 15,
+        });
+        var tnmBasemapImageryLarge = L.tileLayer.wms('http://raster.nationalmap.gov/arcgis/services/Orthoimagery/USGS_EROS_Ortho_SCALE/ImageServer/WMSServer?', {
+            attribution: tnmAttribution,
+            format: 'image/jpeg',
+            minZoom: 16,
+        });
+        var tnmImgLayer = L.layerGroup([tnmBasemapImagerySmall, tnmBasemapImageryLarge]);
+
+        var tnmBasemapTopoImgSmall = L.tileLayer('http://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
+            attribution: tnmAttribution,
+            maxZoom: 15
+        });
+       var tnmBasemapImgLarge = L.tileLayer.wms('http://raster.nationalmap.gov/arcgis/services/Orthoimagery/USGS_EROS_Ortho_SCALE/ImageServer/WMSServer?', {
+            attribution: tnmAttribution,
+            format: 'image/jpeg',
+            minZoom: 16,
+        });
+        var tnmBasemapTopoLarge = L.tileLayer.wms('http://services.nationalmap.gov/arcgis/services/USGSImageryTopoLarge/MapServer/WMSServer?', {
+            attribution: tnmAttribution,
+            layers: '2,8,9,13,14,15,16,17,18,20,21,23,24,25,26,27,29,30',
+            format: 'image/png',
+            minZoom: 16,
+            transparent: true,
+        });
+        var tnmImgTopoLayer = L.layerGroup([tnmBasemapTopoImgSmall, tnmBasemapImgLarge, tnmBasemapTopoLarge]);
+        var scale = L.control.scale({
             position: 'topright',
             metric: false
-        }).addTo(map);
+        });
+        var baselayers = {
+            "Satellite (ESRI)": esriLayer,
+            "Satellite (The National Map)": tnmImgLayer,
+            "Satellite Topographical (The National Map)": tnmImgTopoLayer
+        };
+        var controlLayers = L.control.layers(baselayers);
+
+    currentImageLatLon = L.latLng(randomImageLatitude, randomImageLongitude);
+    map = L.map("mapCanvas", {maxZoom: 18}).setView(currentImageLatLon, 11);
+        esriLayer.addTo(map);
+        scale.addTo(map);
+        controlLayers.addTo(map);
+
+
+
 
    currentImageMarker = L.marker(currentImageLatLon,
     {

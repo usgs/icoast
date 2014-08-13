@@ -30,15 +30,7 @@ foreach ($_GET as $key => $value) {
 rtrim($jsPostSettings, ",");
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-if ($adminLevel == 4) {
-    $userAdministeredProjects = array();
-    $allProjectsQuery = "SELECT project_id, name FROM projects ORDER BY project_id ASC";
-    foreach ($DBH->query($allProjectsQuery) as $row) {
-        $userAdministeredProjects[] = $row;
-    }
-} else {
-    $userAdministeredProjects = find_administered_projects($DBH, $userId, TRUE);
-}
+$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
 
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT

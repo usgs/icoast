@@ -7,6 +7,7 @@ require_once($dbConnectionFile);
 
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH);
+$userId = $userData['user_id'];
 
 if (!isset($_GET['userType'])) {
     header('Location: index.php');

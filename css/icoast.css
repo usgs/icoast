@@ -279,11 +279,13 @@ input::-moz-focus-inner {
     margin: 10px 20px;
     line-height: 1.2;
 }
-#contentWrapper th, #contentWrapper td  {
+#contentWrapper th, #contentWrapper td,
+#adminPageWrapper th, #adminPageWrapper td {
     font: inherit;
 }
 
-.statisticsTable td:first-of-type {
+.statisticsTable td:first-of-type,
+#updateSummaryTable td:first-of-type {
     text-align: right;
     font-weight:bold !important;
 }
@@ -450,11 +452,12 @@ th, td {
 
 .formFieldRow label,
 .formFieldRow input,
-.formFieldRow select {
+.formFieldRow select,
+.formFieldRow textarea {
     float:left;
 }
 
-.formFieldRow label {
+.formFieldRow label:first-of-type {
     width: 40%;
     margin-right: 5px;
     line-height: 50px;
@@ -670,6 +673,14 @@ label.error {
     border-radius: 5px;
     text-align: center;
     padding: 0 10px;
+}
+
+.leaflet-control-layers-list {
+    text-align: left;
+}
+
+.leaflet-control-layers-list input {
+    display: inline !important;
 }
 
 #mapHide {
@@ -1346,7 +1357,7 @@ input[type="checkbox"], input[type="radio"] {
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Width needs to be altered to be dynamic!*/
 #progressTrackerItemWrapper {
-    width: 160px;
+    /*width: 160px;*/
     margin: 8px 0 8px -50%;
     height: 30px;
 }

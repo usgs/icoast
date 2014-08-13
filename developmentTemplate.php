@@ -26,11 +26,6 @@ $pageModifiedTime = filemtime(__FILE__);
 
 require("includes/feedback.php");
 require("includes/templateCode.php");
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Override page title
-$pageTitle = "";
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ?>
 <!DOCTYPE html>
 <html>
@@ -57,9 +52,7 @@ $pageTitle = "";
         <link rel="stylesheet" href="http://www.usgs.gov/styles/common.css" />
         <link rel="stylesheet" href="css/custom.css">
         <link rel="stylesheet" href="css/tipTip.css">
-        <?php
-        print $cssLinks;
-        ?>
+        <?php print $cssLinks; ?>
         <style>
 <?php
 print $feedbackEmbeddedCSS . "\n\r";
@@ -70,7 +63,10 @@ print $embeddedCSS;
         <script src="scripts/tipTip.js"></script>
         <?php print $javaScriptLinks; ?>
         <script>
-<?php print $feedbackJavascript . "\n\r";?>
+<?php
+print $feedbackJavascript . "\n\r";
+print $javaScript . "\n\r";
+?>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +80,7 @@ print $embeddedCSS;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+$(document).ready(function() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // JAVASCRIPT DOCUMENT.READY
@@ -94,17 +90,12 @@ print $embeddedCSS;
 
 // END JAVASCRIPT DOCUMENT.READY
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            });
 
-
-            <?php print $feedbackjQueryDocumentDotReadyCode . "\n\r"; ?>
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-            ga('create', 'UA-49706884-1', 'icoast.us');
-            ga('require', 'displayfeatures');
-            ga('send', 'pageview');
+<?php
+print $feedbackjQueryDocumentDotReadyCode . "\n\r";
+print $jQueryDocumentDotReadyCode . "\n\r";
+?>
 
         </script>
     </head>

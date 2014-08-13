@@ -82,10 +82,16 @@ EOL;
 EOL;
 }
 
-if ($numberOfProjects >=1) {
+if ($numberOfProjects >= 1) {
     $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
     $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
 // Find post image metadata $postImageMetadata
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty') {
+        $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id']);
+    }
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty' || $newRandomImageId === FALSE) {
+        exit("An error was detected while generating a new image. $newRandomImageId");
+    }
     if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId, 'image')) {
         //  Placeholder for error management
         exit("Image $newRandomImageId not found in Database");
@@ -99,7 +105,7 @@ if ($numberOfProjects >=1) {
 
 
 
-        $variableContent = <<<EOL
+    $variableContent = <<<EOL
 <h2 id="currentProjectText">Current Project: $projectName</h2>
 <div id="randomPostImagePreviewWrapper">
     <p>Here is a random photo near<br><span id="projectName" class="captionTitle">$newRandomImageLocation</span></p>
