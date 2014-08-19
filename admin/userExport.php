@@ -38,7 +38,7 @@ foreach ($DBH->query($userQuery) as $row) {
 //    print_r($row);
 //    print "</pre>";
     $clear_text_email = mysql_aes_decrypt($row['encrypted_email'], $row['encryption_data']);
-    $crowd_type_text = crowdTypeConverter($row['crowd_type'], $row['other_crowd_type']);
+    $crowd_type_text = crowdTypeConverter($DBH, $row['crowd_type'], $row['other_crowd_type']);
     $tableHtml.= <<<EOT
     <tr>
         <td>$clear_text_email</td>

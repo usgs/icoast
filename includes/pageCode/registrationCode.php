@@ -33,7 +33,7 @@ $crowdType6HTML = '';
 $crowdType7HTML = '';
 $crowdType8HTML = '';
 $crowdType9HTML = '';
-$crowdType10HTML = '';
+$crowdType0HTML = '';
 $timeZoneError = '';
 $crowdTypeError = '';
 $otherCrowdTypeError = '';
@@ -64,15 +64,15 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         }
     }
 
-    if (empty($registerCrowdType)) {
+    if (empty($registerCrowdType) && $registerCrowdType != 0) {
         $errorMessage['crowdType'] = 'You must select your crowd type to complete registration.';
     } else {
-        if ($registerCrowdType < 0 || $registerCrowdType > 10) {
+        if ($registerCrowdType < 0 || $registerCrowdType > 9) {
             $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
         }
     }
 
-    if ($registerCrowdType == 10 && empty($registerOtherContent)) {
+    if ($registerCrowdType == 0 && empty($registerOtherContent)) {
         $errorMessage['otherCrowdType'] = 'You must specify your other crowd type if "Other" is selected in the crowd type list.';
     } elseif (!empty($registerOtherContent) && strlen($registerOtherContent) > 255) {
         $errorMessage['otherCrowdType'] = 'Your specified other crowd type is too long for registration (max 255 characters).';
@@ -164,8 +164,8 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     if (isset($registerCrowdType) && $registerCrowdType == 9) {
         $crowdType9HTML = 'selected="selected"';
     }
-    if (isset($registerCrowdType) && $registerCrowdType == 10) {
-        $crowdType10HTML = 'selected="selected"';
+    if (isset($registerCrowdType) && $registerCrowdType == 0) {
+        $crowdType0HTML = 'selected="selected"';
     }
 
     if (!isset($errorMessage)) {

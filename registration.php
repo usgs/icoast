@@ -42,7 +42,7 @@ $pageBody = <<<EOL
 
                     <option value="8" $crowdType8HTML>Digital Crisis Volunteer (VTC)</option>
                     <option value="9" $crowdType9HTML>Interested Public</option>
-                    <option value="10" $crowdType10HTML>Other (Please specify below)</option>
+                    <option value="0" $crowdType0HTML>Other (Please specify below)</option>
                 </select>
                 $crowdTypeError
             </div>

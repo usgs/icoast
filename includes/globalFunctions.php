@@ -3,6 +3,76 @@
 //error_reporting(0);
 date_default_timezone_set('UTC');
 
+function crowdTypeConverter($DBH, $crowdTypeId = null, $otherCrowdType = null) {
+
+    $crowdTypeArray[0] = "Other";
+
+
+
+    foreach ($DBH->query("SELECT * FROM crowd_types") as $crowdType) {
+        $crowdTypeArray[$crowdType['crowd_type_id']] = $crowdType['crowd_type_name'];
+    }
+
+    if (is_null($crowdTypeId) && (is_null($otherCrowdType))) {
+        return $crowdTypeArray;
+    }
+
+    if (is_numeric($crowdTypeId)) {
+        if (array_key_exists($crowdTypeId, $crowdTypeArray)) {
+            return $crowdTypeArray[$crowdTypeId];
+        } else if ($crowdTypeId == 0 && !empty($otherCrowdType)) {
+            return "Other: " . $otherCrowdType;
+        } else {
+            return FALSE;
+        }
+    } else if (is_array($crowdTypeId) && is_array($otherCrowdType)) {
+        $returnArray = array();
+        for ($i = 0; $i < count($crowdTypeId); $i++) {
+            if (array_key_exists($crowdTypeId[$i], $crowdTypeArray)) {
+                $returnArray[$i] = $crowdTypeArray[$crowdTypeId[$i]];
+            } else if ($crowdTypeId[$i] == 0 && !empty($otherCrowdType[$i])) {
+                $returnArray[$i] = "Other: " . $otherCrowdType[$i];
+            } else {
+                $returnArray[$i] = FALSE;
+            }
+        }
+        return $returnArray;
+    }
+
+//    switch ($crowdTypeId) {
+//        case 1:
+//            return "Coastal & Marine Scientist";
+//            break;
+//        case 2:
+//            return "Coastal Manager or Planner";
+//            break;
+//        case 3:
+//            return "Coastal Resident";
+//            break;
+//        case 4:
+//            return "Watersport Enthusiast";
+//            break;
+//        case 5:
+//            return "Marine Science Student";
+//            break;
+//        case 6:
+//            return "Emergency Responder";
+//            break;
+//        case 7:
+//            return "Policy Maker";
+//            break;
+//        case 8:
+//            return "Digital Crisis Volunteer (VTC)";
+//            break;
+//        case 9:
+//            return "Interested Public";
+//            break;
+//        case 10:
+//            return "Other: " . $otherCrowdType;
+//            break;
+//    }
+}
+
 function detect_pageName() {
     $filePath = rtrim($_SERVER['PHP_SELF'], '/');
     $substrStart = strrpos($filePath, '/') + 1;
@@ -688,9 +758,9 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
  */
 function retrieve_entity_metadata($DBH, $ids, $entity) {
 //   print "<p><b>In retrieve_collection_metadata function.</b><br>Arguments:";
-    //    print "<br>Entity: $entity";
-    //    if (is_array($ids)) {
-    //    print "<br>An array of values.</p>";
+//        print "<br>Entity: $entity";
+//        if (is_array($ids)) {
+//        print "<br>An array of values.</p>";
 //    print "<pre>";
 //    print_r($ids);
 //    print "</pre>";

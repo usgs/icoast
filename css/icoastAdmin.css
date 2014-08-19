@@ -10,12 +10,13 @@
 #adminNavigationBar {
     background-color: #666666;
     float: left;
-    width: 180px;
+    width: 195px;
     overflow: hidden;
     border-right: 1px solid #FFFFFF;
 }
 
 #adminNavigationBar li {
+    text-align: center;
     font-weight: bold;
     color: #FFFFFF;
     border-bottom: 1px solid #FFFFFF;
@@ -23,8 +24,13 @@
     font-size: 17px;
     height: 30px;
     line-height: 30px;
-    padding: 0 15px 0 17px;
+    /*padding: 0 15px 0 17px;*/
     width: 100%;
+}
+
+.adminNavHeader {
+    background-color: #e56969;
+    border-top: 3px solid #ffffff;
 }
 
 #adminContentWrapper {
@@ -333,7 +339,13 @@ hr {
     font-weight: bold;
 }
 
-#currentProperty {
+#tagFrequencyTable thead td {
+    font-weight: bold;
+    border-bottom: 2px solid black;
+}
+
+#currentProperty,
+.displayedTag {
     background-color: green;
 }
 
@@ -341,8 +353,29 @@ hr {
     background-color: red;
 }
 
+.unusedTableCell {
+    background-color: lightgrey;
+}
+
 .updateFormSubmissionControls {
     margin-top: 15px;
+}
+
+.topTaskTableRowBorder {
+    border-top: 1px solid black;
+}
+
+.borderedTable {
+    border-collapse: collapse;
+    border: 2px solid black;
+}
+
+.dividedColumns td {
+    border-right: 1px solid black;
+}
+
+.topBorder {
+    border-top: 1px solid black;
 }
 
 .updateFormSubmissionControls,

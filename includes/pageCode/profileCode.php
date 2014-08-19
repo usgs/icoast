@@ -392,7 +392,7 @@ if (isset($_GET['update'])) {
 }
 
 $maskedEmail = $userData['masked_email'];
-$crowdType = htmlentities(crowdTypeConverter($userData['crowd_type'], $userData['other_crowd_type']));
+$crowdType = htmlentities(crowdTypeConverter($DBH, $userData['crowd_type'], $userData['other_crowd_type']));
 if (!empty($userData['affiliation'])) {
     $affiliation = htmlentities($userData['affiliation']);
 } else {

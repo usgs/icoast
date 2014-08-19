@@ -1,40 +1,5 @@
 <?php
 
-function crowdTypeConverter($crowdTypeId, $otherCrowdType) {
-    switch ($crowdTypeId) {
-        case 1:
-            return "Coastal & Marine Scientist";
-            break;
-        case 2:
-            return "Coastal Manager or Planner";
-            break;
-        case 3:
-            return "Coastal Resident";
-            break;
-        case 4:
-            return "Watersport Enthusiast";
-            break;
-        case 5:
-            return "Marine Science Student";
-            break;
-        case 6:
-            return "Emergency Responder";
-            break;
-        case 7:
-            return "Policy Maker";
-            break;
-        case 8:
-            return "Digital Crisis Volunteer (VTC)";
-            break;
-        case 9:
-            return "Interested Public";
-            break;
-        case 10:
-            return "Other: " . $otherCrowdType;
-            break;
-    }
-}
-
 function timeZoneIdToTextConverter($timeZoneId) {
     switch ($timeZoneId) {
         case 1:
@@ -156,31 +121,33 @@ function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postColl
         }
         if (is_array($imageIdPool) && count($imageIdPool) > 0 && !$isFiltered) {
             $imagesCount = count($imageIdPool);
-            $randomId = $imageIdPool[rand(0, $imagesCount - 1)];
+            $randomId = $imageIdPool[mt_rand(0, $imagesCount - 1)];
 // print "RETURNING: $randomId Unifltered Random Image Id<br>";
             return $randomId;
         } else if (is_array($imageIdPool) && count($imageIdPool) > 0 && $isFiltered) {
             while (!empty($imageIdPool)) {
                 $imagesCount = count($imageIdPool);
-                $randomIndex = rand(0, $imagesCount - 1);
-                $randomId = $imageIdPool[$randomIndex];
-                array_splice($imageIdPool, $randomIndex, 1);
-                $imageMatchData = retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $randomId);
-                if ($imageMatchData AND $imageMatchData['is_enabled'] == 1) {
-                    if ($userId != 0) {
-                        if (has_user_annotated_image($DBH, $randomId, $userId) === 0) {
-                            /* print "RETURNING: $randomId Filtered (by Match Enabled and Not User Annotated)
-                              Random Image Id<br>"; */
-                            return $randomId;
-                        } else {
+                $randomIndex = mt_rand(0, $imagesCount - 1);
+                if (array_key_exists($randomIndex, $imageIdPool)) {
+                    $randomId = $imageIdPool[$randomIndex];
+                    array_splice($imageIdPool, $randomIndex, 1);
+                    $imageMatchData = retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $randomId);
+                    if ($imageMatchData AND $imageMatchData['is_enabled'] == 1) {
+                        if ($userId != 0) {
+                            if (has_user_annotated_image($DBH, $randomId, $userId) === 0) {
+                                /* print "RETURNING: $randomId Filtered (by Match Enabled and Not User Annotated)
+                                  Random Image Id<br>"; */
+                                return $randomId;
+                            } else {
 // print "FILTERING: Failed on User Annotation";
+                            }
+                        } else {
+// print "RETURNING: $randomId Filtered (by Match Enabled) Random Image Id<br>";
+                            return $randomId;
                         }
                     } else {
-// print "RETURNING: $randomId Filtered (by Match Enabled) Random Image Id<br>";
-                        return $randomId;
-                    }
-                } else {
 //print "FILTERING: Failed on is-Enabled";
+                    }
                 }
             }
             //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -324,7 +291,7 @@ function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $p
     /* print "<p><b>In retrieve_image_match_data function.</b><br>Arguments:<br>$postCollectionId<br>
       $preCollectionId<br>$postImageId</p>"; */
 
-    if (!empty($postCollectionId) AND !empty($preCollectionId) AND !empty($postImageId) AND
+    if (!empty($postCollectionId) AND ! empty($preCollectionId) AND ! empty($postImageId) AND
             is_numeric($postCollectionId) AND is_numeric($preCollectionId) AND
             is_numeric($postImageId)) {
         $imageMatchDataQuery = "SELECT * FROM matches WHERE post_collection_id = :postCollectionId AND

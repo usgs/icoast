@@ -154,7 +154,7 @@ a:hover {
 
 #adminHomeLink {
     background-color: #E56969;
-    width: 150px;
+    width: 165px;
     text-align: center;
 }
 
@@ -288,6 +288,10 @@ input::-moz-focus-inner {
 #updateSummaryTable td:first-of-type {
     text-align: right;
     font-weight:bold !important;
+}
+
+.tableDivider {
+    border-bottom: 1px solid black;
 }
 
 
