@@ -24,16 +24,7 @@ $timeZone5HTML = '';
 $timeZone6HTML = '';
 $timeZone7HTML = '';
 $timeZone8HTML = '';
-$crowdType1HTML = '';
-$crowdType2HTML = '';
-$crowdType3HTML = '';
-$crowdType4HTML = '';
-$crowdType5HTML = '';
-$crowdType6HTML = '';
-$crowdType7HTML = '';
-$crowdType8HTML = '';
-$crowdType9HTML = '';
-$crowdType10HTML = '';
+$crowdType0HTML = '';
 $timeZoneError = '';
 $newAccountError = '';
 $confirmLoginError = '';
@@ -52,6 +43,19 @@ $timeZoneReset = '';
 $profileFormErrorControl = '';
 $hideHistoryPanelJavaScript = '';
 $projectSelectionOptions = '';
+$crowdTypeSelectHTML = '';
+
+$crowdTypeTableQuery = "SELECT * from crowd_types";
+$crowdTypeTableResult = $DBH->query($crowdTypeTableQuery);
+$crowdTypeArray = $crowdTypeTableResult->fetchAll(PDO::FETCH_ASSOC);
+$crowdTypeIdArray = array();
+foreach ($crowdTypeArray as $individualCrowdType) {
+    $crowdTypeIdArray[] = $individualCrowdType['crowd_type_id'];
+    $crowdHTMLVariableName = "crowdType{$individualCrowdType['crowd_type_id']}HTML";
+    $$crowdHTMLVariableName = '';
+}
+
+
 
 
 if (isset($_POST['formSubmission'])) {
@@ -137,15 +141,14 @@ if (isset($_POST['formSubmission'])) {
             $crowdType = (isset($_POST['crowdType'])) ? trim($_POST['crowdType']) : null;
             $otherCrowdType = (!empty($_POST['otherCrowdType'])) ? trim($_POST['otherCrowdType']) : '';
 
-            if (empty($crowdType)) {
+            if (empty($crowdType) && $crowdType !== '0') {
                 $errorMessage['crowdType'] = 'You must select your crowd type to complete registration.';
-            } else {
-                if ($crowdType < 0 || $crowdType > 10) {
-                    $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
-                }
+            } else if ($crowdType !== '0' && !in_array($crowdType, $crowdTypeIdArray)) {
+                $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
             }
 
-            if ($crowdType == 10 && empty($otherCrowdType)) {
+
+            if ($crowdType === '0' && empty($otherCrowdType)) {
                 $errorMessage['otherCrowdType'] = 'You must specify your other crowd type if "Other" is selected in the crowd type list.';
             } elseif (!empty($otherCrowdType) && strlen($otherCrowdType) > 255) {
                 $errorMessage['otherCrowdType'] = 'Your specified other crowd type is too long (max 255 characters).';
@@ -154,8 +157,8 @@ if (isset($_POST['formSubmission'])) {
             if (!isset($errorMessage)) {
                 $existingCrowdType = $userData['crowd_type'];
                 $existingOtherCrowdType = $userData['other_crowd_type'];
-                if (($crowdType != 10 && $crowdType == $existingCrowdType) ||
-                        ($crowdType == 10 && strcmp($otherCrowdType, $existingOtherCrowdType) == 0)) {
+                if (($crowdType !== '0' && $crowdType == $existingCrowdType) ||
+                        ($crowdType === '0' && strcmp($otherCrowdType, $existingOtherCrowdType) == 0)) {
                     header('Location: profile.php?update=crowd');
                     exit;
                 }
@@ -181,45 +184,53 @@ if (isset($_POST['formSubmission'])) {
                 $otherCrowdTypeError = '<label class="error" for="otherCrowdType">' . $errorMessage['otherCrowdType'] . '</label>';
             }
 
+            foreach ($crowdTypeIdArray as $crowdTypeId) {
+                $crowdHTMLVariableName = "crowdType{$crowdTypeId}HTML";
+                if (isset($crowdType) && $crowdType == $crowdTypeId) {
+                    $$crowdHTMLVariableName = 'selected="selected"';
+                    $stickyCrowdType = TRUE;
+                }
+            }
 
-            if (isset($crowdType) && $crowdType == 1) {
-                $crowdType1HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 2) {
-                $crowdType2HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 3) {
-                $crowdType3HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 4) {
-                $crowdType4HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 5) {
-                $crowdType5HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 6) {
-                $crowdType6HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 7) {
-                $crowdType7HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 8) {
-                $crowdType8HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 9) {
-                $crowdType9HTML = 'selected="selected"';
-                $stickyCrowdType = TRUE;
-            }
-            if (isset($crowdType) && $crowdType == 10) {
-                $crowdType10HTML = 'selected="selected"';
+
+//            if (isset($crowdType) && $crowdType == 1) {
+//                $crowdType1HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 2) {
+//                $crowdType2HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 3) {
+//                $crowdType3HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 4) {
+//                $crowdType4HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 5) {
+//                $crowdType5HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 6) {
+//                $crowdType6HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 7) {
+//                $crowdType7HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 8) {
+//                $crowdType8HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+//            if (isset($crowdType) && $crowdType == 9) {
+//                $crowdType9HTML = 'selected="selected"';
+//                $stickyCrowdType = TRUE;
+//            }
+            if (isset($crowdType) && $crowdType === '0') {
+                $crowdType0HTML = 'selected="selected"';
                 $stickyCrowdType = TRUE;
             }
 
@@ -360,6 +371,14 @@ if (isset($_POST['formSubmission'])) {
         $profileFormErrorControl = "$('.profileUpdateField').css('display', 'none');";
         $profileFormErrorControl .= "$('#changeTimeZoneFormWrapper').css('display', 'block');";
     }
+}
+
+foreach ($crowdTypeArray as $individualCrowdType) {
+    $crowdTypeId = $individualCrowdType['crowd_type_id'];
+    $varibleCrowdTypeVariableName = "crowdType{$crowdTypeId}HTML";
+    $crowdTypeName = $individualCrowdType['crowd_type_name'];
+
+    $crowdTypeSelectHTML .= "<option value=\"$crowdTypeId\" {$$varibleCrowdTypeVariableName}>$crowdTypeName</option>";
 }
 
 if (!$stickyCrowdType) {

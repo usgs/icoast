@@ -5,10 +5,6 @@ date_default_timezone_set('UTC');
 
 function crowdTypeConverter($DBH, $crowdTypeId = null, $otherCrowdType = null) {
 
-    $crowdTypeArray[0] = "Other";
-
-
-
     foreach ($DBH->query("SELECT * FROM crowd_types") as $crowdType) {
         $crowdTypeArray[$crowdType['crowd_type_id']] = $crowdType['crowd_type_name'];
     }

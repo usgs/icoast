@@ -24,15 +24,15 @@ $timeZone5HTML = '';
 $timeZone6HTML = '';
 $timeZone7HTML = '';
 $timeZone8HTML = '';
-$crowdType1HTML = '';
-$crowdType2HTML = '';
-$crowdType3HTML = '';
-$crowdType4HTML = '';
-$crowdType5HTML = '';
-$crowdType6HTML = '';
-$crowdType7HTML = '';
-$crowdType8HTML = '';
-$crowdType9HTML = '';
+//$crowdType1HTML = '';
+//$crowdType2HTML = '';
+//$crowdType3HTML = '';
+//$crowdType4HTML = '';
+//$crowdType5HTML = '';
+//$crowdType6HTML = '';
+//$crowdType7HTML = '';
+//$crowdType8HTML = '';
+//$crowdType9HTML = '';
 $crowdType0HTML = '';
 $timeZoneError = '';
 $crowdTypeError = '';
@@ -40,7 +40,17 @@ $otherCrowdTypeError = '';
 $registerAffiliationError = '';
 $registerOtherContent = '';
 $registerAffiliationContent = '';
+$crowdTypeSelectHTML = '';
+$crowdTypeIdArray = array();
 
+$crowdTypeTableQuery = "SELECT * from crowd_types";
+$crowdTypeTableResult = $DBH->query($crowdTypeTableQuery);
+$crowdTypeArray = $crowdTypeTableResult->fetchAll(PDO::FETCH_ASSOC);
+foreach ($crowdTypeArray as $individualCrowdType) {
+    $crowdTypeIdArray[] = $individualCrowdType['crowd_type_id'];
+    $crowdHTMLVariableName = "crowdType{$individualCrowdType['crowd_type_id']}HTML";
+    $$crowdHTMLVariableName = '';
+}
 
 
 if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
@@ -64,15 +74,14 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         }
     }
 
-    if (empty($registerCrowdType) && $registerCrowdType != 0) {
+    if (empty($registerCrowdType) && $registerCrowdType !== '0') {
         $errorMessage['crowdType'] = 'You must select your crowd type to complete registration.';
-    } else {
-        if ($registerCrowdType < 0 || $registerCrowdType > 9) {
-            $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
-        }
+    } else if ($registerCrowdType !== '0' && !in_array($registerCrowdType, $crowdTypeIdArray)) {
+        $errorMessage['crowdType'] = 'The specified crowd type is invalid.';
     }
 
-    if ($registerCrowdType == 0 && empty($registerOtherContent)) {
+
+    if ($registerCrowdType === '0' && empty($registerOtherContent)) {
         $errorMessage['otherCrowdType'] = 'You must specify your other crowd type if "Other" is selected in the crowd type list.';
     } elseif (!empty($registerOtherContent) && strlen($registerOtherContent) > 255) {
         $errorMessage['otherCrowdType'] = 'Your specified other crowd type is too long for registration (max 255 characters).';
@@ -136,35 +145,42 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
             break;
     }
 
+    foreach ($crowdTypeIdArray as $crowdTypeId) {
+        $crowdHTMLVariableName = "crowdType{$crowdTypeId}HTML";
+        if (isset($registerCrowdType) && $registerCrowdType == $crowdTypeId) {
+            $$crowdHTMLVariableName = 'selected="selected"';
+        }
+    }
 
-    if (isset($registerCrowdType) && $registerCrowdType == 1) {
-        $crowdType1HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 2) {
-        $crowdType2HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 3) {
-        $crowdType3HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 4) {
-        $crowdType4HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 5) {
-        $crowdType5HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 6) {
-        $crowdType6HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 7) {
-        $crowdType7HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 8) {
-        $crowdType8HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 9) {
-        $crowdType9HTML = 'selected="selected"';
-    }
-    if (isset($registerCrowdType) && $registerCrowdType == 0) {
+
+//    if (isset($registerCrowdType) && $registerCrowdType == 1) {
+//        $crowdType1HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 2) {
+//        $crowdType2HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 3) {
+//        $crowdType3HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 4) {
+//        $crowdType4HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 5) {
+//        $crowdType5HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 6) {
+//        $crowdType6HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 7) {
+//        $crowdType7HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 8) {
+//        $crowdType8HTML = 'selected="selected"';
+//    }
+//    if (isset($registerCrowdType) && $registerCrowdType == 9) {
+//        $crowdType9HTML = 'selected="selected"';
+//    }
+    if (isset($registerCrowdType) && $registerCrowdType === '0') {
         $crowdType0HTML = 'selected="selected"';
     }
 
@@ -214,11 +230,19 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 }
 
+foreach ($crowdTypeArray as $individualCrowdType) {
+    $crowdTypeId = $individualCrowdType['crowd_type_id'];
+    $varibleCrowdTypeVariableName = "crowdType{$crowdTypeId}HTML";
+    $crowdTypeName = $individualCrowdType['crowd_type_name'];
+
+    $crowdTypeSelectHTML .= "<option value=\"$crowdTypeId\" {$$varibleCrowdTypeVariableName}>$crowdTypeName</option>" ;
+}
+
 $jQueryDocumentDotReadyCode = '';
 if (empty($registerTimeZone)) {
     $jQueryDocumentDotReadyCode .= "$('#registerTimeZone').prop('selectedIndex', -1);\r\n";
 }
-if (empty($registerCrowdType)) {
+if (empty($registerCrowdType) && $registerCrowdType !== '0') {
     $jQueryDocumentDotReadyCode .= "$('#registerCrowdType').prop('selectedIndex', -1);\r\n";
 }
 $jQueryDocumentDotReadyCode .= <<<EOL

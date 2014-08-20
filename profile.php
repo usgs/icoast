@@ -76,17 +76,8 @@ $pageBody = <<<EOL
                                 <select id="crowdType" name="crowdType" class="clickableButton"
                                     title="Select a crowd type from this list that best defines your interest or experience
                                     in the coastal environment. (Select one)">
-                                    <option value="1" $crowdType1HTML>Coastal & Marine Scientist</option>
-                                    <option value="2" $crowdType2HTML>Coastal Manager or Planner</option>
-                                    <option value="3" $crowdType3HTML>Coastal Resident</option>
-                                    <option value="4" $crowdType4HTML title="Someone who enjoys the beach">
-                                        Watersport Enthusiast
-                                    </option>
-                                    <option value="5" $crowdType5HTML>Marine Science Student</option>
-                                    <option value="6" $crowdType6HTML>Emergency Responder</option>
-                                    <option value="8" $crowdType8HTML>Digital Crisis Volunteer (VTC)</option>
-                                    <option value="9" $crowdType9HTML>Interested Public</option>
-                                    <option value="10" $crowdType10HTML>Other (Please specify below)</option>
+                                    $crowdTypeSelectHTML
+                                    <option value="0" $crowdType0HTML>Other (Please specify below)</option>
                                 </select>
                                 $crowdTypeError
                             </div>

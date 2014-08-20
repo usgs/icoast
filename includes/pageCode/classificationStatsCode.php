@@ -58,7 +58,7 @@ $numberOfPhotosQuery .= ")"
         . ")";
 $numberOfPhotosResult = run_prepared_query($DBH, $numberOfPhotosQuery, $queryParams);
 $numberOfPhotos = $numberOfPhotosResult->fetchColumn();
-$statsTableContent .= "<tr><td title=\"This is the total number of post-event photos available to the user in either the iCoast system or the selected project\">Number of photos in $statsTarget</td><td class=\"userData\">$numberOfPhotos</td></tr>";
+$statsTableContent .= '<tr><td title="This is the total number of post-event photos available to the user in either the iCoast system or the selected project">Number of photos in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfPhotos) . '</td></tr>';
 
 
 // Determine number of distinct classified photos in system/project
@@ -70,11 +70,11 @@ if (isset($queryProjectClause)) {
 }
 $numberOfClassifiedPhotosResult = run_prepared_query($DBH, $numberOfClassifiedPhotosQuery, $queryParams);
 $numberOfClassifiedPhotos = $numberOfClassifiedPhotosResult->fetchColumn();
-$statsTableContent .= "<tr><td title=\"This is the number of photos in either iCoast or the selected project that have at least 1 classification.\">Number of classified photos in $statsTarget</td><td class=\"userData\">$numberOfClassifiedPhotos</td></tr>";
+$statsTableContent .= '<tr><td title="This is the number of photos in either iCoast or the selected project that have at least 1 classification.">Number of classified photos in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfClassifiedPhotos) . '</td></tr>';
 
 // Determine the percentage of photo with 1 or more classifications
 $classifiedPhotoPercentage = round(($numberOfClassifiedPhotos / $numberOfPhotos) * 100, 1);
-$statsTableContent .= "<tr title=\"This is the percentage of the total number of photos available to the user in either iCOast or the selected project that have 1 or more classification.\" class=\"tableDivider\"><td>Percentage of classified photos in $statsTarget</td><td class=\"userData\">$classifiedPhotoPercentage%</td></tr>";
+$statsTableContent .= '<tr title="This is the percentage of the total number of photos available to the user in either iCoast or the selected project that have 1 or more classification." class="tableDivider"><td>Percentage of classified photos in ' . $statsTarget . '</td><td class="userData">' . $classifiedPhotoPercentage . '%</td></tr>';
 
 $totalClassifications = 0;
 // Determine the total number of classifications for the system/project.
@@ -85,7 +85,7 @@ if (isset($queryProjectClause)) {
 $numberOfCompleteClassificationsResult = run_prepared_query($DBH, $numberOfCompleteClassificationsQuery, $queryParams);
 $numberOfCompleteClassifications = $numberOfCompleteClassificationsResult->fetchColumn();
 $totalClassifications += $numberOfCompleteClassifications;
-$statsTableContent .= "<tr><td title=\"This is the total number of complete classifications users have completed in either iCoast as a whole or the selected project.\">Number of complete classifications in $statsTarget</td><td class=\"userData\">$numberOfCompleteClassifications</td></tr>";
+$statsTableContent .= '<tr><td title="This is the total number of complete classifications users have completed in either iCoast as a whole or the selected project.">Number of complete classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfCompleteClassifications) . '</td></tr>';
 
 
 // Determine the total number of incomplete classifications which have a match for the system/project.
@@ -96,7 +96,7 @@ if (isset($queryProjectClause)) {
 $numberOfIncompleteClassificationsResult = run_prepared_query($DBH, $numberOfIncompleteClassificationsQuery, $queryParams);
 $numberOfIncompleteClassifications = $numberOfIncompleteClassificationsResult->fetchColumn();
 $totalClassifications += $numberOfIncompleteClassifications;
-$statsTableContent .= "<tr><td title=\"This is the number of incomplete classifications within iCoast as a whole or the selected project. An incomplete classification is one in which the user was displayed and image and they selected a pre-event matching image. They may have completed some tasks but did not click the 'Done' button on the final task to indicate completion of the classification. This number excludes unstarted classifications (see below).\">Number of incomplete classifications in $statsTarget</td><td class=\"userData\">$numberOfIncompleteClassifications</td></tr>";
+$statsTableContent .= '<tr><td title="This is the number of incomplete classifications within iCoast as a whole or the selected project. An incomplete classification is one in which the user was displayed and image and they selected a pre-event matching image. They may have completed some tasks but did not click the \'Done\' button on the final task to indicate completion of the classification. This number excludes unstarted classifications (see below).">Number of incomplete classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfIncompleteClassifications) . '</td></tr>';
 
 
 // Determine the total number of unstarted classifications for the system/project.
@@ -107,7 +107,7 @@ if (isset($queryProjectClause)) {
 $numberOfUnstartedClassificationsResult = run_prepared_query($DBH, $numberOfUnstartedClassificationsQuery, $queryParams);
 $numberOfUnstartedClassifications = $numberOfUnstartedClassificationsResult->fetchColumn();
 $totalClassifications += $numberOfUnstartedClassifications;
-$statsTableContent .= "<tr><td title=\"This is the number of unstarted classifications within iCoast as a whole or the selected project. An unstarted classification is one in which the user was displayed a post-event image but did not image match it to a pre-event image or complete any of the tasks.\">Number of unstarted classifications in $statsTarget</td><td class=\"userData\">$numberOfUnstartedClassifications</td></tr>";
+$statsTableContent .= '<tr><td title="This is the number of unstarted classifications within iCoast as a whole or the selected project. An unstarted classification is one in which the user was displayed a post-event image but did not image match it to a pre-event image or complete any of the tasks.">Number of unstarted classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfUnstartedClassifications) . '</td></tr>';
 
 // Determine the percentage of complete classifications from the total classifications for the system/project.
 $completeClassificationPercentage = round(($numberOfCompleteClassifications / $totalClassifications) * 100, 1);
@@ -115,9 +115,9 @@ $completeClassificationPercentage = round(($numberOfCompleteClassifications / $t
 $incompleteClassificationPercentage = round(($numberOfIncompleteClassifications / $totalClassifications) * 100, 1);
 // Determine the percentage of unstarted classifications from the total classifications for the system/project.
 $unstartedClassificationPercentage = round(($numberOfUnstartedClassifications / $totalClassifications) * 100, 1);
-$statsTableContent .= "<tr><td title=\"Percentage of completed classifications from all classifications within iCoast as a whole or the selected project.\">Percentage of complete classifications in $statsTarget</td><td class=\"userData\">$completeClassificationPercentage%</td></tr>";
-$statsTableContent .= "<tr><td title=\"Percentage of incomplete classifications from all classifications within iCoast as a whole or the selected project.\">Percentage of incomplete classifications in $statsTarget</td><td class=\"userData\">$incompleteClassificationPercentage%</td></tr>";
-$statsTableContent .= "<tr class=\"tableDivider\"><td title=\"Percentage of unstarted classifications from all classifications within iCoast as a whole or the selected project.\">Percentage of unstarted classifications in $statsTarget</td><td class=\"userData\">$unstartedClassificationPercentage%</td></tr>";
+$statsTableContent .= '<tr><td title="Percentage of completed classifications from all classifications within iCoast as a whole or the selected project.">Percentage of complete classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($completeClassificationPercentage) . '%</td></tr>';
+$statsTableContent .= '<tr><td title="Percentage of incomplete classifications from all classifications within iCoast as a whole or the selected project.">Percentage of incomplete classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($incompleteClassificationPercentage) . '%</td></tr>';
+$statsTableContent .= '<tr class="tableDivider"><td title="Percentage of unstarted classifications from all classifications within iCoast as a whole or the selected project.">Percentage of unstarted classifications in ' . $statsTarget . '</td><td class="userData">' . number_format($unstartedClassificationPercentage) . '%</td></tr>';
 
 
 // Determine the total number of tags that have been selected in the syetm/project
@@ -131,7 +131,7 @@ if (isset($queryProjectClause)) {
 }
 $numberOfTagsSelectedResult = run_prepared_query($DBH, $numberOfTagsSelectedQuery, $queryParams);
 $numberOfTags = $numberOfTagsSelectedResult->fetchColumn();
-$statsTableContent .= "<tr><td title=\"The total number of tags that have been selected either in iCoast as a whole or within the selected project. \">Number of selected tags in $statsTarget</td><td class=\"userData\">$numberOfTags</td></tr>";
+$statsTableContent .= '<tr><td title="The total number of tags that have been selected either in iCoast as a whole or within the selected project. ">Number of selected tags in ' . $statsTarget . '</td><td class="userData">' . number_format($numberOfTags) . '</td></tr>';
 
 $tagBreakdown = '';
 
@@ -213,7 +213,7 @@ ORDER BY task_order_in_project, upper_group_order_in_task, order_in_upper_parent
             . "A red highlight in a frequency cell summarises if the tag or a parent container is disabled thus hiding the tag from users.<br>"
             . "An empty grey cell indicates that a nested group is not used in the organisation of the tag.</p>"
             . '<table id="tagFrequencyTable" class="borderedTable dividedColumns">'
-            . '<thead><tr><td>Task name</td><td>Group Name</td><td>Nested Group name</td><td>Tag Name</td><td>Frequency</td></tr></thead><tbody>';
+            . '<thead><tr><td>Task Name</td><td>Group Name</td><td>Nested Group Name</td><td>Tag Name</td><td>Frequency</td></tr></thead><tbody>';
     foreach ($tagFrequency as $tag) {
         $showTopBorder = FALSE;
         if ($currentTaskId != $tag['task_id']) {
@@ -291,7 +291,7 @@ ORDER BY task_order_in_project, upper_group_order_in_task, order_in_upper_parent
         } else {
             $tagBreakdown .= '<td class="topBorder">';
         }
-        $tagBreakdown .= $tag['frequency'] . '</td>';
+        $tagBreakdown .= number_format($tag['frequency']) . '</td>';
 
         $tagBreakdown .= '</tr>';
     }

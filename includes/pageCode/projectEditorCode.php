@@ -10,6 +10,41 @@ function sortByOrderInProject($a, $b) {
     return $a['order_in_project'] - $b['order_in_project'];
 }
 
+function buildTaskSelectOptions($DBH, $projectId, $currentParent = false) {
+    // FIND DATA FOR ALL TASKS IN THE PROJECT
+    $projectTaskQuery = "SELECT task_id, name, description, is_enabled FROM task_metadata WHERE project_id = :projectId ORDER BY name";
+    $projectTaskParams['projectId'] = $projectId;
+    $projectTaskResults = run_prepared_query($DBH, $projectTaskQuery, $projectTaskParams);
+    $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
+
+    // BUILD THE TASK SELECTION HTML FORM
+    $taskSelectOptionsHTML = '';
+    $taskList = array();
+    foreach ($projectTasks as $individualTask) {
+        $individualTaskId = $individualTask['task_id'];
+        $individualTaskName = $individualTask['name'];
+        $individualTaskDescription = $individualTask['description'];
+        $isEnabled = $individualTask['is_enabled'];
+
+        $taskSelectOptionsHTML .= "<option title=\"$individualTaskDescription\" value=\"$individualTaskId\"";
+        if ($currentParent) {
+            if ($individualTask['task_id'] == $currentParent) {
+                $taskSelectOptionsHTML .= ' selected';
+            }
+        }
+        $taskSelectOptionsHTML .= ">$individualTaskName";
+        if ($isEnabled == 0) {
+            $taskSelectOptionsHTML .= " (Disabled)";
+        }
+
+        $taskSelectOptionsHTML .= "</option>";
+        $taskList[] = $individualTaskId;
+    }
+    return array(
+        $taskSelectOptionsHTML,
+        $taskList);
+}
+
 function buildGroupSelectOptions($DBH, $projectId, $currentParent = false, $onlyGroupGroups = false, $excludeGroupGroups = false) {
     //    print $currentParent;
     // FIND DATA FOR ALL TASKS IN THE PROJECT
