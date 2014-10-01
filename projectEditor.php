@@ -8,8 +8,8 @@ $pageBody = <<<EOL
 $adminNavHTML
             <div id="adminContentWrapper">
                 <div id="adminBanner">
-                    <p>You are logged in as <span class="userData"><?php print $maskedEmail ?></span>. Your admin level is
-                        <span class="userData"><?php print $adminLevelText ?></span></p>
+                    <p>You are logged in as <span class="userData">$maskedEmail</span>. Your admin level is
+                        <span class="userData">$adminLevelText</span></p>
                 </div>
                 <h1>iCoast Project Editor</h1>
                     $projectSelectHTML

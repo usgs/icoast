@@ -36,6 +36,17 @@ print $feedbackEmbeddedCSS . "\n\r";
 print $embeddedCSS;
 ?>
         </style>
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-50708501-1', 'auto');
+            ga('require', 'displayfeatures');
+            ga('send', 'pageview');
+
+        </script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script src="scripts/tipTip.js"></script>
         <?php print $javaScriptLinks; ?>
@@ -46,15 +57,6 @@ print $embeddedCSS;
             print $jQueryDocumentDotReadyCode;
             print $feedbackjQueryDocumentDotReadyCode . "\n\r";
 ?>
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-            ga('create', 'UA-49706884-1', 'icoast.us');
-            ga('require', 'displayfeatures');
-            ga('send', 'pageview');
-
         </script>
     </head>
     <body>
@@ -65,6 +67,7 @@ print $embeddedCSS;
         <a href="#skipmenu" title="Skip this menu"></a>
         <div id='navigationBar'>
             <?php print $mainNav ?>
+            <div id="OMBInfo"><p>OMB Control Number: 1028-0109<br>Expiration Date: 09/2017</p></div>
         </div>
         <a id="skipmenu"></a>
 

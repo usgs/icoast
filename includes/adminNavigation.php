@@ -28,6 +28,7 @@ if ($pageName =='classificationStats') {
 }
 
 if ($pageName =='userStats') {
+
     $adminNavHTML .= '<li class="activePageLink">User</li>';
     $pageTitle = "USGS iCoast - User Statistics";
 } else {

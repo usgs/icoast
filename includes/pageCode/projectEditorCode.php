@@ -4,6 +4,8 @@
 $cssLinkArray = array();
 $embeddedCSS = '';
 $javaScriptLinkArray = array();
+$javaScript = '';
+$jQueryDocumentDotReadyCode = '';
 
 
 function sortByOrderInProject($a, $b) {
@@ -29,7 +31,7 @@ function buildTaskSelectOptions($DBH, $projectId, $currentParent = false) {
         $taskSelectOptionsHTML .= "<option title=\"$individualTaskDescription\" value=\"$individualTaskId\"";
         if ($currentParent) {
             if ($individualTask['task_id'] == $currentParent) {
-                $taskSelectOptionsHTML .= ' selected';
+                $taskSelectOptionsHTML .= ' selected="selected"';
             }
         }
         $taskSelectOptionsHTML .= ">$individualTaskName";
@@ -72,7 +74,7 @@ function buildGroupSelectOptions($DBH, $projectId, $currentParent = false, $only
         $groupSelectOptionsHTML .= "<option title=\"$individualGroupDescription\"value=\"$individualGroupId\"";
         if (!empty($currentParent)) {
             if ($individualGroupId == $currentParent) {
-                $groupSelectOptionsHTML .= ' selected';
+                $groupSelectOptionsHTML .= ' selected="selected"';
             }
         }
         $groupSelectOptionsHTML .= ">$individualGroupName";
@@ -2441,7 +2443,7 @@ EOL;
                                         <p>Please select a task to edit</p>
                                     <form method="post" class="taskSelectForm">
                                         <div id="formFieldRow">
-                                            <label for"taskSelectBox">Task Name:</label>
+                                            <label for="taskSelectBox">Task Name:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="taskId">
                                                 $taskSelectOptionsHTML
                                             </select>
@@ -2751,7 +2753,7 @@ EOL;
                                     <p>Please select a group to edit</p>
                                     <form method="post" class="groupSelectForm">
                                         <div id="formFieldRow">
-                                            <label for"groupSelectBox">Group Name:</label>
+                                            <label for="groupSelectBox">Group Name:</label>
                                             <select id="groupSelectBox" class="clickableButton" name="groupId">
                                                 $groupSelectOptionsHTML
                                             </select>
@@ -2928,7 +2930,7 @@ EOL;
                         if (empty($groupSelectOptionsHTML)) {
                             $groupContainedInHTML = <<<EOL
                                         <div id="formFieldRow">
-                                            <label for"taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
+                                            <label for="taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="newParentTaskId">
                                                 $taskSelectOptionsHTML
                                             </select>
@@ -2942,7 +2944,7 @@ EOL;
                                     <div>
                                         <p>Select a task to contain this group</p>
                                         <div id="formFieldRow">
-                                            <label for"taskSelectBox">Task Name:</label>
+                                            <label for="taskSelectBox">Task Name:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="newParentTaskId">
                                                 $taskSelectOptionsHTML
                                             </select>
@@ -2954,7 +2956,7 @@ EOL;
                                     <div>
                                         <p>Select another group to contain this group</p>
                                         <div id="formFieldRow">
-                                            <label for"groupSelectBox">Group Name:</label>
+                                            <label for="groupSelectBox">Group Name:</label>
                                             <select id="groupSelectBox" class="clickableButton" name="newParentGroupId">
                                                 $groupSelectOptionsHTML
                                             </select>
@@ -3123,16 +3125,16 @@ EOL;
                                 $groupContainedInHTML
                                 <div class="twoColumnSplit">
                                     <div>
-                                    <h3>Current Display Order In Task </h3>
-                                    <p>Disabled (hidden) tasks are shown in red.<br>
+                                    <h3>Current Display Order In Task/Group </h3>
+                                    <p>Disabled (hidden) groups are shown in red.<br>
                                         The current group being edited is shown in green.<br>
-                                        All other **** are uncolored.<br>
-                                        Hovering over a row displays more details of the task.</p>
+                                        All other groups are uncolored.<br>
+                                        Hovering over a row displays more details of the group.</p>
                                     <table id="propertyOrderTable">
                                         <thead>
                                             <tr>
                                                 <td>Position Number</td>
-                                                <td>Task Name</td>
+                                                <td>Group Name</td>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -3195,7 +3197,7 @@ EOL;
                     if (empty($groupSelectOptionsHTML)) {
                         $groupContainedInHTML = <<<EOL
                                         <div id="formFieldRow">
-                                            <label for"taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
+                                            <label for="taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="taskId">
                                                 $taskSelectOptionsHTML
                                             </select>
@@ -3209,7 +3211,7 @@ EOL;
                                     <div>
                                         <p>Select a task to contain this group</p>
                                         <div id="formFieldRow">
-                                            <label for"taskSelectBox">Task Name:</label>
+                                            <label for="taskSelectBox">Task Name:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="newParentTaskId">
                                                 $taskSelectOptionsHTML
                                             </select>
@@ -3221,7 +3223,7 @@ EOL;
                                     <div>
                                         <p>Select another group to contain this group</p>
                                         <div id="formFieldRow">
-                                            <label for"groupSelectBox">Group Name:</label>
+                                            <label for="groupSelectBox">Group Name:</label>
                                             <select id="groupSelectBox" class="clickableButton" name="newParentGroupId">
                                                 $groupSelectOptionsHTML
                                             </select>
@@ -3368,15 +3370,15 @@ EOL;
                                 $groupContainedInHTML
                                 <div class="twoColumnSplit">
                                     <div>
-                                    <h3>Current Display Order In Task </h3>
-                                    <p>Disabled (hidden) tasks are shown in red.<br>
-                                        All other tasks are uncolored.<br>
-                                        Hovering over a row displays more details of the task.</p>
+                                    <h3>Current Display Order In Task/Group</h3>
+                                    <p>Disabled (hidden) groups are shown in red.<br>
+                                        All other groups are uncolored.<br>
+                                        Hovering over a row displays more details of the group.</p>
                                     <table id="propertyOrderTable">
                                         <thead>
                                             <tr>
                                                 <td>Position Number</td>
-                                                <td>Task Name</td>
+                                                <td>Group Name</td>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -3461,7 +3463,7 @@ EOL;
                                     <p>Please select a tag to edit</p>
                                     <form method="post" class="tagSelectForm">
                                         <div id="formFieldRow">
-                                            <label for"tagSelectBox">Tag Name:</label>
+                                            <label for="tagSelectBox">Tag Name:</label>
                                             <select id="tagSelectBox" class="clickableButton" name="tagId">
                                                 $tagSelectOptionsHTML
                                             </select>
@@ -3682,7 +3684,7 @@ EOL;
                                     <input type="textbox" id="editTagRadioGroupName" class="clickableButton disabledClickableButton" name="newTagRadioGroupName" maxlength="20" value="$currentTagRadioGroupName" disabled />
                                 </div>
                                 <div class="formFieldRow">
-                                    <label for"tagParentGroupSelectBox" title="Use the selection box to choose which group should contain this tag. Associated tags should be grouped together in the same parent group.">Parent Group:</label>
+                                    <label for="tagParentGroupSelectBox" title="Use the selection box to choose which group should contain this tag. Associated tags should be grouped together in the same parent group.">Parent Group:</label>
                                     <select id="tagParentGroupSelectBox" class="clickableButton" name="newParentId">
                                         $groupSelectOptionsHTML
                                     </select>
@@ -3834,7 +3836,7 @@ EOL;
                                     <input type="textbox" id="editTagRadioGroupName" class="clickableButton disabledClickableButton" name="newTagRadioGroupName" maxlength="20" value="$currentTagRadioGroupName" disabled />
                                 </div>
                                 <div class="formFieldRow">
-                                    <label for"tagParentGroupSelectBox" title="Use the selection box to choose which group should contain this tag. Associated tags should be grouped together in the same parent group.">Parent Group:</label>
+                                    <label for="tagParentGroupSelectBox" title="Use the selection box to choose which group should contain this tag. Associated tags should be grouped together in the same parent group.">Parent Group:</label>
                                     <select id="tagParentGroupSelectBox" class="clickableButton" name="newParentId">
                                         $groupSelectOptionsHTML
                                     </select>
@@ -3905,75 +3907,27 @@ EOL;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build variable javascript code.
-$variableJavascript = '';
 if (isset($_POST['projectId'])) {
-    $variableJavascript .= "var projectId = {$_POST['projectId']};\n\r";
+    $javaScript .= "var projectId = {$_POST['projectId']};\n\r";
 }
 if (isset($_POST['projectPropertyToUpdate'])) {
-    $variableJavascript .= "var propertyToUpdate = '{$_POST['projectPropertyToUpdate']}';\n\r";
+    $javaScript .= "var propertyToUpdate = '{$_POST['projectPropertyToUpdate']}';\n\r";
 }
 if (isset($javascriptGroupOrderInParentTask)) {
-    $variableJavascript .= 'var groupOrderInTaskData = ' . $javascriptGroupOrderInParentTask . ';\n\r';
+    $javaScript .= 'var groupOrderInTaskData = ' . $javascriptGroupOrderInParentTask . ";\n\r";
 }
 if (isset($javascriptGroupOrderInParentGroup)) {
-    $variableJavascript .= 'var groupOrderInGroupData = ' . $javascriptGroupOrderInParentGroup . ';\n\r';
+    $javaScript .= 'var groupOrderInGroupData = ' . $javascriptGroupOrderInParentGroup . ";\n\r";
 }
 if (isset($javascriptTagOrderInParentGroup)) {
-    $variableJavascript .= 'var tagOrderInGroupData = ' . $javascriptTagOrderInParentGroup . ';\n\r';
+    $javaScript .= 'var tagOrderInGroupData = ' . $javascriptTagOrderInParentGroup . ";\n\r";
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Build variable jQuery Document.Ready code.
-$variableDocumentDotReadyCode = '';
-if (isset($javascriptGroupOrderInParentTask)) {
-    $variableDocumentDotReadyCode .= <<<EOL
-                    var selectedTaskElement = $('#taskSelectBox option[selected]');
-                    var selectedTaskValue = selectedTaskElement.val();
-                    var selectedTaskindex = selectedTaskElement.index();
-                    if (typeof selectedTaskValue !== 'undefined') {
-                        $('#propertyOrderTable tbody').append(groupOrderInTaskData[selectedTaskValue]['tableHTML']);
-                        $('#editGroupOrder').append(groupOrderInTaskData[selectedTaskValue]['newOrderSelectHTML']);
-                        $('#taskSelectBox').prop('selectedIndex', selectedTaskindex);
-                    }
-EOL;
-}
+// Build jQuery Document.Ready code.
 
-if (isset($javascriptGroupOrderInParentGroup)) {
-    $variableDocumentDotReadyCode .= <<<EOL
-                    var selectedGroupElement = $('#groupSelectBox option[selected]');
-                    var selectedGroupValue = selectedGroupElement.val();
-                    var selectedGroupindex = selectedGroupElement.index();
-                    if (typeof selectedGroupValue !== 'undefined') {
-                        $('#propertyOrderTable tbody').append(groupOrderInGroupData[selectedGroupValue]['tableHTML']);
-                        $('#editGroupOrder').append(groupOrderInGroupData[selectedGroupValue]['newOrderSelectHTML']);
-                        $('#groupSelectBox').prop('selectedIndex', selectedGroupindex);
-                    }
-EOL;
-}
-
-if (isset($javascriptTagOrderInParentGroup)) {
-    $variableDocumentDotReadyCode .= <<<EOL
-                    var selectedGroupElement = $('#tagParentGroupSelectBox option[selected]');
-                    var selectedGroupValue = selectedGroupElement.val();
-                    var selectedGroupindex = selectedGroupElement.index();
-                    if (typeof selectedGroupValue !== 'undefined') {
-                        $('#propertyOrderTable tbody').append(tagOrderInGroupData[selectedGroupValue]['tableHTML']);
-                        $('#editTagOrder').append(tagOrderInGroupData[selectedGroupValue]['newOrderSelectHTML']);
-                        $('#tagParentGroupSelectBox').prop('selectedIndex', selectedGroupindex);
-                    }
-EOL;
-}
-
-
-
-
-
-
-$javaScript = $variableJavascript;
-
-$jQueryDocumentDotReadyCode = <<<EOL
-        $variableDocumentDotReadyCode
+$jQueryDocumentDotReadyCode .= <<<EOL
         $('#taskSelectBox, #groupSelectBox, #tagSelectBox,#tagParentGroupSelectBox').prop("selectedIndex", -1);
 
         $('#taskSelectBox, #groupSelectBox, #tagSelectBox').change(function() {
@@ -4052,4 +4006,47 @@ $jQueryDocumentDotReadyCode = <<<EOL
             $('#editTagOrder').empty();
             $('#editTagOrder').append(tagOrderInGroupData[selectedGroup]['newOrderSelectHTML']);
         });
+
 EOL;
+
+if (isset($javascriptGroupOrderInParentTask)) {
+    $jQueryDocumentDotReadyCode .= <<<EOL
+                    var selectedTaskElement = $('#taskSelectBox option[selected]');
+                    var selectedTaskValue = selectedTaskElement.val();
+                    var selectedTaskIndex = selectedTaskElement.index();
+                    if (typeof selectedTaskValue !== 'undefined') {
+                        $('#propertyOrderTable tbody').append(groupOrderInTaskData[selectedTaskValue]['tableHTML']);
+                        $('#editGroupOrder').append(groupOrderInTaskData[selectedTaskValue]['newOrderSelectHTML']);
+                        $('#taskSelectBox').prop('selectedIndex', selectedTaskIndex);
+                    }
+
+EOL;
+}
+
+if (isset($javascriptGroupOrderInParentGroup)) {
+    $jQueryDocumentDotReadyCode .= <<<EOL
+                    var selectedGroupElement = $('#groupSelectBox option[selected]');
+                    var selectedGroupValue = selectedGroupElement.val();
+                    var selectedGroupIndex = selectedGroupElement.index();
+                    if (typeof selectedGroupValue !== 'undefined') {
+                        $('#propertyOrderTable tbody').append(groupOrderInGroupData[selectedGroupValue]['tableHTML']);
+                        $('#editGroupOrder').append(groupOrderInGroupData[selectedGroupValue]['newOrderSelectHTML']);
+                        $('#groupSelectBox').prop('selectedIndex', selectedGroupIndex);
+                    }
+
+EOL;
+}
+
+if (isset($javascriptTagOrderInParentGroup)) {
+    $jQueryDocumentDotReadyCode .= <<<EOL
+                    var selectedGroupElement = $('#tagParentGroupSelectBox option[selected]');
+                    var selectedGroupValue = selectedGroupElement.val();
+                    var selectedGroupIndex = selectedGroupElement.index();
+                    if (typeof selectedGroupValue !== 'undefined') {
+                        $('#propertyOrderTable tbody').append(tagOrderInGroupData[selectedGroupValue]['tableHTML']);
+                        $('#editTagOrder').append(tagOrderInGroupData[selectedGroupValue]['newOrderSelectHTML']);
+                        $('#tagParentGroupSelectBox').prop('selectedIndex', selectedGroupIndex);
+                    }
+
+EOL;
+}

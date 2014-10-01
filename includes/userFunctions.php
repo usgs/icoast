@@ -1,34 +1,5 @@
 <?php
 
-function timeZoneIdToTextConverter($timeZoneId) {
-    switch ($timeZoneId) {
-        case 1:
-            return "Eastern";
-            break;
-        case 2:
-            return "Central";
-            break;
-        case 3:
-            return "Mountain";
-            break;
-        case 4:
-            return "Mountain (Arizona)";
-            break;
-        case 5:
-            return "Pacific";
-            break;
-        case 6:
-            return "Alaskan";
-            break;
-        case 7:
-            return "Hawaiian";
-            break;
-        case 8:
-            return "UTC";
-            break;
-    }
-}
-
 // -------------------------------------------------------------------------------------------------
 /**
  * Finds the number of tags a user selected in a single annotation
@@ -276,43 +247,6 @@ function all_user_annotated_images($userId, $projectId = 0) {
     }
 }
 
-// -------------------------------------------------------------------------------------------------
-/**
- * Retrieves and returns metadata for an image match.
- *
- * @param type $postCollectionId iCoast DB row id of the collection used as the post image pool.
- * @param type $preCollectionId iCoast DB row id of the collection used as the pre image pool.
- * @param type $postImageId iCoast DB row id of the post image to be checked.
- * @return array|boolean On success returns a 1D associative array where keys and values represent
- * a row in the matches table of the iCoast DB <b>OR</b><br>
- * On failure or no match found returns FALSE.
- */
-function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $postImageId) {
-    /* print "<p><b>In retrieve_image_match_data function.</b><br>Arguments:<br>$postCollectionId<br>
-      $preCollectionId<br>$postImageId</p>"; */
-
-    if (!empty($postCollectionId) AND ! empty($preCollectionId) AND ! empty($postImageId) AND
-            is_numeric($postCollectionId) AND is_numeric($preCollectionId) AND
-            is_numeric($postImageId)) {
-        $imageMatchDataQuery = "SELECT * FROM matches WHERE post_collection_id = :postCollectionId AND
-      pre_collection_id = :preCollectionId AND post_image_id = :postImageId";
-        $imageMatchDataParams = array(
-            'postCollectionId' => $postCollectionId,
-            'preCollectionId' => $preCollectionId,
-            'postImageId' => $postImageId
-        );
-        $STH = run_prepared_query($DBH, $imageMatchDataQuery, $imageMatchDataParams);
-        $imageMatchData = $STH->fetchAll(PDO::FETCH_ASSOC);
-        if (count($imageMatchData) > 0) {
-//            print "RETURNING: <pre>";
-//            print_r($imageMatchData);
-//            print '</pre>';
-            return $imageMatchData[0];
-        }
-    }
-// print "RETURNING: FALSE<br>";
-    return FALSE;
-}
 
 // -------------------------------------------------------------------------------------------------
 /**

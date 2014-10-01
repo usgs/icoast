@@ -74,7 +74,7 @@ h1 {
     font-weight: bold;
 }
 
-h2, h3{
+h2, h3, h4{
     font-size: 1.3em;
     margin: 25px 10px 10px 10px;
     font-weight: bold;
@@ -97,6 +97,7 @@ a:hover {
 }
 
 #navigationBar {
+    position: relative;
     height: 30px;
     background-color: #666666;
     border-bottom: solid 1px white;
@@ -106,11 +107,27 @@ a:hover {
     overflow: hidden;
 }
 
-#navigationBar p {
+#navigationBar>p {
     font-size: 17px;
     float: right;
-    padding-right: 5px;
+    padding: 0 210px 0 10px;
+    line-height: 30px;
 
+}
+
+#OMBInfo {
+    position: absolute;
+    right: 0px;
+    top:0px;
+
+    height:30px;
+
+    padding: 1px 5px 0 10px;
+    border-left: 1px solid white;
+
+    text-align: right;
+    line-height: 14px;
+    font-size: 10px;
 }
 
 #navigationBar ul {
@@ -120,9 +137,9 @@ a:hover {
 
 }
 
-#navigationBar li:last-of-type {
+/*#navigationBar li:last-of-type {
     border-right: none;
-}
+}*/
 
 #navigationBar li {
     font-size: 17px;
@@ -167,11 +184,7 @@ a:hover {
     color: #D3E2F0;
 }
 
-#navigationBar p {
-    line-height: 30px;
-
-}
-
+.formInputStyle,
 .clickableButton {
     -moz-box-sizing: content-box;
     box-sizing: content-box;
@@ -188,13 +201,15 @@ a:hover {
     line-height: 20px;
     font-weight: bold;
     box-shadow: 3px 3px 3px #888888;
+}
 
-    -webkit-touch-callout: none;
+.clickableButton {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
 
+.formInputStyle:hover, .formInputStyle:active,
 .clickableButton:hover, .clickableButton:active {
     margin: 7px;
     border: 2px solid black;
@@ -209,7 +224,7 @@ a:hover {
 .unreadEvent,
 #closedEventText,
 .redHighlight {
-    color: red;
+    color: red !important;
 }
 
 #openEventText {
@@ -256,7 +271,9 @@ input::-moz-focus-inner {
 }
 
 #mapCanvas img,
-#mapInsert img {
+#mapInsert img,
+.adminMap img,
+#photoStatsMapWrapper img {
     border-radius: 0;
 }
 
@@ -285,6 +302,7 @@ input::-moz-focus-inner {
 }
 
 .statisticsTable td:first-of-type,
+.statisticsTable th:first-of-type,
 #updateSummaryTable td:first-of-type {
     text-align: right;
     font-weight:bold !important;
@@ -1071,7 +1089,6 @@ label.error {
 #faqs .faqQuestion p:first-of-type,
 .individualFilterWrapper p:first-of-type {
     /*Stop selection of text in button*/
-    -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -1318,7 +1335,6 @@ input[type="checkbox"], input[type="radio"] {
     text-align: center;
     vertical-align: middle;
     /*Stop selection of text in button*/
-    -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;

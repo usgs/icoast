@@ -121,17 +121,17 @@ $nonMatchingPhotoArray = rtrim($nonMatchingPhotoArray, ',');
                     var userLines = L.featureGroup();
                     var computerLines = L.featureGroup();
                     var nonMatchingIcon = L.icon({
-                    iconUrl: '../images/system/nonMatchingPhoto.png',
+                    iconUrl: '../images/system/redMarker.png',
                             iconSize: [25, 41],
                             iconAnchor: [12, 41]
                     });
                     var userPhoto = L.icon({
-                    iconUrl: '../images/system/userPhoto.png',
+                    iconUrl: '../images/system/greenMarker.png',
                             iconSize: [25, 41],
                             iconAnchor: [12, 41]
                     });
                     var computerPhoto = L.icon({
-                    iconUrl: '../images/system/computerPhoto.png',
+                    iconUrl: '../images/system/yellowMarker.png',
                             iconSize: [25, 41],
                             iconAnchor: [12, 41]
                     });

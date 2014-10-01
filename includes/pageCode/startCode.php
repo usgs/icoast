@@ -60,7 +60,7 @@ if ($numberOfProjects > 1) {
               Choose a Different Project
           </label>
           <div class="formFieldRow standAloneFormElement">
-            <select class="clickableButton" id="projectSelect" name="projectId" title="Selecting a new project
+            <select class="formInputStyle" id="projectSelect" name="projectId" title="Selecting a new project
                 from this list will cause iCoast to pick a new random image from the new project for you to tag.">
               $projectSelectOptionHTML
             </select>

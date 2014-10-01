@@ -1,5 +1,4 @@
 <?php
-
 require_once('../includes/userFunctions.php');
 require_once('../includes/globalFunctions.php');
 //require_once($dbmsConnectionPathDeep);
@@ -29,21 +28,29 @@ if ($userData['account_type'] != 4) {
 }
 
 if ((isset($_POST['submitted']) && $_POST['submitted'] == "Add User") &&
-    (isset($_POST['user']) && is_numeric($_POST['user'])) &&
-    (isset($_POST['group']) && is_numeric($_POST['group']))) {
+        (isset($_POST['user']) && is_numeric($_POST['user'])) &&
+        (isset($_POST['group']) && is_numeric($_POST['group']))) {
 
-    $insertQuery = "INSERT INTO user_groups (user_group_id, user_id) VALUES (:group, :user)";
-    $insertParams = array(
+    $queryParams = array(
         'user' => $_POST['user'],
-        'group'=> $_POST['group']
+        'group' => $_POST['group']
     );
-    $insertResult = run_prepared_query($DBH, $insertQuery, $insertParams);
-    if ($insertResult->rowCount() == 1) {
-        print "<h1>User Sucessfully Inserted</h1>";
-        print "<p>Add another?</p>";
+
+    $userCheckQuery = "SELECT COUNT(*) FROM user_groups WHERE user_group_id = :group AND user_id = :user";
+    $userCheckResult = run_prepared_query($DBH, $userCheckQuery, $queryParams);
+    if ($userCheckResult->fetchColumn() == 0) {
+
+        $insertQuery = "INSERT INTO user_groups (user_group_id, user_id) VALUES (:group, :user)";
+
+        $insertResult = run_prepared_query($DBH, $insertQuery, $queryParams);
+        if ($insertResult->rowCount() == 1) {
+            print "<h1>User Sucessfully Inserted</h1>";
+            print "<p>Add another?</p>";
+        }
+    } else {
+            print "<h1>User already exists in this group. No changes made to the database.</h1>";
+            print "<p>Try again?</p>";
     }
-
-
 }
 
 
@@ -69,8 +76,6 @@ foreach ($users as $user) {
     $unencryptedEmail = mysql_aes_decrypt($userEncEmail, $userEncData);
     $usersHTML .= "<option value=\"$userId\">$unencryptedEmail</option>";
 }
-
-
 ?>
 
 <form method="post">

@@ -36,13 +36,13 @@ $pageBody = <<<EOL
                             <input type="hidden" name="formSubmission" value="account" />
                             <div class="formFieldRow">
                                 <label for="newAccount">New login account:</label>
-                                <input type="text" id="newAccount" class="clickableButton" name="newAccount"
+                                <input type="text" id="newAccount" class="formInputStyle" name="newAccount"
                                     value="$newAccount" title="Type your new login account details here.">
                                 $newAccountError
                             </div>
                             <div class="formFieldRow">
                                 <label for="confirmNewLogin">Confirm new login account:</label>
-                                <input type="text" id="confirmNewLogin" class="clickableButton" name="confirmNewLogin"
+                                <input type="text" id="confirmNewLogin" class="formInputStyle" name="confirmNewLogin"
                                        value="$confirmNewLogin" title="Confirm your new login account details here.
                                            It must match the field above.">
                                        $confirmLoginError
@@ -73,7 +73,7 @@ $pageBody = <<<EOL
                             <input type="hidden" name="formSubmission" value="crowd" />
                             <div class="formFieldRow">
                                 <label for="crowdType">Choose a new crowd type:</label>
-                                <select id="crowdType" name="crowdType" class="clickableButton"
+                                <select id="crowdType" name="crowdType" class="formInputStyle"
                                     title="Select a crowd type from this list that best defines your interest or experience
                                     in the coastal environment. (Select one)">
                                     $crowdTypeSelectHTML
@@ -83,7 +83,7 @@ $pageBody = <<<EOL
                             </div>
                             <div class="formFieldRow" id="profileOtherRow">
                                 <label for="otherCrowdType">Other Crowd Type: </label>
-                                <input type="text" id="otherCrowdType" class="clickableButton" name="otherCrowdType"
+                                <input type="text" id="otherCrowdType" class="formInputStyle" name="otherCrowdType"
                                     value="$otherCrowdType" title="Use this text field to specify a crowd type not
                                     included in the listbox above. (Max 255 characters)"/>
                                 $otherCrowdTypeError
@@ -114,7 +114,7 @@ $pageBody = <<<EOL
                             <input type="hidden" name="formSubmission" value="affiliation" />
                             <div class="formFieldRow">
                                 <label class="multiline" for="affiliation">New coastal expertise / affiliation<br>(optional): </label>
-                                <input type="text" id="affiliation" class="clickableButton" name="affiliation"
+                                <input type="text" id="affiliation" class="formInputStyle" name="affiliation"
                                     value="$affiliationContent" title="This optional text field allows you to specify
                                     and relevant experience or professional affiiation you may have.
                                     (Max 255 Characters)"/>
@@ -146,7 +146,7 @@ $pageBody = <<<EOL
                             <input type="hidden" name="formSubmission" value="timeZone" />
                             <div class="formFieldRow">
                                 <label for="timeZone">Choose a new time zone:</label>
-                                <select id="timeZone" name="timeZone" class="clickableButton" title="Select the
+                                <select id="timeZone" name="timeZone" class="formInputStyle" title="Select the
                                     appropriate time zone that you reside in. If your time zone is not listed
                                     please use UTC. (Select one).">
                                     <option value="1" $timeZone1HTML>Eastern</option>
@@ -186,7 +186,7 @@ $pageBody = <<<EOL
                         title="Clicking this button will display details of all of the photos you have tagged in iCoast.">
                         <br>
                     <p>...or your specific history for a particular project</p>
-                    <select id="projectSelection" class="clickableButton"
+                    <select id="projectSelection" class="formInputStyle"
                         title="This select box lists all of the projects in which you have tagged photos. Use it
                             in conjunction with the Specific Project History button found to the right to
                             display photos you have tagged for a specific project.">
@@ -240,7 +240,7 @@ $pageBody = <<<EOL
                                 value="<<" title="Use this button to jump to the first page of results.">
                             <input type="button" id="previousPageButton" class="clickableButton disabledClickableButton"
                                 value="<" title="use this button to display the previous page of results.">
-                            <select id="resultSizeSelect" class="clickableButton disabledClickableButton"
+                            <select id="resultSizeSelect" class="formInputStyle disabledClickableButton"
                                 title="Changing the value in this select box will increase or decrease the number
                                     of rows shown on each page of the table." disabled>
                                 <option value="10">10 Results Per Page</option>

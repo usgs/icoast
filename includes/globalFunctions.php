@@ -3,6 +3,88 @@
 //error_reporting(0);
 date_default_timezone_set('UTC');
 
+
+    function convertSeconds($s) {
+        $hrs = floor($s / 3600);
+        $mins = floor(($s % 3600) / 60);
+        $secs = ($s % 3600) % 60;
+        if ($hrs > 0) {
+            return "$hrs Hour(s) $mins Minute(s) $secs Second(s)";
+        } elseif ($mins > 0) {
+            return "$mins Minute(s) $secs Second(s)";
+        } else {
+            return "$secs Second(s)";
+        }
+    }
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Retrieves and returns metadata for an image match.
+ *
+ * @param type $postCollectionId iCoast DB row id of the collection used as the post image pool.
+ * @param type $preCollectionId iCoast DB row id of the collection used as the pre image pool.
+ * @param type $postImageId iCoast DB row id of the post image to be checked.
+ * @return array|boolean On success returns a 1D associative array where keys and values represent
+ * a row in the matches table of the iCoast DB <b>OR</b><br>
+ * On failure or no match found returns FALSE.
+ */
+function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $postImageId) {
+    /* print "<p><b>In retrieve_image_match_data function.</b><br>Arguments:<br>$postCollectionId<br>
+      $preCollectionId<br>$postImageId</p>"; */
+
+    if (!empty($postCollectionId) AND ! empty($preCollectionId) AND ! empty($postImageId) AND
+            is_numeric($postCollectionId) AND is_numeric($preCollectionId) AND
+            is_numeric($postImageId)) {
+        $imageMatchDataQuery = "SELECT * FROM matches WHERE post_collection_id = :postCollectionId AND
+      pre_collection_id = :preCollectionId AND post_image_id = :postImageId";
+        $imageMatchDataParams = array(
+            'postCollectionId' => $postCollectionId,
+            'preCollectionId' => $preCollectionId,
+            'postImageId' => $postImageId
+        );
+        $STH = run_prepared_query($DBH, $imageMatchDataQuery, $imageMatchDataParams);
+        $imageMatchData = $STH->fetchAll(PDO::FETCH_ASSOC);
+        if (count($imageMatchData) > 0) {
+//            print "RETURNING: <pre>";
+//            print_r($imageMatchData);
+//            print '</pre>';
+            return $imageMatchData[0];
+        }
+    }
+// print "RETURNING: FALSE<br>";
+    return FALSE;
+}
+
+
+function timeZoneIdToTextConverter($timeZoneId) {
+    switch ($timeZoneId) {
+        case 1:
+            return "Eastern";
+            break;
+        case 2:
+            return "Central";
+            break;
+        case 3:
+            return "Mountain";
+            break;
+        case 4:
+            return "Mountain (Arizona)";
+            break;
+        case 5:
+            return "Pacific";
+            break;
+        case 6:
+            return "Alaskan";
+            break;
+        case 7:
+            return "Hawaiian";
+            break;
+        case 8:
+            return "UTC";
+            break;
+    }
+}
+
 function crowdTypeConverter($DBH, $crowdTypeId = null, $otherCrowdType = null) {
 
     foreach ($DBH->query("SELECT * FROM crowd_types") as $crowdType) {
@@ -134,7 +216,7 @@ function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminChe
  * @return string A formatted string with the supplied time converted to correct time zone
  *         (example: March 3, 2014 at 7:50 AM)
  */
-function formattedTime($time, $userTimeZone, $verbose = TRUE) {
+function formattedTime($time, $userTimeZone, $verbose = TRUE, $fileOutput = FALSE) {
     switch ($userTimeZone) {
         case 1:
             $timeZoneString = ('America/New_York');
@@ -165,12 +247,15 @@ function formattedTime($time, $userTimeZone, $verbose = TRUE) {
             exit('Invalid user time zone specified. Should be 1 - 8 (Eastern to Hawaii or UTC');
             break;
     }
-    $annotationTime = new DateTime($time, new DateTimeZone('UTC'));
-    $annotationTime->setTimezone(new DateTimeZone($timeZoneString));
+    $timeToFormat = new DateTime($time, new DateTimeZone('UTC'));
+    $timeToFormat->setTimezone(new DateTimeZone($timeZoneString));
+    if ($fileOutput) {
+        return $timeToFormat->format('Ymd Hi');
+    }
     if ($verbose) {
-        return $annotationTime->format('F j\, Y \a\t g:i A');
+        return $timeToFormat->format('F j\, Y \a\t g:i A');
     } else {
-        return $annotationTime->format('m/d/y h:iA');
+        return $timeToFormat->format('m/d/y h:iA');
     }
 }
 
@@ -556,7 +641,6 @@ function retrieve_image_id_pool($DBH, $searchIds, $imageGroupSearch = FALSE, $fi
                         $imageIdsReturn[] = $filteredImage['image_id'];
                     }
                 }
-
             }
             return $imageIdsReturn;
             break;
@@ -703,7 +787,7 @@ function utc_to_timezone($time, $format, $longitude = NULL) {
 // Define PHP settings, constants, and variables
     $error = false;
 // Validate the inputs
-    if (is_null($time) OR is_null($format) OR !is_string($format)) {
+    if (is_null($time) OR is_null($format) OR ! is_string($format)) {
         $error = true;
     }
 // Create DateTime Object
@@ -761,7 +845,7 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
 //    print_r($ids);
 //    print "</pre>";
 //    } else {
-//    print "<br>IDs: $ids</p>";
+//    print "<br>ID: $ids</p>";
 //    }
 // Define PHP settings and Variables
     $returnData = array();
@@ -796,6 +880,10 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
             case 'tags':
                 $table = 'tags';
                 $column = 'tag_id';
+                break;
+            case 'users':
+                $table = 'users';
+                $column = 'user_id';
                 break;
             default:
                 print "RETURNING: FALSE";

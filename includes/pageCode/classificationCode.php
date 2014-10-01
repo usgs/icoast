@@ -1066,15 +1066,15 @@ $javaScript = <<<EOL
     } // End dynamicSizing
 
     function iCoastTitle() {
-        if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar p').outerWidth() + 20)) {
-            if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar p').length == 0) {
+        if ($(window).width() > ($('#navigationBar ul').outerWidth() + $('#navigationBar>p').outerWidth())) {
+            if ($(window).scrollTop() > $('#usgstitle').position().top && $('#navigationBar>p').length == 0) {
                 $('#navigationBar').append('<p>USGS iCoast - Did the Coast Change?</p>');
-            } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar p').length) {
-                $('#navigationBar p').remove();
+            } else if ($(window).scrollTop() < $('#usgstitle').position().top && $('#navigationBar>p').length) {
+                $('#navigationBar>p').remove();
             }
         } else {
-            if ($('#navigationBar p').length) {
-                $('#navigationBar p').remove();
+            if ($('#navigationBar>p').length) {
+                $('#navigationBar>p').remove();
             }
         }
     }

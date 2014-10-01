@@ -34,46 +34,38 @@ function convertSeconds($s) {
     return "$mins Minute(s) $secs Second(s)";
 }
 
-if (isset($_POST['averageUpperLimit'])) {
-    settype($_POST['averageUpperLimit'], 'integer');
-    if (!empty($_POST['averageUpperLimit'])) {
-        $upperTimeLimit = $_POST['averageUpperLimit'];
-    }
-} else {
-    $upperTimeLimit = 3600;
-}
-
-$classificationCount = 0;
+$annotationCount = 0;
 $timeTotal = 0;
 $excessiveTimeCount = 0;
 $longestAnnotation = 0;
 $shortestAnnotation = 0;
-$avgTimeQuery = "SELECT initial_session_start_time, initial_session_end_time FROM annotations WHERE annotation_completed = 1 AND annotation_completed_under_revision = 0";
-//$avgTimeResults = run_prepared_query($DBH, $avgTimeQuery, $avgTimeParams);
-foreach ($DBH->query($avgTimeResults) as $classification) {
-//while ($classification = $avgTimeResults->fetch(PDO::FETCH_ASSOC)) {
+$avgTimeQuery = "SELECT initial_session_start_time, initial_session_end_time FROM annotations WHERE user_id != 16 AND user_id != 2 AND user_id != 1 AND annotation_completed = 1 AND annotation_completed_under_revision = 0";
+$avgTimeParams = array();
+$avgTimeResults = run_prepared_query($DBH, $avgTimeQuery, $avgTimeParams);
+while ($annotation = $avgTimeResults->fetch(PDO::FETCH_ASSOC)) {
 
-    $startTime = strtotime($classification['initial_session_start_time']);
-    $endTime = strtotime($classification['initial_session_end_time']);
+    $startTime = strtotime($annotation['initial_session_start_time']);
+    $endTime = strtotime($annotation['initial_session_end_time']);
     $timeDelta = $endTime - $startTime;
-    if ($timeDelta < $upperTimeLimit) {
+    if ($timeDelta < 3600) {
         $timeTotal += $timeDelta;
-        $classificationCount++;
         if ($timeDelta > $longestAnnotation) {
             $longestAnnotation = $timeDelta;
-        } else if ($timeDelta < $shortestAnnotation || $shortestAnnotation == 0) {
-
         }
+        $annotationCount++;
     } else {
+        print "EXCESSIVE!!! ";
         $excessiveTimeCount++;
     }
-
-//    print "{$classification['initial_session_start_time']} ($startTime) - {$classification['initial_session_end_time']} ($endTime) = $timeDelta. Total = $timeTotal. Count = $classificationCount<br>";
+    if ($timeDelta < $shortestAnnotation || $shortestAnnotation == 0) {
+        $shortestAnnotation = $timeDelta;
+    }
+    print "{$annotation['initial_session_start_time']} ($startTime) - {$annotation['initial_session_end_time']} ($endTime) = $timeDelta. Total = $timeTotal. Count = $annotationCount<br>";
 }
 
-$averageTime = $timeTotal / $classificationCount;
+$averageTime = $timeTotal / $annotationCount;
 
 print "Average Time: " . convertSeconds($averageTime) . "<br>";
 print "Longest Time: " . convertSeconds($longestAnnotation) . "<br>";
 print "Shortest Time: " . convertSeconds($shortestAnnotation) . "<br>";
-print $excessiveTimeCount . " classifications exceeded 60 minutes and are excluded from the average.<br>";
+print $excessiveTimeCount . " annotations exceeded 60 minutes and are excluded from the average.<br>";

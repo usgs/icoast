@@ -127,7 +127,7 @@ $jQueryDocumentDotReadyCode .= <<<EOL
             $('#alertBoxWrapper').hide();
         });
 
-        $('img, .clickableButton').tipTip();
+        $('img, .clickableButton, .formInputStyle').tipTip();
 
         $(window).resize(function () {
             moveFooter();
