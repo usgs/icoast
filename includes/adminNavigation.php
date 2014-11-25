@@ -79,6 +79,13 @@ if ($pageName == 'imageGroupEditor') {
     $adminNavHTML .= '<li><a href="imageGroupEditor.php">Image Groups</a></li>';
 }
 
+if ($pageName == 'photoEditor') {
+    $adminNavHTML .= ' <li class="activePageLink"><a href="photoEditor.php">Photos</a></li>';
+    $pageTitle = "USGS iCoast - Photo Editor";
+} else {
+    $adminNavHTML .= '<li><a href="photoEditor.php">Photos</a></li>';
+}
+
 
 $adminNavHTML .= <<<EOL
     </ul>

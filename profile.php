@@ -1,22 +1,15 @@
 <?php
+
 ob_start();
 $pageModifiedTime = filemtime(__FILE__);
 
 require_once('includes/pageCode/profileCode.php');
 $pageBody = <<<EOL
         <div id="contentWrapper">
-            <h1>Your USGS iCoast Profile and Tagging History</h1>
+            <h1>Your USGS iCoast Profile</h1>
             <div id="profileSettingsWrapper">
-                <button id="profileHideButton" class="clickableButton hideProfilePanelButton" title="Use this
-                    button to show or hide your profile information such as registration account, timezone,
-                        etc.">Hide Profile Details</button>
-                <h2>Profile Details</h2>
                 <div id="profileDetailsWrapper">
                     $updateAck
-
-
-
-
 
                     <div class="formFieldRow profileUpdateField">
                         <label for="accountChangeButton">Login Account: <span class="userData">$maskedEmail</span></label>
@@ -56,11 +49,6 @@ $pageBody = <<<EOL
                         </form>
                     </div>
 
-
-
-
-
-
                     <div class="formFieldRow profileUpdateField">
                         <label for="crowdTypeChangeButton">Crowd Type: <span class="userData">$crowdType</span></label>
                         <input type="button" id="crowdTypeChangeButton" value="Change Crowd Type" class="clickableButton"
@@ -97,11 +85,6 @@ $pageBody = <<<EOL
                         </form>
                     </div>
 
-
-
-
-
-
                     <div class="formFieldRow profileUpdateField">
                         <label for="affiliationChangeButton">Coastal Expertise / Affiliation: <span class="userData">$affiliation</span></label>
                         <input type="button" id="affiliationChangeButton" value="Change Expertise/Affiliation" class="clickableButton"
@@ -128,11 +111,6 @@ $pageBody = <<<EOL
                                 Errors or problems with your change will be reported in red text.">
                         </form>
                     </div>
-
-
-
-
-
 
                     <div class="formFieldRow profileUpdateField">
                         <label for="timeZoneChangeButton">Time Zone: <span class="userData">$timeZone</span></label>
@@ -174,90 +152,43 @@ $pageBody = <<<EOL
 
 
 
-                </div>
-
-
-            </div>
-            <div id="profileAnnotationListControls">
-                <h2>View Your USGS iCoast Tagging History</h2>
-                <div id="historyControlWrapper">
-                    <p>Choose from the options below to view either your complete tagging history across all of iCoast's projects...</p>
-                    <input type="button" id="allPhotoButton" value="Complete History" class="clickableButton"
-                        title="Clicking this button will display details of all of the photos you have tagged in iCoast.">
-                        <br>
-                    <p>...or your specific history for a particular project</p>
-                    <select id="projectSelection" class="formInputStyle"
-                        title="This select box lists all of the projects in which you have tagged photos. Use it
-                            in conjunction with the Specific Project History button found to the right to
-                            display photos you have tagged for a specific project.">
-                        $projectSelectionOptions
-                    </select>
-                    <input type="button" id="projectPhotoButton" value="Specific Project History" class="clickableButton"
-                        title="Use this button in conjunction with the select box found to the left to display photos
-                        you have tagged for a specific project.">
-                </div>
-            </div>
-            <div id="userAnnotationHistory">
-
-                <div id="profileMapWrapper">
-                    <h2>Map of Photos You Tagged</h2>
-                    <p>Select a marker to highlight the annotation in the adjacent table.</p>
-                    <div id="mapCanvas"></div>
-                </div>
-
-                <div id="profileTableWrapper">
-                    <h2>Photos You Tagged</h2>
-                    <p>Select the Tag button to be taken to that image.<br>
-                        Red button text indicates that tagging of the photo is incomplete.</p>
-                    <div id="historyTableWrapper">
-                        <div>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th title="The buttons in this column will take you to the classification
-                                            page for that photo. There you can edit your selections and complete
-                                            unfinished tasks. Red buttons indicate one or more tasks were not
-                                            finished for that photo.">Photo Link</th>
-                                        <th title="The date and time you finished annotating a particular photo.">
-                                            Date Annotated</th>
-                                        <th title="The time you spent tagging a particular photo.">Time Spent</th>
-                                        <th title="The number of tags you selected as you annotated a particular photo">
-                                            # of Tags</th>
-                                        <th title="The name of the state and closest city to the photo.">
-                                            Photo<br>Location</th>
-                                        <th title="The ID number of the image you tagged. Use this number to
-                                            direct others to a particular image of interest.">Image ID</th>
-                                        <th title="The name of the project a particular photo was a member of.">
-                                            Project Name</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="annotationTableControls">
-                            <input type="button" id="firstPageButton" class="clickableButton disabledClickableButton"
-                                value="<<" title="Use this button to jump to the first page of results.">
-                            <input type="button" id="previousPageButton" class="clickableButton disabledClickableButton"
-                                value="<" title="use this button to display the previous page of results.">
-                            <select id="resultSizeSelect" class="formInputStyle disabledClickableButton"
-                                title="Changing the value in this select box will increase or decrease the number
-                                    of rows shown on each page of the table." disabled>
-                                <option value="10">10 Results Per Page</option>
-                                <option value="20">20 Results Per Page</option>
-                                <option value="30">30 Results Per Page</option>
-                                <option value="50">50 Results Per Page</option>
-                                <option value="100">100 Results Per Page</option>
-                            </select>
-                            <input type="button" id="lastPageButton" class="clickableButton disabledClickableButton"
-                                value=">>" title="Use this button to jump to the last page of results.">
-                            <input type="button" id="nextPageButton" class="clickableButton disabledClickableButton"
-                                value=">" title="Use this button to display the next page of results.">
-                        </div>
+                    <div class="formFieldRow profileUpdateField">
+                        <label for="emailPreferenceChangeButton">Email Preference: <span class="userData">$emailPreference</span></label>
+                        <input type="button" id="emailPreferenceChangeButton" value="Change Email Preference" class="clickableButton"
+                            title="Click this button to display the form that allows you to change your email preference.">
                     </div>
+                    <div id="changeEmailPreferenceFormWrapper" class="profileUpdateForm">
+                        <h3>Change Your Email Preference</h3>
+                        <p>Your have currently chosen to $emailPreferenceDetail receiving iCoast related emails.</p>
+                        <p>Opting to receive iCoast emails means we will send you occasional messages informing you of new features,
+                            photographs, and projects as well as updates regarding existing projects.</p><p>Your address is never passed
+                            on to anyone else and will not be used for any other purposes beyond the scope of this system.</p>
+                        <form method="post" action="" id="emailPreferenceForm">
+                            <input type="hidden" name="formSubmission" value="emailPreference" />
+                            <div>
+                                <input type="radio" id="optIn" name="emailPreference"
+                                    value="in" title="Select this option if you wish to receive iCoast related emails from USGS." $emailOptInSelected>
+                                <label for="optIn" class="clickableButton">Opt In</label>
+                                <input type="radio" id="optOut" name="emailPreference"
+                                       value="out" title="Select this option if you DO NOT wish to receive iCoast related emails from USGS." $emailOptOutSelected>
+                                <label for="optOut" class="clickableButton">Opt Out</label>
+                            </div>
+                            $emailPreferenceError
+                            <input type="button" class="clickableButton cancelUpdateButton" value="Cancel"
+                                title="Use this button to leave the update screen without making any changes
+                                to your account.">
+                            <input type="submit" class="clickableButton" value="Change Email Preference"
+                                title="This button will submit your valid changes to the database.
+                                Errors or problems with your change will be reported in red text.">
+                        </form>
+                    </div>
+
+
+
+
+
+
                 </div>
-
-
             </div>
         </div>
 

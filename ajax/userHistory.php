@@ -5,79 +5,117 @@ require('../includes/userFunctions.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
-$projectId = $_POST['projectId'];
-$userId = $_POST['userId'];
-$userTimeZone = $_POST['userTimeZone'];
-$startRow = $_POST['startingRow'];
-$rowsPerPage = $_POST['rowsPerPage'];
-//$endRow = $startRow + $rowsPerPage;
+// SET DEFAULT VARIABLE VALUES
+$queryParams = array();
+$queryProjectAndClause = '';
+$startRow = 0;
+$rowsPerPage = 0;
 
-if (!is_numeric($projectId)) {
-    //  Placeholder for error management
-    print 'Invalid Project ID: Must be numeric.';
-    exit;
+// CHECK SUPPLIED PARAMETERS. SET REQUIRED VARIABLES
+if (isset($_POST['userId'])) {
+    settype($_POST['userId'], 'integer');
+    if (!empty($_POST['userId'])) {
+        $userMetadata = retrieve_entity_metadata($DBH, $_POST['userId'], 'users');
+    }
 }
-if (!is_numeric($startRow)) {
-    $startRow = 0;
+if (!$userMetadata) {
+    // EXIT IF NO USER ID WAS SUPPLIED (REQUIRED)
+    exit();
+}
+if (isset($_POST['projectId'])) {
+    settype($_POST['projectId'], 'integer');
+    if (!empty($_POST['projectId'])) {
+        $projectMetadata = retrieve_entity_metadata($DBH, $_POST['projectId'], 'project');
+    }
+}
+if ($projectMetadata) {
+    $queryProjectAndClause .= "AND a.project_id = {$projectMetadata['project_id']}";
+    $queryParams['projectId'] = $projectMetadata['project_id'];
 }
 
-if ($projectId > 0) {
-    $userAnnotationQuery = "SELECT annotation_id, project_id, image_id, initial_session_start_time, "
-            . "initial_session_end_time, annotation_completed FROM annotations "
+if (isset($_POST['startingRow'])) {
+    settype($_POST['startingRow'], 'integer');
+    if (!empty($_POST['startingRow'])) {
+        $startRow = $_POST['startingRow'];
+    }
+}
+
+if (isset($_POST['rowsPerPage'])) {
+    settype($_POST['rowsPerPage'], 'integer');
+    if (!empty($_POST['rowsPerPage'])) {
+        $rowsPerPage = $_POST['rowsPerPage'];
+    }
+}
+
+// CREATE DB QUERIES BASED ON IF A PROJECT WAS SPECIFIED
+if ($projectMetadata) {
+    $userStartedClassificationQuery = "SELECT annotation_id, project_id, a.image_id, initial_session_start_time, "
+            . "initial_session_end_time, annotation_completed, thumb_url "
+            . "FROM annotations a "
+            . "LEFT JOIN images i ON a.image_id = i.image_id "
             . "WHERE user_id = :userId AND project_id = :projectId AND NOT user_match_id = '' "
-            . "ORDER BY initial_session_start_time DESC LIMIT $startRow, $rowsPerPage";
-    $userAnnotationCountQuery = "SELECT COUNT(*) FROM annotations "
+            . "ORDER BY initial_session_start_time DESC "
+            . "LIMIT $startRow, $rowsPerPage";
+    $userStartedClassificationCountQuery = "SELECT COUNT(*) "
+            . "FROM annotations "
             . "WHERE user_id = :userId AND project_id = :projectId AND NOT user_match_id = '' ";
-    $userAnnotationParams = array(
-        'projectId' => $projectId,
-        'userId' => $userId
+    $userStartedClassificationParams = array(
+        'projectId' => $projectMetadata['project_id'],
+        'userId' => $userMetadata['user_id']
     );
 } else {
-    $userAnnotationQuery = "SELECT annotation_id, project_id, image_id, initial_session_start_time, "
-            . "initial_session_end_time, annotation_completed FROM annotations "
+    $userStartedClassificationQuery = "SELECT annotation_id, project_id, a.image_id, initial_session_start_time, "
+            . "initial_session_end_time, annotation_completed, thumb_url "
+            . "FROM annotations a "
+            . "LEFT JOIN images i ON a.image_id = i.image_id "
             . "WHERE user_id = :userId AND NOT user_match_id = '' "
-            . "ORDER BY initial_session_start_time DESC LIMIT $startRow, $rowsPerPage";
+            . "ORDER BY initial_session_start_time DESC "
+            . "LIMIT $startRow, $rowsPerPage";
 //    print $userAnnotationQuery;
-    $userAnnotationCountQuery = "SELECT COUNT(*) FROM annotations "
+    $userStartedClassificationCountQuery = "SELECT COUNT(*) "
+            . "FROM annotations "
             . "WHERE user_id = :userId AND NOT user_match_id = '' ";
-    $userAnnotationParams['userId'] = $userId;
+    $userStartedClassificationParams['userId'] = $userMetadata['user_id'];
 }
 
-$STH = run_prepared_query($DBH, $userAnnotationQuery, $userAnnotationParams);
-$userAnnotations = $STH->fetchAll(PDO::FETCH_ASSOC);
-$STH = run_prepared_query($DBH, $userAnnotationCountQuery, $userAnnotationParams);
-$userAnnotationCount = $STH->fetchColumn();
+// RUN DB QUERIES TO RETURN ANNOTATIONS AND ANNOTATION COUNT
+$STH = run_prepared_query($DBH, $userStartedClassificationQuery, $userStartedClassificationParams);
+$userStartedClassifications = $STH->fetchAll(PDO::FETCH_ASSOC);
+$STH = run_prepared_query($DBH, $userStartedClassificationCountQuery, $userStartedClassificationParams);
+$userStartedClassificationCount = $STH->fetchColumn();
 
 $projectDirectory = array();
-for ($i = 0; $i < count($userAnnotations); $i++) {
-    $annotationProjectId = $userAnnotations[$i]['project_id'];
-    $annotationId = $userAnnotations[$i]['annotation_id'];
-    $annotationImageId = $userAnnotations[$i]['image_id'];
-    $annotationStartTime = $userAnnotations[$i]['initial_session_start_time'];
-    $annotationEndTime = $userAnnotations[$i]['initial_session_end_time'];
+for ($i = 0; $i < count($userStartedClassifications); $i++) {
+    $annotationProjectId = $userStartedClassifications[$i]['project_id'];
+    $annotationId = $userStartedClassifications[$i]['annotation_id'];
+    $annotationImageId = $userStartedClassifications[$i]['image_id'];
+    $annotationStartTime = $userStartedClassifications[$i]['initial_session_start_time'];
+    $annotationEndTime = $userStartedClassifications[$i]['initial_session_end_time'];
 
     if (!array_key_exists($annotationProjectId, $projectDirectory)) {
         $projectMetadata = retrieve_entity_metadata($DBH, $annotationProjectId, 'project');
         $projectDirectory[$annotationProjectId] = $projectMetadata['name'];
     }
-    $userAnnotations[$i]['project_name'] = $projectDirectory[$annotationProjectId];
+    $userStartedClassifications[$i]['project_name'] = $projectDirectory[$annotationProjectId];
 
-    $userAnnotations[$i]['time_spent'] = timeDifference($annotationStartTime, $annotationEndTime, FALSE);
-    $userAnnotations[$i]['annotation_time'] = formattedTime($annotationEndTime, $userTimeZone, FALSE);
-    $userAnnotations[$i]['number_of_tags'] = tagsInAnnotation($DBH, $annotationId);
+    $userStartedClassifications[$i]['time_spent'] = timeDifference($annotationStartTime, $annotationEndTime, FALSE);
+    $userStartedClassifications[$i]['annotation_time'] = formattedTime($annotationEndTime, $userMetadata['time_zone'], FALSE);
+    $userStartedClassifications[$i]['number_of_tags'] = tagsInAnnotation($DBH, $annotationId);
 
     $annotationImageMetadata = retrieve_entity_metadata($DBH, $annotationImageId, 'image');
-    $userAnnotations[$i]['location'] = build_image_location_string($annotationImageMetadata, TRUE);
-    $userAnnotations[$i]['latitude'] = $annotationImageMetadata['latitude'];
-    $userAnnotations[$i]['longitude'] = $annotationImageMetadata['longitude'];
+    $userStartedClassifications[$i]['location'] = build_image_location_string($annotationImageMetadata, TRUE);
+    $userStartedClassifications[$i]['latitude'] = $annotationImageMetadata['latitude'];
+    $userStartedClassifications[$i]['longitude'] = $annotationImageMetadata['longitude'];
 
-    unset($userAnnotations[$i]['initial_session_start_time']);
-    unset($userAnnotations[$i]['initial_session_end_time']);
+    unset($userStartedClassifications[$i]['initial_session_start_time']);
+    unset($userStartedClassifications[$i]['initial_session_end_time']);
 }
 
-$userAnnotations['controlData'] = array(
-    'resultCount' => $userAnnotationCount,
+// ADD CONTROL DATA TO THE ARRAY (ANNOTATION COUNT)
+$userStartedClassifications['controlData'] = array(
+    'resultCount' => $userStartedClassificationCount,
 );
 
-echo json_encode($userAnnotations);
+// ENCODE RESULTS INTO JSON FORMAT AND RETURN
+echo json_encode($userStartedClassifications);
 

@@ -1,4 +1,5 @@
 <?php
+
 ob_start();
 $pageModifiedTime = filemtime(__FILE__);
 
@@ -52,11 +53,24 @@ $pageBody = <<<EOL
                     and relevant experience or professional affiiation you may have. (Max 255 Characters)"/>
                 $registerAffiliationError
             </div>
+
+           <div class="formFieldRow">
+                <label for="registerOptIn">Receive iCoast Emails: *</label>
+
+                <input type="radio" id="registerOptIn" name="registerEmailPreference" value="in" checked>
+                <label for="registerOptIn" class="clickableButton" title="Select this option if you wish to receive iCoast related emails from USGS.">Opt In</label>
+
+                <input type="radio" id="registerOptOut" name="registerEmailPreference" value="out">
+                <label for="registerOptOut" class="clickableButton" title="Select this option if you DO NOT wish to receive iCoast related emails from USGS.">Opt Out</label>
+                $emailPreferenceError
+            </div>
             <div class="formFieldRow standAloneFormElement">
                 <input type="submit" class="clickableButton formButton" id="registerSubmitButton"
                     value="Complete Registration" title="Click to submit your registration information."/>
             </div>
         </form>
+
+
         <p class="footer">* indicates the field is required.</p>
     </div>
 EOL;

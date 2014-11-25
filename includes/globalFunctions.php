@@ -3,19 +3,51 @@
 //error_reporting(0);
 date_default_timezone_set('UTC');
 
-
-    function convertSeconds($s) {
-        $hrs = floor($s / 3600);
-        $mins = floor(($s % 3600) / 60);
-        $secs = ($s % 3600) % 60;
-        if ($hrs > 0) {
-            return "$hrs Hour(s) $mins Minute(s) $secs Second(s)";
-        } elseif ($mins > 0) {
-            return "$mins Minute(s) $secs Second(s)";
+function convertSeconds($s, $verbose = true) {
+    $hrs = floor($s / 3600);
+    $mins = floor(($s % 3600) / 60);
+    $secs = ($s % 3600) % 60;
+    if ($verbose) {
+        if ($hrs == 1) {
+            $hrString = 'hour';
         } else {
-            return "$secs Second(s)";
+            $hrString = 'hours';
+        }
+        if ($mins == 1) {
+            $minString = 'minute';
+        } else {
+            $minString = 'minutes';
+        }
+        if ($secs == 1) {
+            $secString = 'second';
+        } else {
+            $secString = 'seconds';
+        }
+    } else {
+                if ($hrs == 1) {
+            $hrString = 'hr';
+        } else {
+            $hrString = 'hrs';
+        }
+        if ($mins == 1) {
+            $minString = 'min';
+        } else {
+            $minString = 'mins';
+        }
+        if ($secs == 1) {
+            $secString = 'sec';
+        } else {
+            $secString = 'secs';
         }
     }
+    if ($hrs > 0) {
+        return "$hrs $hrString $mins $minString $secs $secString";
+    } elseif ($mins > 0) {
+        return "$mins $minString $secs $secString";
+    } else {
+        return "$secs $secString";
+    }
+}
 
 // -------------------------------------------------------------------------------------------------
 /**
@@ -54,7 +86,6 @@ function retrieve_image_match_data($DBH, $postCollectionId, $preCollectionId, $p
 // print "RETURNING: FALSE<br>";
     return FALSE;
 }
-
 
 function timeZoneIdToTextConverter($timeZoneId) {
     switch ($timeZoneId) {
@@ -884,6 +915,10 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
             case 'users':
                 $table = 'users';
                 $column = 'user_id';
+                break;
+            case 'imageGroups':
+                $table = 'image_group_metadata';
+                $column = 'image_group_id';
                 break;
             default:
                 print "RETURNING: FALSE";

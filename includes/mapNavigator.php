@@ -9,6 +9,7 @@ $mapScript = <<<EOL
   var markersShown = false;
   var markerClusterer = null;
   var selectedMapImage = "";
+  var selectedImageId = 0;
   var projectId = $projectId;
   var userId = $userId;
   var randomImageId = $newRandomImageId
@@ -160,12 +161,19 @@ $mapScript = <<<EOL
                 markers.clearLayers();
             }
 
+//            selectedImageId = ajaxMarkerData.metadata.selectedImageId;
+
             $.each(ajaxMarkerData, function(imageNo, imageData) {
+        console.log(imageData.image_id);
                 var markerLatLng = L.latLng(imageData.latitude, imageData.longitude);
                 var infoString = 'Image taken near: ' + imageData.location_string;
                 var markerPopup = L.popup({offset: L.point(0,-40), closeButton: false, autoPan :false}).setContent(infoString).setLatLng(markerLatLng);
+                if (imageData.image_id != selectedImageId) {
+                    var thisMarker = L.marker(markerLatLng, {icon: photoIcon});
+                } else {
+                    var thisMarker = L.marker(markerLatLng, {icon: selectedIcon});
+                }
 
-                var thisMarker = L.marker(markerLatLng, {icon: photoIcon});
                 thisMarker.on('mouseover', function() {
                     map.openPopup(markerPopup);
                 });
@@ -180,8 +188,9 @@ $mapScript = <<<EOL
                     selectedMapImage = "classification.php?projectId=" + projectId + "&imageId=" + imageData.image_id;
                     $('#selectedMapImageHeaderText').text('Post-Storm Photo Selected on Map near ' + imageData.location_string);
                     $('#selectedMapImage').css('display', 'block');
-                    dynamicSizing();
-                    map.invalidateSize(false);
+                    selectedImageId = imageData.image_id;
+//                    dynamicSizing();
+//                    map.invalidateSize(false);
 
                     markers.eachLayer(function (layer) {
                         layer.setIcon(photoIcon);

@@ -161,7 +161,7 @@ EOL;
 EOL;
         } else {
             $variableContent .= <<<EOL
-                <p>You have not yet tagged any post-storm photographs.<br>Click the <span class="italic">
+                <p>You have not yet fully classified any post-storm photographs.<br>Click the <span class="italic">
                     Start Tagging</span> button below to tag aerial photographs taken after Hurricane Sandy.
                     <br>See if you can tag more photos than other iCoast users.</p>
                 $startTaggingButtonHTML

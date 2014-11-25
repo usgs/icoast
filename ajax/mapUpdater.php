@@ -47,15 +47,15 @@ $imagesInBoundsParams = array(
 //print_r($imagesInBoundsParams);
 //echo '</pre>';
 $STH = run_prepared_query($DBH, $imagesInBoundsQuery, $imagesInBoundsParams);
-$imagesInBounds = $STH->fetchAll(PDO::FETCH_ASSOC);
+$imagesToDisplay = $STH->fetchAll(PDO::FETCH_ASSOC);
 //print 'Images In Bounds =' . count($imagesInBounds);
-if (count($imagesInBounds) > 0) {
-    $count = 0;
-    foreach ($imagesInBounds as $imageMatchData) {
-        $imagesToDisplay[] = $imageMatchData;
-        $count++;
-    }
-}
+//if (count($imagesInBounds) > 0) {
+//    $count = 0;
+//    foreach ($imagesInBounds as $imageMatchData) {
+//        $imagesToDisplay[] = $imageMatchData;
+//        $count++;
+//    }
+//}
 
 
 

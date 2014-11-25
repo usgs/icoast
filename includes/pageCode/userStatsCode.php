@@ -277,10 +277,21 @@ else {
 
     // SHOW DETAILS TABLE
     $userAccountMetadata = retrieve_entity_metadata($DBH, $targetUserId, 'users');
+    $lastClassificationQuery = "SELECT initial_session_end_time "
+            . "FROM annotations WHERE user_id = :userId AND annotation_completed = 1 "
+            . "ORDER BY initial_session_end_time DESC LIMIT 1";
+    $lastClassificationParams['userId'] = $targetUserId;
+    $lastClassificationResult = run_prepared_query($DBH, $lastClassificationQuery, $lastClassificationParams);
+    $lastClassification = $lastClassificationResult->fetch(PDO::FETCH_ASSOC);
+    if ($lastClassification) {
+        $formattedLastClassificationTime = formattedTime($lastClassification['initial_session_end_time'], $userAccountMetadata['time_zone']);
+    } else {
+        $formattedLastClassificationTime = 'No Classifications Recorded';
+    }
     $crowdType = crowdTypeConverter($DBH, $userAccountMetadata['crowd_type'], $userAccountMetadata['other_crowd_type']);
     $timeZone = timeZoneIdToTextConverter($userAccountMetadata['time_zone']);
-    $formattedLastLoggedInTime = formattedTime($userAccountMetadata['last_logged_in_on'], $userAccountMetadata['time_zone'], TRUE);
-    $formattedAccoutCreatedOnTime = formattedTime($userAccountMetadata['account_created_on'], $userAccountMetadata['time_zone'], TRUE);
+    $formattedLastLoggedInTime = formattedTime($userAccountMetadata['last_logged_in_on'], $userAccountMetadata['time_zone']);
+    $formattedAccoutCreatedOnTime = formattedTime($userAccountMetadata['account_created_on'], $userAccountMetadata['time_zone']);
     $selectedUserStatsHTML .= <<<EOL
             <h3>User Profile Details</h3>
             <table class="adminStatisticsTable">
@@ -296,6 +307,10 @@ else {
                     <tr>
                         <td>Time Zone:</td>
                         <td class="userData">$timeZone</td>
+                    </tr>
+                    <tr>
+                        <td>Last Classification Time:</td>
+                        <td class="userData">$formattedLastClassificationTime</td>
                     </tr>
                     <tr>
                         <td>Last Logged In:</td>
@@ -319,9 +334,7 @@ EOL;
     $classificationCount = $allUserClassificationResult->fetchColumn();
 
     if ($classificationCount > 0) {
-        $classificationCount = number_format($classificationCount);
-
-        $completeClassificationsQuery = "SELECT COUNT(*)"
+                $completeClassificationsQuery = "SELECT COUNT(*)"
                 . "FROM annotations a "
                 . "WHERE user_id = :targetUserId AND annotation_completed = 1 $queryProjectAndClause";
         $completeClassificationResult = run_prepared_query($DBH, $completeClassificationsQuery, $userStatsParams);
@@ -330,37 +343,38 @@ EOL;
         if ($completeClassificationCount > 0) {
             $completeClassificationsDetected = TRUE;
             $jsCompleteClassificationsPresent = "var completeClassificationsPresent = true;";
-        } else {
-            $completeClassificationsDetected = FALSE;
-        }
-        $completeClassificationCount = number_format($completeClassificationCount);
-        if ($completeClassificationCount > 0) {
             $percentCompleteClassifications = ' (' . number_format(($completeClassificationCount / $classificationCount) * 100, 1) . '%)';
         } else {
+            $completeClassificationsDetected = FALSE;
             $percentCompleteClassifications = ' (0.0%)';
         }
+        $completeClassificationCount = number_format($completeClassificationCount);
 
         $incompleteClassificationsQuery = "SELECT COUNT(*)"
                 . "FROM annotations a "
                 . "WHERE user_id = :targetUserId AND annotation_completed = 0 AND user_match_id IS NOT NULL $queryProjectAndClause";
         $incompleteClassificationResult = run_prepared_query($DBH, $incompleteClassificationsQuery, $userStatsParams);
-        $incompleteClassificationCount = number_format($incompleteClassificationResult->fetchColumn());
+        $incompleteClassificationCount = $incompleteClassificationResult->fetchColumn();
         if ($incompleteClassificationCount > 0) {
             $percentIncompleteClassifications = ' (' . number_format(($incompleteClassificationCount / $classificationCount) * 100, 1) . '%)';
         } else {
             $percentIncompleteClassifications = ' (0.0%)';
         }
+        $incompleteClassificationCount = number_format($incompleteClassificationCount);
 
         $unstartedClassificationsQuery = "SELECT COUNT(*)"
                 . "FROM annotations a "
                 . "WHERE user_id = :targetUserId AND user_match_id IS NULL $queryProjectAndClause";
         $unstartedClassificationResult = run_prepared_query($DBH, $unstartedClassificationsQuery, $userStatsParams);
-        $unstartedClassificationCount = number_format($unstartedClassificationResult->fetchColumn());
+        $unstartedClassificationCount = $unstartedClassificationResult->fetchColumn();
         if ($unstartedClassificationCount > 0) {
             $percentUnstartedClassifications = ' (' . number_format(($unstartedClassificationCount / $classificationCount) * 100, 1) . '%)';
         } else {
             $percentUnstartedClassifications = ' (0.0%)';
         }
+        $unstartedClassificationCount = number_format($unstartedClassificationCount);
+
+        $classificationCount = number_format($classificationCount);
 
         if (empty($targetProjectName)) {
             $distinctPhotosQuery = "SELECT COUNT(DISTINCT image_id)"
@@ -545,10 +559,10 @@ EOL;
                     } else {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: incomplete});
                     }
-                    marker.bindPopup('Image ID: <a href="photostats.php?photoId=' + photo.image_id + '">' + photo.image_id + '</a><br>'
+                    marker.bindPopup('Image ID: <a href="photoStats.php?targetPhotoId=' + photo.image_id + '">' + photo.image_id + '</a><br>'
                         + 'Location: ' + photo.city + ', ' + photo.state + '<br>'
                         + 'Classified through the <a href="classificationStats.php?targetProjectId=' + photo.project_id + '">' + photo.name + '</a> project<br>'
-                        + '<a href="photostats.php?photoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>', {closeOnClick: true});
+                        + '<a href="photoStats.php?targetPhotoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>', {closeOnClick: true});
                     markers.addLayer(marker);
                 });
                 map.fitBounds(markers.getBounds());
@@ -632,6 +646,10 @@ if (!isset($targetUserAccount) || (isset($targetUserAccount) && $completeClassif
     $shortestClassification = 0;
     $durationFrequencyCount = array();
     $annotationTimeGraphHTML = '';
+    $over60MinuteClassificationArray = array();
+    $under30SecondClassificationArray = array();
+    $over60MinuteClassificationHTML = '';
+    $under30SecondClassificationHTML = '';
 
     for ($i = 1; $i <= $maxX; $i++) {
         $durationFrequencyCount[$i] = 0;
@@ -678,7 +696,7 @@ EOL;
     }
 
 
-    $avgTimeQuery = "SELECT initial_session_start_time, initial_session_end_time FROM annotations WHERE annotation_completed = 1 AND annotation_completed_under_revision = 0";
+    $avgTimeQuery = "SELECT user_id, annotation_id, image_id, initial_session_start_time, initial_session_end_time FROM annotations WHERE annotation_completed = 1 AND annotation_completed_under_revision = 0";
     if (isset($targetUserId)) {
         $avgTimeQuery .= " AND user_id = :userId";
         $avgTimeParams['userId'] = $targetUserId;
@@ -738,6 +756,131 @@ EOL;
         } else {
             $excessiveTimeCount++;
         }
+
+        if ($timeDelta > 3600) {
+            $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'users');
+            $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
+            $over60MinuteClassificationArray[] = array(
+                'userId' => $classification['user_id'],
+                'email' => $unencryptedEmail,
+                'annotationId' => $classification['annotation_id'],
+                'photoId' => $classification['image_id'],
+                'timeInSecs' => $timeDelta
+            );
+        }
+        if ($timeDelta < 30) {
+            $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'users');
+            $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
+            $under30SecondClassificationArray[] = array(
+                'userId' => $classification['user_id'],
+                'email' => $unencryptedEmail,
+                'annotationId' => $classification['annotation_id'],
+                'photoId' => $classification['image_id'],
+                'timeInSecs' => $timeDelta
+            );
+        }
+    }
+    if ($over60MinuteClassificationArray) {
+
+        function time_sort_desc($a, $b) {
+            if ($a['timeInSecs'] == $b['timeInSecs']) {
+                return 0;
+            }
+            return ($a['timeInSecs'] < $b['timeInSecs']) ? 1 : -1;
+        }
+
+        usort($over60MinuteClassificationArray, 'time_sort_desc');
+        if (isset($targetUserId)) {
+            $over60MinuteClassificationHTML = "<h3>Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>";
+            $userHead = '';
+        } else {
+            $over60MinuteClassificationHTML = "<h3>Users With Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>";
+            $userHead = '<th>User</th>';
+        }
+        $over60MinuteClassificationHTML .= <<<EOL
+            <table class="adminStatisticsTable">
+                <thead>
+                    <tr>
+                        $userHead
+                        <th>Classification ID</th>
+                        <th>Photo ID</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+EOL;
+        foreach ($over60MinuteClassificationArray as $annotation) {
+            if (isset($targetUserId)) {
+                $userEmail = '';
+            } else {
+                $userEmail = '<td><a href="userStats.php?targetUserId=' . $annotation['userId'] . '">' . $annotation['email'] . '</a></td>';
+            }
+            $classificationTime = convertSeconds($annotation['timeInSecs']);
+            $over60MinuteClassificationHTML.= <<<EOL
+                    <tr>
+                        $userEmail
+                        <td>{$annotation['annotationId']}</td>
+                        <td><a href="photoStats.php?targetPhotoId={$annotation['photoId']}">{$annotation['photoId']}</a></td>
+                        <td>$classificationTime</td>
+                    </tr>
+EOL;
+        }
+        $over60MinuteClassificationHTML .= <<<EOL
+                </tbody>
+            </table>
+EOL;
+    }
+
+
+    if ($under30SecondClassificationArray) {
+
+        function time_sort_asc($a, $b) {
+            if ($a['timeInSecs'] == $b['timeInSecs']) {
+                return 0;
+            }
+            return ($a['timeInSecs'] > $b['timeInSecs']) ? 1 : -1;
+        }
+
+        usort($under30SecondClassificationArray, 'time_sort_asc');
+        if (isset($targetUserId)) {
+            $under30SecondClassificationHTML = "<h3>Classifications Of Less Than 30 Seconds $queryTargetTitleText</h3>";
+            $userHead = '';
+        } else {
+            $under30SecondClassificationHTML = "<h3>Users With Classifications Less Than 30 Seconds $queryTargetTitleText</h3>";
+            $userHead = '<th>User</th>';
+        }
+        $under30SecondClassificationHTML .= <<<EOL
+            <table class="adminStatisticsTable">
+                <thead>
+                    <tr>
+                        $userHead
+                        <th>Classification ID</th>
+                        <th>Photo ID</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+EOL;
+        foreach ($under30SecondClassificationArray as $annotation) {
+            if (isset($targetUserId)) {
+                $userEmail = '';
+            } else {
+                $userEmail = '<td><a href="userStats.php?targetUserId=' . $annotation['userId'] . '">' . $annotation['email'] . '</a></td>';
+            }
+            $classificationTime = convertSeconds($annotation['timeInSecs']);
+            $under30SecondClassificationHTML.= <<<EOL
+                    <tr>
+                        $userEmail
+                        <td>{$annotation['annotationId']}</td>
+                        <td><a href="photoStats.php?targetPhotoId={$annotation['photoId']}">{$annotation['photoId']}</a></td>
+                        <td>$classificationTime</td>
+                    </tr>
+EOL;
+        }
+        $under30SecondClassificationHTML .= <<<EOL
+                </tbody>
+            </table>
+EOL;
     }
 
 

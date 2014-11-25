@@ -24,15 +24,6 @@ $timeZone5HTML = '';
 $timeZone6HTML = '';
 $timeZone7HTML = '';
 $timeZone8HTML = '';
-//$crowdType1HTML = '';
-//$crowdType2HTML = '';
-//$crowdType3HTML = '';
-//$crowdType4HTML = '';
-//$crowdType5HTML = '';
-//$crowdType6HTML = '';
-//$crowdType7HTML = '';
-//$crowdType8HTML = '';
-//$crowdType9HTML = '';
 $crowdType0HTML = '';
 $timeZoneError = '';
 $crowdTypeError = '';
@@ -65,6 +56,7 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     $registerCrowdType = (isset($_POST['registerCrowdType'])) ? trim($_POST['registerCrowdType']) : null;
     $registerOtherContent = (!empty($_POST['registerOther'])) ? trim($_POST['registerOther']) : '';
     $registerAffiliationContent = (!empty($_POST['registerAffiliation'])) ? trim($_POST['registerAffiliation']) : '';
+    $registerEmailPreference = (isset($_POST['registerEmailPreference'])) ? trim($_POST['registerEmailPreference']) : null;
 
     if (empty($registerTimeZone)) {
         $errorMessage['timeZone'] = 'You must select your time zone to complete registration.';
@@ -93,6 +85,15 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         }
     }
 
+    if (empty($registerEmailPreference)) {
+        $errorMessage['emailPreference'] = 'You must select your email preference to complete registration.';
+    } else {
+        if ($registerEmailPreference !== 'in' && $registerEmailPreference !== 'out') {
+            $errorMessage['emailPreference'] = 'The specified email preference is invalid.';
+        }
+    }
+    print $errorMessage['emailPreference'];
+
     if (isset($errorMessage['timeZone'])) {
         $timeZoneError = '<label class="error" for="registerTimeZone">' . $errorMessage['timeZone'] . '</label>';
     }
@@ -106,10 +107,11 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
     }
 
     if (isset($errorMessage['affiliation'])) {
-        $registerAffiliationError = '<label class="error" for="registerCrowdType">' . $errorMessage['affiliation'] . '</label>';
+        $registerAffiliationError = '<label class="error" for="registerAffiliation">' . $errorMessage['affiliation'] . '</label>';
     }
-
-
+    if (isset($errorMessage['emailPreference'])) {
+        $emailPreferenceError = '<label class="error" for="registerOptIn">' . $errorMessage['emailPreference'] . '</label>';
+    }
     switch ($registerTimeZone) {
         case 1;
             $timeZone1HTML = 'selected="selected"';
@@ -152,36 +154,14 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
         }
     }
 
-
-//    if (isset($registerCrowdType) && $registerCrowdType == 1) {
-//        $crowdType1HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 2) {
-//        $crowdType2HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 3) {
-//        $crowdType3HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 4) {
-//        $crowdType4HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 5) {
-//        $crowdType5HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 6) {
-//        $crowdType6HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 7) {
-//        $crowdType7HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 8) {
-//        $crowdType8HTML = 'selected="selected"';
-//    }
-//    if (isset($registerCrowdType) && $registerCrowdType == 9) {
-//        $crowdType9HTML = 'selected="selected"';
-//    }
     if (isset($registerCrowdType) && $registerCrowdType === '0') {
         $crowdType0HTML = 'selected="selected"';
+    }
+
+    if ($registerEmailPreference == 'in') {
+        $registerEmailPreference = 1;
+    } else {
+        $registerEmailPreference = 0;
     }
 
     if (!isset($errorMessage)) {
@@ -204,9 +184,9 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
             setType($registerCrowdType, "int");
             $authCheckCode = md5(rand());
             $queryStatement = "INSERT INTO users (masked_email, encrypted_email, encryption_data, auth_check_code, crowd_type, other_crowd_type, affiliation, "
-                    . "time_zone, account_created_on, last_logged_in_on) VALUES (:maskedEmail, :encryptedRegisterEmail, "
+                    . "time_zone, account_created_on, last_logged_in_on, allow_email) VALUES (:maskedEmail, :encryptedRegisterEmail, "
                     . ":encryptedRegisterEmailIV, :authCheckCode, :registerCrowdType, "
-                    . ":registerOther, :registerAffiliation, :timeZone, NOW( ), NOW( ))";
+                    . ":registerOther, :registerAffiliation, :timeZone, NOW( ), NOW( ), :registerEmailPreference)";
             $queryParams = array(
                 'maskedEmail' => $maskedUserEmail,
                 'encryptedRegisterEmail' => $encryptedEmailData[0],
@@ -215,7 +195,8 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
                 'registerCrowdType' => $registerCrowdType,
                 'registerOther' => $registerOtherContent,
                 'registerAffiliation' => $registerAffiliationContent,
-                'timeZone' => $registerTimeZone
+                'timeZone' => $registerTimeZone,
+                'registerEmailPreference' => $registerEmailPreference
             );
             $STH = run_prepared_query($DBH, $queryStatement, $queryParams);
             if ($STH->rowCount() > 0) {
@@ -223,7 +204,7 @@ if (isset($_POST['submission']) && $_POST['submission'] == 'register') {
                 setcookie('userId', $DBH->lastInsertId(), time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
                 setcookie('authCheckCode', $authCheckCode, time() + 60 * 60 * 24 * 180, '/', '', 0, 1);
                 setcookie('registrationEmail', '', time() - 360 * 24, '/', '', 0, 1);
-                header('Location: welcome.php?userType=new');
+                header('Location: index.php?userType=new');
                 exit;
             }
         }
@@ -235,7 +216,7 @@ foreach ($crowdTypeArray as $individualCrowdType) {
     $varibleCrowdTypeVariableName = "crowdType{$crowdTypeId}HTML";
     $crowdTypeName = $individualCrowdType['crowd_type_name'];
 
-    $crowdTypeSelectHTML .= "<option value=\"$crowdTypeId\" {$$varibleCrowdTypeVariableName}>$crowdTypeName</option>" ;
+    $crowdTypeSelectHTML .= "<option value=\"$crowdTypeId\" {$$varibleCrowdTypeVariableName}>$crowdTypeName</option>";
 }
 
 $jQueryDocumentDotReadyCode = '';

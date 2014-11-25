@@ -7,7 +7,6 @@ $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 $userData = authenticate_user($DBH, TRUE, FALSE, TRUE);
-
 $userId = $userData['user_id'];
 $userEmail = mysql_aes_decrypt($userData['encrypted_email'], $userData['encryption_data']);
 $emailAtLocation = strpos($userEmail, '@');
@@ -17,6 +16,134 @@ $formattedTime = formattedTime('@' . time() . '', $userTimeZone, FALSE, TRUE);
 
 if (!$userData || !isset($_GET['dataSource'])) {
     exit();
+}
+
+function outputClassificationDataToCSV($DBH, $annotationsArray, $targetProjectId, $clientCSVFileName) {
+
+    foreach ($DBH->query("SELECT * FROM crowd_types") as $crowdType) {
+        $crowdTypeArray[$crowdType['crowd_type_id']] = $crowdType['crowd_type_name'];
+    }
+    $crowdTypeArray[0] = "Other Crowd Type";
+
+    $tasksQuery = "SELECT task_id "
+            . "FROM task_metadata "
+            . "WHERE project_id = $targetProjectId "
+            . "ORDER BY order_in_project";
+    $tasksResult = $DBH->query($tasksQuery);
+    $tasks = $tasksResult->fetchAll(PDO::FETCH_ASSOC);
+
+    $groupsQuery = "SELECT tgm.tag_group_id, tgm.contains_groups, tgm.is_enabled, tc.task_id, tc.order_in_task "
+            . "FROM tag_group_metadata tgm "
+            . "RIGHT JOIN task_contents tc ON tc.tag_group_id = tgm.tag_group_id "
+            . "WHERE tgm.project_id = $targetProjectId AND tgm.is_enabled = 1 "
+            . "ORDER BY tc.task_id, tc.order_in_task";
+    $groupsResult = $DBH->query($groupsQuery);
+    $groups = $groupsResult->fetchAll(PDO::FETCH_ASSOC);
+
+    $csvRowArray = array(
+        'Image ID',
+        'Latitude',
+        'Longitude',
+        'File Name',
+        'User ID',
+        'User Name',
+        'Crowd Type',
+        'Other Crowd Type',
+        'Completion Time'
+    );
+    $tagIdMap = array();
+    foreach ($tasks as $task) {
+        $taskId = $task['task_id'];
+        foreach ($groups as $group) {
+            if ($group['task_id'] == $taskId) {
+                $groupId = $group['tag_group_id'];
+                if ($group['contains_groups'] == 0) {
+                    $tagQuery = "SELECT t.tag_id, t.name, t.is_comment_box "
+                            . "FROM tag_group_contents tgc "
+                            . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
+                            . "WHERE tgc.tag_group_id = $groupId AND t.is_enabled = 1 "
+                            . "ORDER BY tgc.order_in_group";
+                    foreach ($DBH->query($tagQuery) as $tag) {
+                        ;
+                        $csvRowArray[] = $tag['name'];
+                        $tagIdMap[] = array(
+                            'id' => $tag['tag_id'],
+                            'isComment' => $tag['is_comment_box']
+                        );
+                    }
+                } else {
+                    $nestedGroupQuery = "SELECT tag_id "
+                            . "FROM tag_group_contents "
+                            . "WHERE tag_group_id = $groupId "
+                            . "ORDER BY order_in_group";
+                    foreach ($DBH->query($nestedGroupQuery) as $nestedGroup) {
+                        $nestedGroupId = $nestedGroup['tag_id'];
+                        $nestedTagQuery = "SELECT t.tag_id, t.name, t.is_comment_box FROM tag_group_contents tgc "
+                                . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
+                                . "WHERE tgc.tag_group_id = $nestedGroupId AND t.is_enabled = 1 "
+                                . "ORDER BY tgc.order_in_group";
+                        foreach ($DBH->query($nestedTagQuery) as $tag) {
+                            $csvRowArray[] = $tag['name'];
+                            $tagIdMap[] = array(
+                                'id' => $tag['tag_id'],
+                                'isComment' => $tag['is_comment_box']
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="' . $clientCSVFileName . '"');
+    header('Content-Transfer-Encoding: binary');
+    header('Expires: 0');
+    $fp = fopen('php://output', 'w');
+    fputcsv($fp, $csvRowArray);
+    foreach ($annotationsArray as $annotation) {
+        if (count($annotation['tags']) == 0) {
+            continue;
+        }
+
+        $unencryptedEmail = mysql_aes_decrypt($annotation['encrypted_email'], $annotation['encryption_data']);
+        $crowdType = $crowdTypeArray[$annotation['crowd_type']];
+
+        $csvRowArray = array(
+            $annotation['image_id'],
+            $annotation['latitude'],
+            $annotation['longitude'],
+            $annotation['full_url'],
+            $annotation['user_id'],
+            $unencryptedEmail,
+            $crowdType,
+            $annotation['other_crowd_type'],
+            $annotation['completion_time']);
+
+        foreach ($tagIdMap as $targetTag) {
+            $cellContent = FALSE;
+
+            if (isset($annotation['tags'][$targetTag['id']])) {
+                if ($targetTag['isComment'] == 0) {
+                    $cellContent = 1;
+                } else {
+                    $cellContent = $annotation['tags'][$targetTag['id']];
+                }
+            } else {
+                if ($targetTag['isComment'] == 1) {
+                    $cellContent = '';
+                }
+            }
+
+            if ($cellContent !== FALSE) {
+                $csvRowArray[] = $cellContent;
+            } else {
+                $csvRowArray[] = '0';
+            }
+        }
+        fputcsv($fp, $csvRowArray);
+    }
+    fclose($fp);
+    exit;
 }
 
 $csvFile = '';
@@ -84,9 +211,83 @@ switch ($_GET['dataSource']) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    case 'gisUsers':
+        break;
+        //If no project supplied then exit.
+        if (!$targetProjectMetadata) {
+            break;
+        }
+        ini_set('memory_limit', '128M');
+
+        $annotationsArray = array();
+
+
+        $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' All Classifications For GIS Users In ' . $targetProjectName . '.csv';
+
+        $gisUserEmailArray = array(
+
+        );
+        for ($i = 0; $i < count($gisUserEmailArray); $i++) {
+            $gisUserEmailArray[$i] = strtolower($gisUserEmailArray[$i]);
+        }
+
+        $gisUserIdArray = array();
+
+        $userArray = $DBH->query("SELECT user_id, encrypted_email, encryption_data FROM users")->fetchAll(PDO::FETCH_ASSOC);
+
+        for ($i = 0; $i < count($userArray); $i++) {
+            $userArray[$i]['email'] = mysql_aes_decrypt($userArray[$i]['encrypted_email'], $userArray[$i]['encryption_data']);
+            if ($key = array_search($userArray[$i]['email'], $gisUserEmailArray)) {
+                $gisUserIdArray[] = $userArray[$i]['user_id'];
+                unset($gisUserEmailArray[$key]);
+            }
+        }
+
+        $gisUserIdWhereInString = where_in_string_builder($gisUserIdArray);
+
+        foreach ($DBH->query("SELECT tag_id FROM tags WHERE project_id = {$targetProjectMetadata['project_id']}") as $tag) {
+            $projectTagArray[] = $tag['tag_id'];
+        }
+        $tagIdWhereInString = where_in_string_builder($projectTagArray);
+
+
+
+
+        $dataExportQuery = "SELECT a.image_id, a.annotation_id, a.user_id, i.latitude, i.longitude, i.full_url, u.encrypted_email, u.encryption_data, u.crowd_type, u.other_crowd_type, if (annotation_completed_under_revision = 0, initial_session_end_time, last_revision_time) as completion_time "
+                . "FROM annotations a "
+                . "LEFT JOIN users u ON a.user_id = u.user_id "
+                . "LEFT JOIN images i ON a.image_id = i.image_id "
+                . "WHERE a.annotation_completed = 1 AND a.project_id = $targetProjectId AND a.user_id IN ($gisUserIdWhereInString)";
+
+        foreach ($DBH->query($dataExportQuery, PDO::FETCH_ASSOC) as $row) {
+            $annotationsArray[$row['annotation_id']] = $row;
+            $annotationsArray[$row['annotation_id']]['tags'] = array();
+        }
+
+        $tagSelectionQuery = "SELECT annotation_id, tag_id "
+                . "FROM annotation_selections "
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagSelectionQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = 1;
+            }
+        }
+
+        $tagCommentQuery = "SELECT annotation_id, tag_id, comment "
+                . "FROM annotation_comments "
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagCommentQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = $row['comment'];
+            }
+        }
+
+        outputClassificationDataToCSV($DBH, $annotationsArray, $targetProjectId, $clientCSVFileName);
+        break;
+
     case 'allUsers':
         $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' All Users in iCoast.csv';
-        $allUserQuery = "SELECT u.encrypted_email, u.encryption_data, ct.crowd_type_name, u.other_crowd_type, u.affiliation, u.account_created_on, u.last_logged_in_on, COUNT(a.annotation_id) AS annotation_count "
+        $allUserQuery = "SELECT u.user_id, u.encrypted_email, u.encryption_data, ct.crowd_type_name, u.other_crowd_type, u.affiliation, u.account_created_on, u.last_logged_in_on, COUNT(a.annotation_id) AS annotation_count "
                 . "FROM users u "
                 . "LEFT JOIN crowd_types ct ON u.crowd_type = ct.crowd_type_id "
                 . "LEFT JOIN annotations a ON u.user_id = a.user_id AND a.annotation_completed = 1 "
@@ -95,7 +296,8 @@ switch ($_GET['dataSource']) {
         $queryUserParams = array();
         run_prepared_query($DBH, $allUserQuery, $queryUserParams);
         $csvArray[0] = array(
-            'Account Name',
+            'User Name',
+            'User Id',
             'Crowd Type',
             'Other Crowd Type',
             'Affiliation',
@@ -108,6 +310,7 @@ switch ($_GET['dataSource']) {
             $csvArrayKey ++;
             $csvArray[$csvArrayKey] = array(
                 mysql_aes_decrypt($user['encrypted_email'], $user['encryption_data']),
+                $user['user_id'],
                 $user['crowd_type_name'],
                 $user['other_crowd_type'],
                 $user['affiliation'],
@@ -121,160 +324,217 @@ switch ($_GET['dataSource']) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
     case 'allClassifications':
+        //If no project supplied then exit.
         if (!$targetProjectMetadata) {
             break;
         }
+        ini_set('memory_limit', '128M');
+
+        $annotationsArray = array();
+
         if ($targetUserMetadata) {
             $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' All Classifications For User ' . $targetUserEMail . ' In ' . $targetProjectName . '.csv';
         } else {
             $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' All Classifications In ' . $targetProjectName . '.csv';
         }
 
-        $annotationDataArray = array();
-        $dataExportQuery = "SELECT a.image_id, a.annotation_id, a.user_id, i.latitude, i.longitude, i.full_url, u.encrypted_email, u.encryption_data "
+        foreach ($DBH->query("SELECT tag_id FROM tags WHERE project_id = {$targetProjectMetadata['project_id']}") as $tag) {
+            $projectTagArray[] = $tag['tag_id'];
+        }
+        $tagIdWhereInString = where_in_string_builder($projectTagArray);
+
+
+        $dataExportQuery = "SELECT a.image_id, a.annotation_id, a.user_id, i.latitude, i.longitude, i.full_url, u.encrypted_email, u.encryption_data, u.crowd_type, u.other_crowd_type, if (annotation_completed_under_revision = 0, initial_session_end_time, last_revision_time) as completion_time "
                 . "FROM annotations a "
                 . "LEFT JOIN users u ON a.user_id = u.user_id "
                 . "LEFT JOIN images i ON a.image_id = i.image_id "
-                . "WHERE a.annotation_completed = 1 AND a.project_id = :targetProjectId";
+                . "WHERE a.annotation_completed = 1 AND a.project_id = $targetProjectId";
         if ($targetUserMetadata) {
-            $dataExportQuery .= ' AND u.user_id = :targetUserId';
+            $dataExportQuery .= " AND u.user_id = $targetUserId";
         }
-        $dataExportResult = run_prepared_query($DBH, $dataExportQuery, $queryBothParams);
-        while ($row = $dataExportResult->fetch(PDO::FETCH_ASSOC)) {
-            $annotationDataArray[$row['annotation_id']] = $row;
-            $annotationDataArray[$row['annotation_id']]['tags'] = array();
+
+        foreach ($DBH->query($dataExportQuery, PDO::FETCH_ASSOC) as $row) {
+            $annotationsArray[$row['annotation_id']] = $row;
+            $annotationsArray[$row['annotation_id']]['tags'] = array();
         }
-        $annotationIdWhereInString = where_in_string_builder(array_keys($annotationDataArray));
+
+        $tagSelectionQuery = "SELECT annotation_id, tag_id "
+                . "FROM annotation_selections "
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagSelectionQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = 1;
+            }
+        }
+
+        $tagCommentQuery = "SELECT annotation_id, tag_id, comment "
+                . "FROM annotation_comments "
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagCommentQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = $row['comment'];
+            }
+        }
+
+        outputClassificationDataToCSV($DBH, $annotationsArray, $targetProjectId, $clientCSVFileName);
+        break;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    case 'imageGroupClassifications':
+
+        if (!$targetProjectMetadata) {
+            break;
+        }
+
+        ini_set('memory_limit', '128M');
+        $annotationsArray = array();
+
+        if (isset($_GET['dataSubset'])) {
+            switch ($_GET['dataSubset']) {
+                case 'allProjectClassificationsLessImageGroupsByLinkedUserGroups':
+                case 'imageGroupClassificationsByTargetedUserGroups':
+                case 'imageGroupClassificationsByNonTargetedUserGroups':
+                case 'imageGroupClassificationsByAllUsers':
+                    $dataSubset = $_GET['dataSubset'];
+                    break;
+                default:
+                    $dataSubset = null;
+            }
+        }
+
+        $imageGroupIdArray = array();
+
+        if (isset($_GET['targetImageGroupId'])) {
+            settype($_GET['targetImageGroupId'], 'integer');
+            if (!empty($_GET['targetImageGroupId'])) {
+                $targetImageGroupId = $_GET['targetImageGroupId'];
+                $targetImageGroupMetadata = retrieve_entity_metadata($DBH, $targetImageGroupId, 'imageGroups');
+                if ($targetImageGroupMetadata) {
+                    $imageGroupIdArray[] = $targetImageGroupId;
+                    $targetImageGroupName = $targetImageGroupMetadata['name'];
+                }
+            }
+        }
+        if (!$targetImageGroupMetadata) {
+            unset($targetImageGroupId);
+            $imageGroupsInProjectQuery = "SELECT image_group_id FROM image_group_metadata WHERE project_id = $targetProjectId";
+            foreach ($DBH->query($imageGroupsInProjectQuery) as $imageGroup) {
+                $imageGroupIdArray[] = $imageGroup['image_group_id'];
+            }
+        }
+
+        if ($targetImageGroupMetadata) {
+            if ($dataSubset == 'allProjectClassificationsLessImageGroupsByLinkedUserGroups') {
+                $clientCSVFileName .= 'All Classifications In The ' . $targetProjectName . ' Project Except Those In Image Group ' . $targetImageGroupName . ' Completed By Targeted Users.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByTargetedUserGroups') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' All Classifications By Targeted Users For Image Group ' . $targetImageGroupName . ' In ' . $targetProjectName . '.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByNonTargetedUserGroups') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' All Classifications By Non-Targeted Users For Image Group ' . $targetImageGroupName . ' In ' . $targetProjectName . '.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByAllUsers') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' Classifications By All iCoast Users For Image Group ' . $targetImageGroupName . ' In ' . $targetProjectName . '.csv';
+            }
+        } else {
+            if ($dataSubset == 'allProjectClassificationsLessImageGroupsByLinkedUserGroups') {
+                $clientCSVFileName .= 'All Classifications In The ' . $targetProjectName . ' Project Except Those In Image Group ' . $targetImageGroupName . ' Completed By Targeted Users.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByTargetedUserGroups') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' Classifications By Targeted Users For All Image Groups In ' . $targetProjectName . '.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByNonTargetedUserGroups') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' Classifications By Non-Targeted Users For All Image Groups In ' . $targetProjectName . '.csv';
+            } else if ($dataSubset == 'imageGroupClassificationsByAllUsers') {
+                $clientCSVFileName .= $userEmail . ' ' . $formattedTime . ' All Classifications For All Image Groups In ' . $targetProjectName . '.csv';
+            }
+        }
+
+        foreach ($DBH->query("SELECT * FROM crowd_types") as $crowdType) {
+            $crowdTypeArray[$crowdType['crowd_type_id']] = $crowdType['crowd_type_name'];
+        }
+        $crowdTypeArray[0] = "Other Crowd Type";
+
+        foreach ($DBH->query("SELECT tag_id FROM tags WHERE project_id = {$targetProjectMetadata['project_id']}") as $tag) {
+            $projectTagArray[] = $tag['tag_id'];
+        }
+        $tagIdWhereInString = where_in_string_builder($projectTagArray);
+
+        $imageGroupImagesUsersArray = array();
+        foreach ($imageGroupIdArray as $imageGroupId) {
+            $imageGroupImagesUsersArray[$imageGroupId] = array();
+            $imageGroupMetadataQuery = "SELECT * FROM image_groups WHERE image_group_id = $imageGroupId";
+            $imageGroupMetadataResult = $DBH->query($imageGroupMetadataQuery);
+            $imageGroupMetadata = $imageGroupMetadataResult->fetch(PDO::FETCH_ASSOC);
+            $startImageId = $imageGroupMetadata['image_id'];
+            $imageCount = $imageGroupMetadata['group_range'];
+            $incrementor = $imageGroupMetadata['show_every_nth_image'];
+            $imageIdWhereInArray = array();
+            for ($i = 0; $i < $imageCount; $i++) {
+                $imageGroupImagesUsersArray[$imageGroupId]['imageIds'][] = $startImageId + ($incrementor * $i);
+            }
+
+            $userGroupIdsArray = array();
+            $userGroupIdsQuery = "SELECT user_group_id FROM user_group_assignments WHERE image_group_id = $imageGroupId";
+            foreach ($DBH->query($userGroupIdsQuery) as $userGroupId) {
+                $userGroupIdsArray[] = $userGroupId['user_group_id'];
+            }
+            $whereInUsersGroupString = where_in_string_builder($userGroupIdsArray);
+
+            $usersInUserGroupQuery = "SELECT user_id FROM user_groups WHERE user_group_id IN ($whereInUsersGroupString)";
+            foreach ($DBH->query($usersInUserGroupQuery) as $user) {
+                $imageGroupImagesUsersArray[$imageGroupId]['userIds'][] = $user['user_id'];
+            }
+        }
+
+        $dataExportQuery = "SELECT a.image_id, a.annotation_id, a.user_id, i.latitude, i.longitude, i.full_url, u.encrypted_email, u.encryption_data, u.crowd_type, u.other_crowd_type, if (a.annotation_completed_under_revision = 0, a.initial_session_end_time, a.last_revision_time) as completion_time "
+                . "FROM annotations a "
+                . "LEFT JOIN users u ON a.user_id = u.user_id "
+                . "LEFT JOIN images i ON a.image_id = i.image_id "
+                . "WHERE ";
+        if ($dataSubset == 'allProjectClassificationsLessImageGroupsByLinkedUserGroups') { // All Classifications Less Classifications Within Image Groups done by Image Group Users
+            $dataExportQuery .= "NOT ";
+        }
+        $dataExportQuery .= "(";
+        foreach ($imageGroupImagesUsersArray as $imageGroupData) {
+            $whereInUsersString = where_in_string_builder($imageGroupData['userIds']);
+            $imageIdWhereInString = where_in_string_builder($imageGroupData['imageIds']);
+            $dataExportQuery .= " (a.image_id IN ($imageIdWhereInString) ";
+            if ($dataSubset == 'imageGroupClassificationsByTargetedUserGroups' || $dataSubset == 'allProjectClassificationsLessImageGroupsByLinkedUserGroups') {
+                $dataExportQuery .= "AND a.user_id IN ($whereInUsersString)";
+            }
+            if ($dataSubset == 'imageGroupClassificationsByNonTargetedUserGroups') { // Only classifications within Image Groups by users who aren't members of a linked User Group
+                $dataExportQuery .= "AND NOT a.user_id IN ($whereInUsersString)";
+            }
+//          If neither of the above IF statements are executed then the data returned is all classifications in the specified image groups by all users.
+            $dataExportQuery .= ") OR";
+        }
+        $dataExportQuery = substr($dataExportQuery, 0, -3);
+        $dataExportQuery .= ") AND a.annotation_completed = 1 AND a.project_id = $targetProjectId";
+
+        foreach ($DBH->query($dataExportQuery) as $row) {
+            $annotationsArray[$row['annotation_id']] = $row;
+            $annotationsArray[$row['annotation_id']]['tags'] = array();
+        }
 
 
         $tagSelectionQuery = "SELECT annotation_id, tag_id "
                 . "FROM annotation_selections "
-                . "WHERE annotation_id IN ($annotationIdWhereInString)";
-        $tagSelectionResult = $DBH->query($tagSelectionQuery);
-        while ($row = $tagSelectionResult->fetch(PDO::FETCH_ASSOC)) {
-            $annotationDataArray[$row['annotation_id']]['tags'][$row['tag_id']] = 1;
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagSelectionQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = 1;
+            }
         }
 
 
 
         $tagCommentQuery = "SELECT annotation_id, tag_id, comment "
                 . "FROM annotation_comments "
-                . "WHERE annotation_id IN ($annotationIdWhereInString)";
-        $tagCommentResult = $DBH->query($tagCommentQuery);
-        while ($row = $tagCommentResult->fetch(PDO::FETCH_ASSOC)) {
-            $annotationDataArray[$row['annotation_id']]['tags'][$row['tag_id']] = $row['comment'];
-        }
-
-
-        $tasksQuery = "SELECT task_id "
-                . "FROM task_metadata "
-                . "WHERE project_id = :targetProjectId "
-                . "ORDER BY order_in_project";
-        $tasksResult = run_prepared_query($DBH, $tasksQuery, $queryProjectParams);
-        $tasks = $tasksResult->fetchAll(PDO::FETCH_ASSOC);
-
-        $groupsQuery = "SELECT tgm.tag_group_id, tgm.contains_groups, tgm.is_enabled, tc.task_id, tc.order_in_task "
-                . "FROM tag_group_metadata tgm "
-                . "RIGHT JOIN task_contents tc ON tc.tag_group_id = tgm.tag_group_id "
-                . "WHERE tgm.project_id = :targetProjectId AND tgm.is_enabled = 1 "
-                . "ORDER BY tc.task_id, tc.order_in_task";
-        $groupsResult = run_prepared_query($DBH, $groupsQuery, $queryProjectParams);
-        $groups = $groupsResult->fetchAll(PDO::FETCH_ASSOC);
-
-        $csvArray[0] = array(
-            'Image ID',
-            'Latitude',
-            'Longitude',
-            'File Name',
-            'User ID',
-            'User Account'
-        );
-        $tagIdMap = array();
-        foreach ($tasks as $task) {
-            $taskId = $task['task_id'];
-            foreach ($groups as $group) {
-                if ($group['task_id'] == $taskId) {
-                    $groupId = $group['tag_group_id'];
-                    if ($group['contains_groups'] == 0) {
-                        $tagQuery = "SELECT t.tag_id, t.name, t.is_comment_box "
-                                . "FROM tag_group_contents tgc "
-                                . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
-                                . "WHERE tgc.tag_group_id = $groupId AND t.is_enabled = 1 "
-                                . "ORDER BY tgc.order_in_group";
-                        $tagResult = $DBH->query($tagQuery);
-                        $groupTags = $tagResult->fetchAll(PDO::FETCH_ASSOC);
-                        foreach ($groupTags as $tag) {
-                            $csvArray[0][] = $tag['name'];
-                            $tagIdMap[] = array(
-                                'id' => $tag['tag_id'],
-                                'isComment' => $tag['is_comment_box']
-                            );
-                        }
-                    } else {
-                        $nestedGroupQuery = "SELECT tag_id "
-                                . "FROM tag_group_contents "
-                                . "WHERE tag_group_id = $groupId "
-                                . "ORDER BY order_in_group";
-                        $nestedGroupResult = $DBH->query($nestedGroupQuery);
-                        $nestedGroups = $nestedGroupResult->fetchAll(PDO::FETCH_ASSOC);
-                        foreach ($nestedGroups as $nestedGroup) {
-                            $nestedGroupId = $nestedGroup['tag_id'];
-                            $nestedTagQuery = "SELECT t.tag_id, t.name, t.is_comment_box FROM tag_group_contents tgc "
-                                    . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
-                                    . "WHERE tgc.tag_group_id = $nestedGroupId AND t.is_enabled = 1 "
-                                    . "ORDER BY tgc.order_in_group";
-                            $nestedTagResult = $DBH->query($nestedTagQuery);
-                            $nestedGroupTags = $nestedTagResult->fetchAll(PDO::FETCH_ASSOC);
-                            foreach ($nestedGroupTags as $tag) {
-                                $csvArray[0][] = $tag['name'];
-                                $tagIdMap[] = array(
-                                    'id' => $tag['tag_id'],
-                                    'isComment' => $tag['is_comment_box']
-                                );
-                            }
-                        }
-                    }
-                }
+                . "WHERE tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagCommentQuery) as $row) {
+            if (array_key_exists($row['annotation_id'], $annotationsArray)) {
+                $annotationsArray[$row['annotation_id']]['tags'][$row['tag_id']] = $row['comment'];
             }
         }
 
-        $csvArrayKey = 0;
-        foreach ($annotationDataArray as $annotation) {
-            $csvArrayKey ++;
-            $unencryptedEmail = mysql_aes_decrypt($annotation['encrypted_email'], $annotation['encryption_data']);
-
-            $csvArray[$csvArrayKey] = array(
-                $annotation['image_id'],
-                $annotation['latitude'],
-                $annotation['longitude'],
-                $annotation['full_url'],
-                $annotation['user_id'],
-                $unencryptedEmail);
-
-            foreach ($tagIdMap as $targetTag) {
-                $cellContent = FALSE;
-                foreach ($annotation['tags'] as $tagId => $tagContent) {
-                    if ($tagId == $targetTag['id']) {
-                        if ($targetTag['isComment'] == 0) {
-                            $cellContent = 1;
-                        } else {
-
-                            $cellContent = $tagContent;
-                        }
-                        break;
-                    } else {
-                        if ($targetTag['isComment'] == 1) {
-                            $cellContent = '';
-                        }
-                    }
-                }
-                if ($cellContent !== FALSE) {
-                    $csvArray[$csvArrayKey][] = $cellContent;
-                } else {
-                    $csvArray[$csvArrayKey][] = '0';
-                }
-            }
-        }
+        outputClassificationDataToCSV($DBH, $annotationsArray, $targetProjectId, $clientCSVFileName);
         break;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,7 +676,7 @@ switch ($_GET['dataSource']) {
         }
 
         $csvArray[0] = array('User Id',
-            'User E-Mail',
+            'User Name',
             'Total Classifications',
             'Complete Classifications',
             'Incomplete Classifications',
@@ -659,19 +919,6 @@ switch ($_GET['dataSource']) {
             $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' Classification Time Data For All iCoast Users In The' . $targetProjectName . ' Project.csv';
         } else if ($targetUserMetadata) {
             $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' Classification Time Data For User ' . $targetUserEMail . ' In All iCoast Projects.csv';
-        }
-
-        function convertSeconds($s) {
-            $hrs = floor($s / 3600);
-            $mins = floor(($s % 3600) / 60);
-            $secs = ($s % 3600) % 60;
-            if ($hrs > 0) {
-                return "$hrs Hour(s) $mins Minute(s) $secs Second(s)";
-            } elseif ($mins > 0) {
-                return "$mins Minute(s) $secs Second(s)";
-            } else {
-                return "$secs Second(s)";
-            }
         }
 
         if (isset($_GET['upperTimeLimit'])) {

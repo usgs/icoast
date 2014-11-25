@@ -41,6 +41,8 @@ $pageBody = <<<EOL
                     $selectedUserStatsHTML
                     $mapHTML
                     $classificationTimeGraphHTML
+                    $over60MinuteClassificationHTML
+                    $under30SecondClassificationHTML
                 </div>
             </div>
         </div>

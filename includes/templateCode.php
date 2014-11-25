@@ -28,12 +28,6 @@ if ($pageName == 'registration') {
 }
 
 
-if ($pageName == 'welcome') {
-    $pageTitle = "USGS iCoast: Welcome to USGS iCoast";
-    $mainNav .= '<li class="activePageLink">Welcome</li>';
-}
-
-
 if ($pageName == 'start' || $pageName == 'classification' || $pageName == 'complete') {
     switch ($pageName) {
         case "start":
@@ -51,6 +45,12 @@ if ($pageName == 'start' || $pageName == 'classification' || $pageName == 'compl
     $mainNav .= '<li><a href="start.php">Classify</a></li>';
 }
 
+if ($pageName == 'myicoast') {
+    $pageTitle = "USGS iCoast: My iCoast";
+    $mainNav .= '<li class="activePageLink">My iCoast</li>';
+} else if ($userData) {
+    $mainNav .= '<li><a href="myicoast.php">My iCoast</a></li>';
+}
 
 if ($pageName == 'profile') {
     $pageTitle = "USGS iCoast: User Profile";

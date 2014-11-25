@@ -41,16 +41,6 @@
     text-align: center;
 }
 
-input[type="checkbox"]:checked + .clickableButton,
-input[type="radio"]:checked + .clickableButton {
-    background: #e56969;
-    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
-    border-width: 3px;
-    margin: 6px;
-}
-
 h3 {
     font-size: 1.1em;
     margin: 10px;
@@ -425,183 +415,6 @@ hr {
     width: 265px;
 }
 
-#classificationTimeGraphWrapper {
-    width: 950px;
-    height: 300px;
-    margin: auto;
-    padding: 14px 19px 14px 9px;
-    border-radius: 5px;
-    border: 1px solid black;
-    background-color: #ffffff;
-}
-
-#ctgUpperWrapper {
-    width: 100%;
-    height: 250px;
-}
-
-#ctgYBorder {
-    width: 69px;
-    height: 250px;
-    float: left;
-    border-right: 1px solid black;
-}
-
-#ctgYTitleWrapper {
-    width:20px;
-    height: 250px;
-    float:left;
-    position: relative;
-    font-weight: bold;
-}
-
-#ctgYScaleWrapper {
-    height: 250px;
-    width: 49px;
-    position: relative;
-    float:left;
-}
-
-#ctgXBorder {
-    width: 880px;
-    height:49px;
-    float:left;
-    border-top: 1px solid black;
-}
-
-#ctgXScaleWrapper {
-    height: 30px;
-    width: 880px;
-}
-
-#ctgXTitleWrapper {
-    width:880px;
-    height: 19px;
-    text-align: center;
-    font-weight: bold;
-}
-
-#ctgDeadSpace {
-    height:49px;
-    width: 69px;
-    float: left;
-    text-align: right;
-    /*    border-top: 1px solid black;
-        border-right: 1px solid black;*/
-}
-
-#ctgDeadSpace div:first-of-type {
-    position: relative;
-    right: 13px;
-    top: -10px;
-}
-
-#ctgDeadSpace div:last-of-type {
-    position: relative;
-    right: -5px;
-    top: -7px;
-}
-
-
-#ctgContent {
-    height:250px;
-    width: 880px;
-    float: left;
-}
-
-.timeGraphBarWrapper {
-    position: relative;
-    height: 100%;
-    float: left;
-}
-
-.timeGraphBar {
-    position: absolute;
-    bottom: 0px;
-    background-color: #0602ea;
-}
-
-.timeGraphBarOverflow {
-    background: #ff0206;
-    background: -moz-linear-gradient(top, #ff0206 0%, #0602ea 20%, #0602ea 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ff0206), color-stop(20%,#0602ea), color-stop(100%,#0602ea));
-    background: -webkit-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
-    background: -o-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
-    background: -ms-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
-    background: linear-gradient(to bottom, #ff0206 0%,#0602ea 20%,#0602ea 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff0206', endColorstr='#0602ea',GradientType=0 );
-}
-
-.xScaleDivision {
-    height: 100%;
-    float: left;
-    /*margin-right: 2px;*/
-}
-
-.xScaleDivision:first-of-type .xScaleMark {
-    border-left: 1px solid black;
-
-}
-
-.xScaleMark {
-    height: 10px;
-    width: 100%;
-    border-right: 1px solid black;
-}
-
-
-.xScaleNumberWrapper {
-    position: relative;
-    right: -6px;
-    text-align: right;
-}
-
-#ctgYTitle {
-    width: 300px;
-    height: 20px;
-
-    position: absolute;
-    top: 215px;
-    left: 15px;
-
-    text-align: left;
-
-    transform-origin: left bottom;
-    -ms-transform-origin: left bottom;
-    -webkit-transform-origin: left bottom;
-
-    transform: rotate(270deg);
-    -ms-transform: rotate(270deg);
-    -webkit-transform: rotate(270deg);
-}
-
-.yScaleDivision {
-    position: absolute;
-    height: 50px;
-    width: 49px;
-}
-
-.yScaleNumberWrapper {
-    height: 50px;
-    width:39px;
-    position: relative;
-    top: -9px;
-    right: 3px;
-    float: left;
-    text-align: right;
-}
-
-.yScaleDivision:first-of-type .yScaleMark {
-    border-bottom: 1px solid black;
-}
-
-.yScaleMark {
-    width: 10px;
-    height: 50px;
-    float:left;
-    border-top: 1px solid black;
-}
-
 #timeGraphControls .formFieldRow label {
     width: 65%
 }
@@ -618,57 +431,6 @@ hr {
     width: 100px;
 }
 
-.adminMap,
-.adminMapWrapper {
-    height: 500px;
-    width: 800px;
-    position: relative;
-    margin: auto;
-}
-
-.adminMap img {
-    border-radius: 0;
-}
-
-.adminMapLegend {
-    position: absolute;
-    bottom: 20px;
-    right: 5px;
-    width: 200px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-    font-size: 12px;
-    color: white;
-}
-.adminMapLegendRow {
-    overflow: hidden;
-    padding: 3px 2px 3px 2px;
-}
-.adminMapLegendRowIcon {
-    float: left;
-    width: 25px;
-    padding-right: 5px;
-}
-.adminMapLegendRowIcon img {
-    margin: auto;
-}
-
-.adminMapLegendSingleRowText,
-.adminMapLegendRowText {
-    float: left;
-    width: 165px;
-    text-align: left;
-    line-height: 14px;
-}
-
-/*.adminMapLegendSingleRowText {
-    padding-top: 6px;
-}*/
-
-.adminMapLegend p {
-    margin: 0 5px !important;
-}
-
 #allMatchesMap .adminMapLegend {
     width: 250px !important;
 }
@@ -677,9 +439,7 @@ hr {
     width: 215px;
 }
 
-.mapMarkerImage {
-    margin: auto;
-}
+
 
 #photoStatsImageWrapper {
     position: relative;
@@ -691,7 +451,7 @@ hr {
     width: 950px;
     margin: auto;
     overflow: hidden;
-}
+}classificationTimeGraphWrapper
 
 #photoStatsMapWrapper {
     height: 300px;
@@ -701,9 +461,9 @@ hr {
 }
 
 #photoStatsDetailsWrapper {
-    width: 640px;
-    float: left;
-    padding-left: 10px;
+    /*width: 640px;*/
+    /*float: left;*/
+    /*padding-left: 10px;*/
 }
 
 #photoStatsDetailsWrapper td {
@@ -739,4 +499,109 @@ hr {
     width: 560px;
 }
 
+#emailListWrapper {
+    display: none;
+    margin: auto;
+    width: 80%;
+}
 
+#emailListWrapper .emailList {
+    background: white;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+
+    font-size: 10px;
+}
+
+#photoEditorMap .leaflet-popup-content p {
+    text-align: left;
+    margin: 5px 0;
+}
+
+#adminPhotoThumbnailGrid {
+    width: 1000px;
+    margin: auto;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+
+.adminPhotoThumbnailRow {
+    overflow: hidden;
+    border-bottom: 1px solid black;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.adminPhotoThumbnailRow:last-of-type {
+    border-bottom: none;
+}
+
+.adminPhotoThumbnailCell {
+    width: 200px;
+    float: left;
+
+}
+
+.adminPhotoThumbnailWrapper img {
+    display: block;
+    margin: 10px auto;
+    padding: 5px;
+    border-style: solid;
+    border-width: 3px;
+}
+
+.adminPhotoThumbnailMetadata {
+    display: block;
+    margin: 0 5px 0 70px;
+    text-indent: -70px;
+    text-align: left;
+    font-weight: normal;
+    font-size: .8em;
+}
+
+.adminPhotoThumbnailMetadata:first-of-type {
+    margin-top: 10px;
+}
+
+.adminPhotoThumbnailMetadata:last-of-type {
+    margin-bottom: 10px;
+}
+
+.adminPhotoThumbnailMetadata span:first-of-type {
+    display: inline-block;
+    float: left;
+    width: 70px;
+    font-weight: bold;
+}
+
+.thumbnailControlWrapper {
+    text-align: right;
+}
+
+.thumbnailControlWrapper input {
+    height: 24px;
+}
+
+.thumbnailControlWrapper div {
+    clear: both;
+    overflow: hidden;
+}
+
+.pageJumpSelect {
+    float:right;
+    width: 180px;
+}
+
+.photosPerPageSelect {
+    float:left;
+}
+
+.thumbnailControlWrapper p {
+    display: inline-block;
+    margin-top: 17px !important;
+    font-weight: bold;
+}

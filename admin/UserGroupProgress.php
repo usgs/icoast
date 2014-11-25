@@ -43,8 +43,8 @@ INNER JOIN image_groups ig ON uga.image_group_id = ig.image_group_id
 INNER JOIN image_group_metadata igm ON ig.image_group_id = igm.image_group_id
 LEFT JOIN annotations ann ON ug.user_id = ann.user_id AND (ann.image_id BETWEEN ig.image_id AND (ig.image_id + (ig.group_range - 1)) AND ann.annotation_completed = 1)
 
-GROUP BY ug.user_id
-ORDER BY igm.image_group_id, image_group_count';
+GROUP BY igm.image_group_id, ug.user_id
+ORDER BY igm.image_group_id, classifications_completed DESC';
 
 $userGroupResult = $DBH->query($userGroupQuery);
 $userGroupProgress = $userGroupResult->fetchAll(PDO::FETCH_ASSOC);

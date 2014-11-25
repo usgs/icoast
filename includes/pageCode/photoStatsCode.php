@@ -16,6 +16,8 @@ require_once($dbConnectionFile);
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
+ini_set('memory_limit', '96M');
+
 $userId = $userData['user_id'];
 $adminLevel = $userData['account_type'];
 $adminLevelText = admin_level_to_text($adminLevel);
@@ -47,7 +49,7 @@ $projectSelectHTML = '';
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
 $userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-$projectCount = count($userAdministeredProjects);
+//$projectCount = count($userAdministeredProjects);
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
 
@@ -610,7 +612,7 @@ EOL;
                         . "i.thumb_url "
                         . "FROM annotations a "
                         . "LEFT JOIN images i ON i.image_id = a.user_match_id "
-                        . "WHERE a.image_id = $targetPhotoId AND a.project_id = $targetProjectId";
+                        . "WHERE a.image_id = $targetPhotoId AND a.project_id = $targetProjectId AND annotation_completed = 1";
 
                 $totalPhotoMatches = 0;
                 $userMatchIdList = '';
@@ -661,7 +663,7 @@ EOL;
             var totalPhotoMatches = $totalPhotoMatches;
             var totalPhotoDistinctMatches = $totalPhotoDistinctMatches;
 
-            var photoMatchesMap = L.map('photoMatchesMapWrapper');
+            var photoMatchesMap = L.map('photoMatchesMapWrapper', {maxZoom: 16});
             L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
             }).addTo(photoMatchesMap);
@@ -809,7 +811,7 @@ EOL;
                 . "IF (a.user_match_id != m.pre_image_id, (SELECT longitude FROM images WHERE image_id = user_image_id), NULL) AS user_longitude, "
                 . "IF (a.user_match_id != m.pre_image_id, (SELECT thumb_url FROM images WHERE image_id = user_image_id), NULL) AS user_thumb "
                 . "FROM annotations a "
-                . "LEFT JOIN matches m ON a.image_id = m.post_image_id "
+                . "LEFT JOIN matches m ON a.image_id = m.post_image_id AND (SELECT post_collection_id FROM projects WHERE project_id = :targetProjectId) = m.post_collection_id AND (SELECT pre_collection_id FROM projects WHERE project_id = :targetProjectId) = m.pre_collection_id  "
                 . "LEFT JOIN images i ON a.image_id = i.image_id "
                 . "WHERE a.annotation_completed = 1 AND a.project_id = :targetProjectId";
 

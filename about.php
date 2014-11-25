@@ -60,7 +60,7 @@ $pageBody = <<<EOL
 
                 <p>To assess coastal vulnerability to extreme storms, the USGS has developed a
                     <a href="http://coastal.er.usgs.gov/hurricanes/impact-scale/">
-                    Storm-Impact Scale</a> to produce <a href="http://coastal.er.usgs.gov/hurricanes/erosionhazards/">
+                    Storm-Impact Scale</a> to produce <a href="http://marine.usgs.gov/coastalchangehazardsportal/">
                     Coastal Change Probability</a> estimates. Hurricane-induced water levels, due
                     to both storm surge and waves, are compared to beach and dune elevations to determine the
                     probabilities of three types of coastal change processes: (1) Dune Erosion, where the base

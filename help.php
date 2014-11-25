@@ -145,7 +145,7 @@ $pageBody = <<<EOL
                                     photo through a map interface. You can also use the search box at the top
                                     of the map to zoom into a specific location to search for post-storm
                                     photos in that area. To find the images you have already annotated, go to
-                                    your <span class="italic">Profile</span> page.</p>
+                                    your <span class="italic">My iCoast</span> page.</p>
                             </div>
                         </div>
 
@@ -156,7 +156,7 @@ $pageBody = <<<EOL
                             </div>
                             <div class="faqAnswer">
                                 <p>Yes, you can find all the post-storm photos you annotated in the
-                                    <span class="italic">Profile</span> page. It provides a table and map view
+                                    <span class="italic">My iCoast</span> page. It provides a table and map view
                                     of your annotated photos as well as a <span class="italic">Tag</span>
                                     button to allow you to edit the tags you selected.</p>
                             </div>

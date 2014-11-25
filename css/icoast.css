@@ -59,6 +59,7 @@ body {
     position: relative;
     height: 100%;
     min-height: 600px;
+    min-width: 1233px;
 
     /*font-family: 'Noto Sans', 'Cabin', sans-serif;*/
     /*font-weight: bold;*/
@@ -273,7 +274,9 @@ input::-moz-focus-inner {
 #mapCanvas img,
 #mapInsert img,
 .adminMap img,
-#photoStatsMapWrapper img {
+#photoStatsMapWrapper img,
+#welcomePageMapWrapper img,
+#photoEditorMap img {
     border-radius: 0;
 }
 
@@ -319,12 +322,6 @@ input::-moz-focus-inner {
     margin: 10px 0 !important;
 }
 
-#profileSettingsWrapper {
-    position: relative;
-    border-bottom: 2px solid grey;
-    padding-bottom: 15px;
-}
-
 #profileAnnotationListControls {
     position: relative;
     padding-bottom: 15px;
@@ -333,8 +330,6 @@ input::-moz-focus-inner {
 #userAnnotationHistory {
     overflow: hidden;
     position: relative;
-    display: none;
-    border-top: 2px solid grey;
     padding-bottom: 15px;
 }
 #profileTableWrapper {
@@ -343,16 +338,27 @@ input::-moz-focus-inner {
     padding-left: 10px;
 }
 
+.progressTableWrapper {
+    width: 579px;
+    margin: auto;
+}
+
 #historyTableWrapper,
 #eventTableWrapper,
-#eventDetailsContent {
+#eventDetailsContent,
+.progressTableWrapper {
     background: #FFFFFF;
     border-radius: 5px;
     border: 1px solid black;
 }
 
+.progressTableWrapper tbody td:nth-of-type(2) {
+    text-align: right;
+}
+
 #historyTableWrapper th,
-#eventTableWrapper th {
+#eventTableWrapper th,
+.progressTableWrapper th {
     font-weight: bold;
     text-align: center;
 }
@@ -404,23 +410,16 @@ input::-moz-focus-inner {
     top: 7px
 }
 
-.hideProfilePanelButton {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    line-height: inherit;
-    font-size: 0.8em;
-    padding: 4px 10px;
-    border-radius: 5px;
-    margin: 1px 1px;
-}
-
 #profileSettingsWrapper .formFieldRow label {
     width: 50%;
 }
 
 #profileSettingsWrapper input {
     width: 250px;
+}
+
+#profileSettingsWrapper input[type="radio"] +.clickableButton {
+    width: 150px;
 }
 
 .hideProfilePanelButton:hover {
@@ -455,8 +454,13 @@ th, td {
 }
 
 #profileTableWrapper tr,
-#eventTableWrapper tr {
+#eventTableWrapper tr,
+.progressTableWrapper thead {
     border-bottom: 1px solid black;
+}
+
+.progressTableWrapper .completed {
+    color: green;
 }
 
 #profileTableWrapper tbody tr:last-of-type {
@@ -495,6 +499,11 @@ th, td {
 #registerOther,
 #registerAffiliation {
     width: 280px;
+}
+
+#registerOptOut + label,
+#registerOptIn + label {
+    width: 120px;
 }
 
 .standAloneFormElement select,
@@ -845,9 +854,192 @@ label.error {
     margin-top: 12px;
 }
 
+#classificationTimeGraphWrapper {
+    width: 950px;
+    height: 300px;
+    margin: auto;
+    padding: 14px 19px 14px 9px;
+    border-radius: 5px;
+    border: 1px solid black;
+    background-color: #ffffff;
+}
+
+#ctgUpperWrapper {
+    width: 100%;
+    height: 250px;
+}
+
+#ctgYBorder {
+    width: 69px;
+    height: 250px;
+    float: left;
+    border-right: 1px solid black;
+}
+
+#ctgYTitleWrapper {
+    width:20px;
+    height: 250px;
+    float:left;
+    position: relative;
+    font-weight: bold;
+}
+
+#ctgYScaleWrapper {
+    height: 250px;
+    width: 49px;
+    position: relative;
+    float:left;
+}
+
+#ctgXBorder {
+    width: 880px;
+    height:49px;
+    float:left;
+    border-top: 1px solid black;
+}
+
+#ctgXScaleWrapper {
+    height: 30px;
+    width: 880px;
+}
+
+#ctgXTitleWrapper {
+    width:880px;
+    height: 19px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#ctgDeadSpace {
+    height:49px;
+    width: 69px;
+    float: left;
+    text-align: right;
+    /*    border-top: 1px solid black;
+        border-right: 1px solid black;*/
+}
+
+#ctgDeadSpace div:first-of-type {
+    position: relative;
+    right: 13px;
+    top: -10px;
+}
+
+#ctgDeadSpace div:last-of-type {
+    position: relative;
+    right: -5px;
+    top: -7px;
+}
+
+
+#ctgContent {
+    height:250px;
+    width: 880px;
+    float: left;
+}
+
+.timeGraphBarWrapper {
+    position: relative;
+    height: 100%;
+    float: left;
+}
+
+.timeGraphBar {
+    position: absolute;
+    bottom: 0px;
+    background-color: #0602ea;
+}
+
+.timeGraphBarOverflow {
+    background: #ff0206;
+    background: -moz-linear-gradient(top, #ff0206 0%, #0602ea 20%, #0602ea 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ff0206), color-stop(20%,#0602ea), color-stop(100%,#0602ea));
+    background: -webkit-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
+    background: -o-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
+    background: -ms-linear-gradient(top, #ff0206 0%,#0602ea 20%,#0602ea 100%);
+    background: linear-gradient(to bottom, #ff0206 0%,#0602ea 20%,#0602ea 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff0206', endColorstr='#0602ea',GradientType=0 );
+}
+
+.xScaleDivision {
+    height: 100%;
+    float: left;
+    /*margin-right: 2px;*/
+}
+
+.xScaleDivision:first-of-type .xScaleMark {
+    border-left: 1px solid black;
+
+}
+
+.xScaleMark {
+    height: 10px;
+    width: 100%;
+    border-right: 1px solid black;
+}
+
+
+.xScaleNumberWrapper {
+    position: relative;
+    right: -6px;
+    text-align: right;
+}
+
+#ctgYTitle {
+    width: 300px;
+    height: 20px;
+
+    position: absolute;
+    top: 215px;
+    left: 15px;
+
+    text-align: left;
+
+    transform-origin: left bottom;
+    -ms-transform-origin: left bottom;
+    -webkit-transform-origin: left bottom;
+
+    transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    -webkit-transform: rotate(270deg);
+}
+
+.yScaleDivision {
+    position: absolute;
+    height: 50px;
+    width: 49px;
+}
+
+.yScaleNumberWrapper {
+    height: 50px;
+    width:39px;
+    position: relative;
+    top: -9px;
+    right: 3px;
+    float: left;
+    text-align: right;
+}
+
+.yScaleDivision:first-of-type .yScaleMark {
+    border-bottom: 1px solid black;
+}
+
+.yScaleMark {
+    width: 10px;
+    height: 50px;
+    float:left;
+    border-top: 1px solid black;
+}
+
+
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*Home Page*/
+
+#homePageLoggedOutWrapper, #welcomePageStatisticsWrapper {
+    overflow: hidden;
+}
+
 #indexImageColumn {
     /*    background-color: #666666;
         color: white;*/
@@ -898,9 +1090,16 @@ label.error {
     font-weight: bold;
 }
 
+#indexTextColumnCenteringWrapper {
+    display: table;
+    height: 520px;
+}
+
 #indexTextColumn {
+    display: table-cell;
+    vertical-align: middle;
+
     margin-left: 700px;
-    /*    height: 450px;*/
     text-align: left;
     margin-bottom: 20px;
 }
@@ -910,16 +1109,158 @@ label.error {
 }
 
 #indexTextColumn p {
-    margin: 10px;
+    margin: 10px
 }
 
 #indexTextColumn form {
     text-align: center;
 }
 
-/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-/*Welcome Pages*/
-#welcomeImageColumn {
+
+
+
+
+
+
+
+#homePageStatisticsWrapper {
+    clear: both;
+    font-weight: bold !important;
+    font-size: 1.5em;
+}
+#homePageStatisticsWrapper .userData {
+    font-weight: bold;
+}
+
+
+#welcomePageStatisticsWrapper > div {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#welcomePageStatisticsWrapper > div:first-of-type {
+    float: left;
+    width: 536px;
+}
+
+#welcomePageStatisticsWrapper > div:last-of-type {
+    float: left;
+    margin-left: 20px;
+    width: 636px;
+}
+
+
+.cssStatistics {
+    text-align: left;
+    display: inline-block;
+}
+
+.cssStatistics p {
+    margin: 5px 0 !important;
+    padding-left: 95px;
+    text-indent: -95px;
+}
+
+.timeStatistic p {
+    padding-left: 210px;
+    text-indent: -210px;
+}
+
+.timeStatistic .statisticNumber {
+        width: 200px;
+}
+
+#welcomePageStatisticsWrapper input {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.statisticNumber {
+    margin-right: 10px;
+    display:inline-block;
+    width: 85px;
+    text-align: right;
+    color: #0602ea;
+}
+
+/*#welcomePageStatisticsWrapper > div:first-of-type .statisticNumber {
+    width: 120px;
+}*/
+
+#welcomePageStatisticsWrapper .statisticNumber {
+    width: 150px;
+}
+
+/*#welcomePageStatisticsWrapper > div:first-of-type p {
+    margin: 5px 0 !important;
+    padding-left: 130px;
+    text-indent: -130px;
+}*/
+
+#welcomePageStatisticsWrapper p {
+    margin: 5px 0 !important;
+    padding-left: 160px;
+    text-indent: -160px;
+}
+
+.progressBar {
+    width: 400px;
+    height: 1.2em;
+    border: 1px solid black;
+    border-radius: 5px;
+    background: #b7b7b7;
+    background: -moz-linear-gradient(top, #b7b7b7 0%, #e0e0e0 30%, #b7b7b7 73%, #b7b7b7 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b7b7b7), color-stop(30%,#e0e0e0), color-stop(73%,#b7b7b7), color-stop(100%,#b7b7b7));
+    background: -webkit-linear-gradient(top, #b7b7b7 0%,#e0e0e0 30%,#b7b7b7 73%,#b7b7b7 100%);
+    background: -o-linear-gradient(top, #b7b7b7 0%,#e0e0e0 30%,#b7b7b7 73%,#b7b7b7 100%);
+    background: -ms-linear-gradient(top, #b7b7b7 0%,#e0e0e0 30%,#b7b7b7 73%,#b7b7b7 100%);
+    background: linear-gradient(to bottom, #b7b7b7 0%,#e0e0e0 30%,#b7b7b7 73%,#b7b7b7 100%);
+    margin: auto;
+    position: relative;
+}
+
+.progressBarFill {
+    height: 1.2em;
+    border-radius: 5px;
+    background: #e56969;
+    background: -moz-linear-gradient(top, #e56969 0%, #e2d0d0 30%, #e56969 72%, #e56969 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e56969), color-stop(30%,#e2d0d0), color-stop(72%,#e56969), color-stop(100%,#e56969));
+    background: -webkit-linear-gradient(top, #e56969 0%,#e2d0d0 30%,#e56969 72%,#e56969 100%);
+    background: -o-linear-gradient(top, #e56969 0%,#e2d0d0 30%,#e56969 72%,#e56969 100%);
+    background: -ms-linear-gradient(top, #e56969 0%,#e2d0d0 30%,#e56969 72%,#e56969 100%);
+    background: linear-gradient(to bottom, #e56969 0%,#e2d0d0 30%,#e56969 72%,#e56969 100%);
+    border-right: 1px solid black;
+}
+
+.progressBarText {
+    position:absolute;
+    left: 25%;
+    top: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+
+}
+
+#homePageStatisticsWrapper .progressBar {
+    width: 700px;
+}
+
+#homePageStatisticsWrapper .progressBarText {
+    left: 30%;
+}
+
+#welcomePageMapWrapper,
+#photoEditorMap {
+    width: 800px;
+    height: 600px;
+        margin: auto;
+}
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+/*Logout Page*/
+#logoffImageColumn {
     /*    background-color: #666666;
         color: white;*/
     background-color: #DDDDDD;
@@ -934,52 +1275,64 @@ label.error {
     box-shadow: 3px 3px 3px #666666;
 }
 
-#welcomeImageWrapper {
+#logoffImageWrapper {
     position: relative;
     overflow: hidden;
     height: 357px;
 }
 
-#welcomeImageWrapper img {
+#logoffImageWrapper img {
     position: absolute;
     border-radius: 5px 5px 0 0;
     float:left;
 }
 
-#welcomeImageWrapper img:first-of-type {
+#logoffImageWrapper img:first-of-type {
     top: 0;
     left: 0;
 }
 
 
-#welcomeImageCaptionWrapper {
+#logoffImageCaptionWrapper {
     height: 45px;
     font-size: 0.85em;
 }
 
-#welcomeImageCaptionWrapper p {
+#logoffImageCaptionWrapper p {
     margin: 5px;
 }
 
-#welcomeTextColumn {
+#logoffTextColumn {
     margin-left: 580px;
     text-align: left;
     margin-bottom: 20px;
 }
 
-#welcomeTextColumn h1,
-#welcomeTextColumn h2 {
+#logoffTextColumn h1,
+#logoffTextColumn h2 {
     text-align: center;
 }
 
-#welcomeTextColumn p {
+#logoffTextColumn p {
     text-align: center;
     margin: 10px;
 }
 
-#welcomeTextColumn form {
+#logoffTextColumn form {
     text-align: center;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1330,6 +1683,16 @@ input[type="checkbox"], input[type="radio"] {
     display: none;
 }
 
+input[type="checkbox"]:checked + .clickableButton,
+input[type="radio"]:checked + .clickableButton {
+    background: #e56969;
+    background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
+    border-width: 3px;
+    margin: 6px;
+}
+
 .tagText {
     display: table-cell;
     text-align: center;
@@ -1360,11 +1723,19 @@ input[type="checkbox"], input[type="radio"] {
     border-radius: 20px;
 }
 
-.annotationControls input:first-of-type, #firstPageButton, #previousPageButton {
+.annotationControls input:first-of-type,
+#firstPageButton,
+.firstPageButton,
+#previousPageButton,
+.previousPageButton {
     float:left;
 }
 
-.annotationControls input:last-of-type, #lastPageButton, #nextPageButton {
+.annotationControls input:last-of-type,
+#lastPageButton,
+.lastPageButton,
+#nextPageButton,
+.nextPageButton {
     float:right;
 }
 
@@ -1413,4 +1784,77 @@ Width needs to be altered to be dynamic!*/
     background: radial-gradient(ellipse at center, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
 }
 
+.adminMap,
+.adminMapWrapper,
+.userMapWrapper{
+    height: 500px;
+    width: 800px;
+    position: relative;
+    margin: auto;
+}
 
+.userMapWrapper {
+    height: 600px;
+    width: 420px;
+
+}
+
+.mapMarkerImage {
+    margin: 10px auto 0px;
+}
+
+.userMap {
+    height: 600px;
+    width: 420px;
+}
+
+.adminMap img,
+.userMap img{
+    border-radius: 0;
+}
+
+.adminMapLegend,
+.userMapLegend{
+    position: absolute;
+    bottom: 20px;
+    right: 5px;
+    width: 200px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    font-size: 12px;
+    color: white;
+}
+.adminMapLegendRow,
+.userMapLegendRow {
+    overflow: hidden;
+    padding: 3px 2px 3px 2px;
+}
+.adminMapLegendRowIcon,
+.userMapLegendRowIcon {
+    float: left;
+    width: 25px;
+    padding-right: 5px;
+}
+.adminMapLegendRowIcon img,
+.userMapLegendRowIcon img {
+    margin: auto;
+}
+
+.adminMapLegendSingleRowText,
+.adminMapLegendRowText,
+.userMapLegendSingleRowText,
+.userMapLegendRowText {
+    float: left;
+    width: 165px;
+    text-align: left;
+    line-height: 14px;
+}
+
+/*.adminMapLegendSingleRowText {
+    padding-top: 6px;
+}*/
+
+.adminMapLegend p,
+.userMapLegend p {
+    margin: 0 5px !important;
+}

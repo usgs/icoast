@@ -42,6 +42,8 @@ if (isset($_GET['targetProjectId'])) {
         if ($projectMetadata) {
             $queryProjectWhereClause = "WHERE project_id = :targetProjectId";
             $queryProjectAndClause = 'AND project_id = :targetProjectId';
+            $queryProjectWhereClausePrefixed = "WHERE a.project_id = :targetProjectId";
+            $queryProjectAndClausePrefixed = 'AND a.project_id = :targetProjectId';
             $queryParams['targetProjectId'] = $targetProjectId;
             $projectTitle = $projectMetadata['name'];
             $generalStatsTitle = "$projectTitle Classification Statistics";
@@ -59,25 +61,75 @@ if (!isset($queryParams)) {
     $statsTarget = 'iCoast';
     $queryProjectWhereClause = '';
     $queryProjectAndClause = '';
+    $queryProjectWhereClausePrefixed = '';
+    $queryProjectAndClausePrefixed = '';
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Determine the number of available photos in the system/project
-$numberOfPhotosQuery = "SELECT COUNT(*) FROM images "
-        . "WHERE has_display_file = 1 AND is_globally_disabled = 0 AND dataset_id IN ("
-        . "SELECT dataset_id "
-        . "FROM datasets "
-        . "WHERE collection_id "
-        . "IN ("
-        . "SELECT DISTINCT post_collection_id "
-        . "FROM projects "
-        . "$queryProjectWhereClause";
+$numberOfUsersQuery = "SELECT COUNT(*) FROM users";
+$numberOfUsersResult = run_prepared_query($DBH, $numberOfUsersQuery, $queryParams);
+$numberOfUsers = $numberOfUsersResult->fetchColumn();
+$formattedNumberOfUsers = number_format($numberOfUsers);
 
-$numberOfPhotosQuery .= ")"
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Determine the number of available photos in the system/project
+$numberOfUsersWithAClassificationQuery = "SELECT COUNT(DISTINCT user_id)  "
+        . "FROM annotations "
+        . "WHERE annotation_completed = 1 $queryProjectAndClause";
+$numberOfUsersWithAClassificationResult = run_prepared_query($DBH, $numberOfUsersWithAClassificationQuery, $queryParams);
+$numberOfUsersWithAClassification = $numberOfUsersWithAClassificationResult->fetchColumn();
+$formattedNumberOfUsersWithAClassification = number_format($numberOfUsersWithAClassification);
+
+$percentageOfUsersWithAClassification = round(($numberOfUsersWithAClassification / $numberOfUsers ) * 100, 1);
+
+$numberOfUsersWithoutAClassification = $numberOfUsers - $numberOfUsersWithAClassification;
+$formattedNumberOfUsersWithoutAClassification = number_format($numberOfUsersWithoutAClassification);
+$percentageOfUsersWithoutAClassification = round(($numberOfUsersWithoutAClassification / $numberOfUsers ) * 100, 1);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Determine the number of available photos in the system/project
+//$numberOfPhotosQuery = "SELECT COUNT(*) "
+//        . "FROM images "
+//        . "WHERE has_display_file = 1 AND is_globally_disabled = 0 AND dataset_id IN ("
+//        . "SELECT dataset_id "
+//        . "FROM datasets "
+//        . "WHERE collection_id "
+//        . "IN ("
+//        . "SELECT DISTINCT post_collection_id "
+//        . "FROM projects "
+//        . "$queryProjectWhereClause";
+
+$numberOfPhotosQuery = "SELECT COUNT(*) "
+        . "FROM images i "
+        . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.post_collection_id IN "
+        . "("
+        . "     SELECT DISTINCT post_collection_id "
+        . "     FROM projects "
+        . "     $queryProjectWhereClause"
+        . ") "
+        . "AND m.pre_collection_id IN "
+        . "("
+        . "     SELECT DISTINCT pre_collection_id "
+        . "     FROM projects "
+        . "     $queryProjectWhereClause"
+        . ") "
+        . "WHERE i.has_display_file = 1 AND i.is_globally_disabled = 0 AND i.dataset_id IN "
+        . "("
+        . "     SELECT dataset_id "
+        . "     FROM datasets "
+        . "     WHERE collection_id IN "
+        . "     ("
+        . "         SELECT DISTINCT post_collection_id "
+        . "         FROM projects "
+        . "         $queryProjectWhereClause"
+        . "     )"
         . ")";
+
+//$numberOfPhotosQuery .= ")"
+//        . ")";
 $numberOfPhotosResult = run_prepared_query($DBH, $numberOfPhotosQuery, $queryParams);
 $numberOfPhotos = $numberOfPhotosResult->fetchColumn();
 $formattedNumberOfPhotos = number_format($numberOfPhotos);
@@ -85,9 +137,25 @@ $formattedNumberOfPhotos = number_format($numberOfPhotos);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Determine number of distinct classified photos in system/project
-$numberOfClassifiedPhotosQuery = "SELECT COUNT(DISTINCT image_id) "
-        . "FROM annotations "
-        . "WHERE annotation_completed = 1 $queryProjectAndClause";
+$numberOfClassifiedPhotosQuery = <<<EOL
+                    SELECT COUNT(DISTINCT(a.image_id)) AS result_count
+                    FROM annotations a
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                         (
+                             SELECT DISTINCT post_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                         )
+                         AND m.pre_collection_id IN
+                         (
+                             SELECT DISTINCT pre_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                        )
+                    WHERE a.annotation_completed = 1 AND i.is_globally_disabled = 0 $queryProjectAndClausePrefixed
+EOL;
+
 $numberOfClassifiedPhotosResult = run_prepared_query($DBH, $numberOfClassifiedPhotosQuery, $queryParams);
 $numberOfClassifiedPhotos = $numberOfClassifiedPhotosResult->fetchColumn();
 $formattedNumberOfClassifiedPhotos = number_format($numberOfClassifiedPhotos);
@@ -115,9 +183,24 @@ $formattedNumberOfTags = number_format($numberOfTags);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Determine the total number of complete classifications for the system/project.
-$numberOfCompleteClassificationsQuery = "SELECT COUNT(*) "
-        . "FROM annotations "
-        . "WHERE annotation_completed = 1 $queryProjectAndClause";
+$numberOfCompleteClassificationsQuery = <<<EOL
+                    SELECT COUNT(*)
+                    FROM annotations a
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                         (
+                             SELECT DISTINCT post_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                         )
+                         AND m.pre_collection_id IN
+                         (
+                             SELECT DISTINCT pre_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                        )
+                    WHERE a.annotation_completed = 1 $queryProjectAndClausePrefixed
+EOL;
 
 $numberOfCompleteClassificationsResult = run_prepared_query($DBH, $numberOfCompleteClassificationsQuery, $queryParams);
 $numberOfCompleteClassifications = $numberOfCompleteClassificationsResult->fetchColumn();
@@ -127,9 +210,24 @@ $totalClassifications += $numberOfCompleteClassifications;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Determine the total number of incomplete classifications which have a match for the system/project.
-$numberOfIncompleteClassificationsQuery = "SELECT COUNT(*) "
-        . "FROM annotations "
-        . "WHERE annotation_completed = 0 AND user_match_id IS NOT NULL $queryProjectAndClause";
+$numberOfIncompleteClassificationsQuery = <<<EOL
+                    SELECT COUNT(*)
+                    FROM annotations a
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                         (
+                             SELECT DISTINCT post_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                         )
+                         AND m.pre_collection_id IN
+                         (
+                             SELECT DISTINCT pre_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                        )
+                    WHERE a.annotation_completed = 0 AND user_match_id IS NOT NULL $queryProjectAndClausePrefixed
+EOL;
 
 $numberOfIncompleteClassificationsResult = run_prepared_query($DBH, $numberOfIncompleteClassificationsQuery, $queryParams);
 $numberOfIncompleteClassifications = $numberOfIncompleteClassificationsResult->fetchColumn();
@@ -139,9 +237,24 @@ $totalClassifications += $numberOfIncompleteClassifications;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Determine the total number of unstarted classifications for the system/project.
-$numberOfUnstartedClassificationsQuery = "SELECT COUNT(*) "
-        . "FROM annotations "
-        . "WHERE annotation_completed = 0 AND user_match_id IS NULL $queryProjectAndClause";
+$numberOfUnstartedClassificationsQuery = <<<EOL
+                    SELECT COUNT(*)
+                    FROM annotations a
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                         (
+                             SELECT DISTINCT post_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                         )
+                         AND m.pre_collection_id IN
+                         (
+                             SELECT DISTINCT pre_collection_id
+                             FROM projects
+                             $queryProjectWhereClause
+                        )
+                    WHERE a.annotation_completed = 0 AND user_match_id IS NULL $queryProjectAndClausePrefixed
+EOL;
 $numberOfUnstartedClassificationsResult = run_prepared_query($DBH, $numberOfUnstartedClassificationsQuery, $queryParams);
 $numberOfUnstartedClassifications = $numberOfUnstartedClassificationsResult->fetchColumn();
 $formattedNumberOfUnstartedClassifications = number_format($numberOfUnstartedClassifications);
@@ -164,7 +277,16 @@ if ($totalClassifications > 0) {
 // Determine the percentage of unstarted classifications from the total classifications for the system/project.
     $unstartedClassificationPercentage = 0;
 }
+
 $generalStatsTableContent .= <<<EOL
+        <tr title="Number of users who have completely classified at least 1 photo within iCoast as a whole or within the selected project.">
+            <td class="userData">$formattedNumberOfUsersWithAClassification</td>
+            <td>of $formattedNumberOfUsers total users have completed at least 1 classification in $statsTarget ($percentageOfUsersWithAClassification%)</td>
+        </tr>
+        <tr title="Number of users who have not classified any photos within iCoast as a whole or within the selected project.">
+            <td class="userData">$formattedNumberOfUsersWithoutAClassification</td>
+            <td>of $formattedNumberOfUsers total users have not completed any classifications in $statsTarget ($percentageOfUsersWithoutAClassification%)</td>
+        </tr>
         <tr title="The total number of tags that have been selected either within iCoast as a whole or within the selected project.">
             <td class="userData">$formattedNumberOfTags</td>
             <td>Tags have been selected in $statsTarget</td>
@@ -199,17 +321,51 @@ if ($numberOfCompleteClassifications > 0) {
     $jsCompleteClassificationsPresent = "var completeClassificationsPresent = true;";
     if (!isset($_GET['commentsOnly'])) {
         if ($projectMetadata) {
-            $mapTitle = "Locations Of Completed Classifications in $projectTitle";
+            $mapTitle = "Locations Of Photos in $projectTitle";
         } else {
-            $mapTitle = "Locations Of Completed Classifications in iCoast";
+            $mapTitle = "Locations Of Photos in iCoast";
         }
-        $classificationMappingQuery = "SELECT COUNT(DISTINCT a.annotation_id) as annotation_count, a.image_id, i.thumb_url, i.latitude, i.longitude, i.city, i.state "
-                . "FROM annotations a "
-                . "LEFT JOIN images i ON a.image_id = i.image_id "
-                . "LEFT JOIN annotation_comments ac ON a.annotation_id = ac.annotation_id "
-                . "WHERE a.annotation_completed = 1 $queryProjectAndClause "
-                . "GROUP BY a.image_id "
-                . "ORDER BY i.state, i.city";
+//        $classificationMappingQuery = "SELECT COUNT(DISTINCT a.annotation_id) as annotation_count, i.image_id, i.thumb_url, i.latitude, i.longitude, i.city, i.state "
+//                . "FROM images i "
+//                . "LEFT JOIN annotations a ON a.image_id = i.image_id "
+//                . "WHERE i.has_display_file = 1 AND i.is_globally_disabled = 0 AND i.dataset_id IN ("
+//                . " SELECT dataset_id "
+//                . " FROM datasets "
+//                . " WHERE collection_id "
+//                . " IN ("
+//                . "     SELECT DISTINCT post_collection_id "
+//                . "     FROM projects "
+//                . "     $queryProjectWhereClause) "
+//                . " ) "
+//                . "GROUP BY i.image_id "
+//                . "ORDER BY i.state, i.city";
+        $classificationMappingQuery = "SELECT COUNT(DISTINCT a.annotation_id) as annotation_count, i.image_id, i.thumb_url, i.latitude, i.longitude, i.city, i.state "
+                . "FROM images i "
+                . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.post_collection_id IN "
+                . "     ("
+                . "         SELECT DISTINCT post_collection_id "
+                . "         FROM projects "
+                . "         $queryProjectWhereClause"
+                . "     ) "
+                . "     AND m.pre_collection_id IN "
+                . "     ("
+                . "         SELECT DISTINCT pre_collection_id "
+                . "         FROM projects "
+                . "         $queryProjectWhereClause"
+                . "     ) "
+                . "LEFT JOIN annotations a ON a.image_id = i.image_id "
+                . "WHERE i.has_display_file = 1 AND i.is_globally_disabled = 0 AND i.dataset_id IN "
+                . "("
+                . "     SELECT dataset_id "
+                . "     FROM datasets "
+                . "     WHERE collection_id IN "
+                . "     ("
+                . "         SELECT DISTINCT post_collection_id "
+                . "         FROM projects "
+                . "         $queryProjectWhereClause"
+                . "     )"
+                . ")"
+                . "GROUP BY i.image_id ";
         $mapLegend = <<<EOL
             <div class="adminMapLegend">
                 <div class="adminMapLegendRow">
@@ -223,6 +379,14 @@ if ($numberOfCompleteClassifications > 0) {
                   <div class="adminMapLegendSingleRowText">
                     <p>Clustering of Photos</p>
                   </div>
+                </div>
+                <div class="adminMapLegendRow">
+                    <div class="adminMapLegendRowIcon">
+                      <img width="13" height="24" title="" alt="Image of a blue map marker pin" src="http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png">
+                    </div>
+                    <div class="adminMapLegendRowText">
+                      <p>Photo with 0<br>classifications</p>
+                    </div>
                 </div>
                 <div class="adminMapLegendRow">
                   <div class="adminMapLegendRowIcon">
@@ -263,6 +427,7 @@ EOL;
                 . "LEFT JOIN annotation_comments ac ON a.annotation_id = ac.annotation_id "
                 . "WHERE a.annotation_completed = 1 $queryProjectAndClause AND a.annotation_id IN (SELECT ac.annotation_id FROM annotation_comments ac LEFT JOIN annotations a ON ac.annotation_id = a.annotation_id $queryProjectWhereClause) "
                 . "ORDER BY i.state, i.city";
+
         $mapLegend = <<<EOL
             <div class="adminMapLegend">
                 <div class="adminMapLegendRow">
@@ -306,6 +471,14 @@ EOL;
     }
     $classificationMappingResult = run_prepared_query($DBH, $classificationMappingQuery, $queryParams);
     $classificationMappingData = $classificationMappingResult->fetchAll(PDO::FETCH_ASSOC);
+//    print '<pre>';
+//    print_r($classificationMappingData);
+//    print '</pre>';
+//    print '<pre>';
+//    for ($i=0; $i < 200; $i++) {
+//        print_r($classificationMappingData[$i]);
+//    }
+//    print '</pre>';
     if (isset($_GET['commentsOnly'])) {
         $trackingArray = array();
         for ($i = 0; $i < count($classificationMappingData); $i++) {
@@ -363,26 +536,33 @@ EOL;
                 var hasResults = false;
                 $.each(photoArray, function(key, photo) {
                     hasResults = true;
-                    console.log(key);
+                    var manageButton = '<div style="text-align: center"><form method="get" action="photoEditor.php#imageDetailsHeader" target="_blank">'
+                            + '<input type="hidden" name="targetPhotoId" value="' + photo.image_id + '" />'
+                            + '<input type="submit" value="Manage Image" class="clickableButton" />'
+                            + '</form></div>';
                     if (typeof (photo.commentCount) != "undefined" && photo.commentCount > 1) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: greenMarker});
                     } else if (typeof (photo.commentCount) != "undefined" && photo.commentCount == 1) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: redMarker});
                     } else if (photo.annotation_count >= 3) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: greenMarker});
-                    } else {
+                    } else if (photo.annotation_count >= 1) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: redMarker});
+                    } else {
+                        var marker = L.marker([photo.latitude, photo.longitude]);
                     }
                     if (typeof (photo.comment) != "undefined") {
                         var markerPopup = 'Image ID: <a href="photoStats.php?targetPhotoId=' + photo.image_id + '">' + photo.image_id + '</a><br>'
                         + 'Location: ' + photo.city + ', ' + photo.state + '<br>'
                         + '<span style="width: 250px">Comment: ' + photo.comment + '</span><br>'
-                        + '<a href="photoStats.php?targetPhotoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>';
+                        + '<a href="photoStats.php?targetPhotoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>'
+                        + manageButton;
                     } else {
                         var markerPopup = 'Image ID: <a href="photoStats.php?targetPhotoId=' + photo.image_id + '">' + photo.image_id + '</a><br>'
                         + 'Location: ' + photo.city + ', ' + photo.state + '<br>'
                         + 'Number Of Classifications: <a href="photoStats.php?targetPhotoId=' + photo.image_id + '">' + photo.annotation_count + '</a><br>'
-                        + '<a href="photoStats.php?targetPhotoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>';
+                        + '<a href="photoStats.php?targetPhotoId=' + photo.image_id + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '" /></a>'
+                        + manageButton;
                     }
                     marker.bindPopup(markerPopup, {closeOnClick: true});
                     markers.addLayer(marker);
