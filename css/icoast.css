@@ -1059,22 +1059,54 @@ label.error {
     position: relative;
     overflow: hidden;
     height: 435px;
+    width: 670px;
+    text-align: center;
 }
 
 #indexImageWrapper img {
-    position: absolute;
+
     border-radius: 5px 5px 0 0;
     float:left;
 }
 
-#indexImageWrapper img:first-of-type {
-    top: 0;
-    left: 0;
-}
-
 #indexImageWrapper img:last-of-type {
+    position: absolute;
     top: 0;
     left: 670px;
+}
+
+#slideshowJumpButtonWrapper {
+    position: relative;
+    top: -40px;
+    display: inline-block;
+
+    margin: auto;
+    border-radius: 5px;
+    padding: 7px;
+
+    background-color: rgba(50, 50, 50, 0.5);
+
+    line-height: 0;
+}
+
+
+.slideshowJumpButton {
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    margin-left: 5px;
+    border: 2px solid black;
+    border-radius: 50%;
+
+
+    background-color: white;
+
+}
+
+.slideshowJumpButton:first-of-type {
+        margin-left: 0;
+        border: 2px solid white;
+        background-color: black;
 }
 
 #imageCaptionWrapper {
@@ -1167,7 +1199,7 @@ label.error {
 }
 
 .timeStatistic .statisticNumber {
-        width: 200px;
+    width: 200px;
 }
 
 #welcomePageStatisticsWrapper input {
@@ -1254,7 +1286,7 @@ label.error {
 #photoEditorMap {
     width: 800px;
     height: 600px;
-        margin: auto;
+    margin: auto;
 }
 
 

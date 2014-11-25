@@ -502,6 +502,48 @@ EOL;
             }
         }
     }
+
+    $slideShowContentQuery = <<<EOL
+        SELECT image_name, image_alt_text, caption_header, caption_text
+        FROM slideshow s
+        WHERE slideshow_group_id = (
+            SELECT slideshow_group_id
+            FROM system
+        ) AND is_enabled = 1
+        ORDER BY position_in_slideshow
+EOL;
+    $slideShowContent = $DBH->query($slideShowContentQuery)->fetchAll(PDO::FETCH_ASSOC);
+    $jsSlideShowContent = json_encode($slideShowContent);
+
+    $slideshowJumpButtonHTML = '';
+    for ($i = 0; $i < count($slideShowContent); $i++) {
+        $slideshowJumpButtonHTML .= <<<EOL
+            <div class="slideshowJumpButton" id="jumpButton$i"></div>
+EOL;
+            $jQueryDocumentDotReadyCode .= <<<EOL
+                $('#jumpButton$i').data('id', $i);
+                $('#jumpButton$i').click(function() {
+                    $('.slideshowJumpButton').each(function () {
+                        $(this).css({
+                            "border": "2px solid black",
+                            "background-color": "white"
+                        });
+                    });
+                    $(this).css({
+                        "border": "2px solid white",
+                        "background-color": "black"
+                    });
+                    loadImage = $(this).data('id');
+                    loadIndexImageContent('displayed');
+                    loadIndexImageContent('next');
+                    clearInterval(slideTimer);
+                    slideTimer = setInterval(slideNewImage, 15000);
+                });
+
+EOL;
+    }
+
+
     $variableHomeContent .= <<<EOL
           <form action="?login" method="post">
             <div class="formFieldRow standAloneFormElement">
@@ -520,13 +562,15 @@ EOL;
         <div id="homePageLoggedOutWrapper">
             <div id="indexImageColumn">
                 <div id="indexImageWrapper">
-                    <img src="images/system/indexImages/seasideHeights.jpg"
-                        alt="An image of the pier at Seaside Heights, New Jersey following Hurricane Sandy.
-                            The end has been washed away by the storm." height="435" width="670" title="" />
+                    <img src="images/system/indexSlideShowImages/{$slideShowContent[0]['image_name']}"
+                        alt="{$slideShowContent[0]['image_alt_text']}" height="435" width="670" title="" />
                     <img src="" alt="" height="435" width="670" title="" />
+                    <div id="slideshowJumpButtonWrapper">
+                        $slideshowJumpButtonHTML
+                    </div>
                 </div>
                 <div id="imageCaptionWrapper">
-                    <p><span class="captionTitle" id="captionTitle"></span> <span id="captionText"></span></p>
+                    <p><span class="captionTitle" id="captionTitle">{$slideShowContent[0]['caption_header']}</span> <span id="captionText">{$slideShowContent[0]['caption_text']}</span></p>
                 </div>
             </div>
             <div id="indexTextColumn">
@@ -563,31 +607,44 @@ EOL;
                 loadImage = 0;
             }
 
-            var image = 'images/system/indexImages/' + indexImages[loadImage][0];
-            var altTag = indexImages[loadImage][3];
-            var captionTitle = indexImages[loadImage][1];
-            var caption = indexImages[loadImage][2];
+            var image = 'images/system/indexSlideshowImages/' + slideShowContent[loadImage]['image_name'];
+            var altTag = slideShowContent[loadImage]['image_alt_text'];
+            var captionHeader = slideShowContent[loadImage]['caption_header'];
+            var caption = slideShowContent[loadImage]['caption_text'];
 
             switch (targetImage) {
             case 'displayed':
                 $('#indexImageWrapper img:first-of-type').attr('src', image);
                 $('#indexImageWrapper img:first-of-type').attr('alt', altTag)
-                $('#captionTitle').text(captionTitle);
+                $('#captionTitle').text(captionHeader);
                 $('#captionText').text(caption);
+
                 break;
             case 'next':
+                previousImage = loadImage - 1;
+                if (previousImage < 0) {
+                    previousImage = numberOfImages - 1;
+                }
                 $('#indexImageWrapper img:last-of-type').attr('src', image);
                 $('#indexImageWrapper img:last-of-type').attr('atr', altTag);
-                nextCaptionTitle = indexImages[loadImage][1];
-                nextCaption = indexImages[loadImage][2];
+                nextCaptionHeader = slideShowContent[loadImage]['caption_header'];
+                nextCaption = slideShowContent[loadImage]['caption_text'];
                 break;
             }
         }
 
         function slideNewImage() {
+            $('#jumpButton' + loadImage).css({
+                "border": "2px solid white",
+                "background-color": "black"
+            });
+            $('#jumpButton' + previousImage).css({
+                "border": "2px solid black",
+                "background-color": "white"
+            });
             $('#imageCaptionWrapper').slideUp(500,
                 function() {
-                    $('#captionTitle').text(nextCaptionTitle);
+                    $('#captionTitle').text(nextCaptionHeader);
                     $('#captionText').text(nextCaption);
                     $('#imageCaptionWrapper').slideDown(500);
                 });
@@ -598,86 +655,25 @@ EOL;
                 left: 0
             }, 1000, function() {
                 $('#indexImageWrapper img:first-of-type').remove();
-                $('#indexImageWrapper').append('<img src="" alt="" height="435" width="670" title="" />');
+                $('#indexImageWrapper img:first-of-type').after('<img src="" alt="" height="435" width="670" title="" />');
                 loadIndexImageContent('next');
             });
         }
 
-        var indexImages = [
-            [
-                'seasideHeights.jpg',
-                'Welcome!',
-                'USGS iCoast is a USGS crowdsourcing application created for you to help us better understand how ' +
-                    'coastlines change after extreme storms.',
-                'An image of the pier at Seaside Heights, New Jersey following Hurricane Sandy. The end has been ' +
-                    'washed away by the storm.'
-            ],
-            [
-                'karen.jpg',
-                'Help!',
-                'Become a volunteer to help USGS scientists look for coastal changes in their oblique aerial ' +
-                    'photographs they have taken since 1995.',
-                'An image showing a member of USGS photographing the coastline from the cabin of a light aircraft.'
-            ],
-            [
-                'mantoloking.jpg',
-                'Witness!',
-                'Fly along the coast with us and witness the real world impacts of extreme storms affecting our ' +
-                    'coastlines.',
-                'An image of severe coastal change at Mantoloking, New Jersey following Hurricane Sandy. A new ' +
-                    'inlet has been cut by the storm resulting in loss of housing and road infrastructure.'
-            ],
-            [
-                'map.jpg',
-                'Explore!',
-                'Look at aerial photographs of the coast you never knew existed, or use the map to find aerial ' +
-                    'imagery of places familiar to you.',
-                'An image of the iCoast map interface that is used to select specific images to tag.'
-            ],
-            [
-                'classify.jpg',
-                'Volunteer!',
-                'Tag coastal aerial imagery with pre-defined keywords to help us identify and map coastal change ' +
-                    'processes after extreme storms.',
-                'A screenshot of the iCoast application\'s classification page where users can compare images and ' +
-                    'log what they see.'
-            ],
-            [
-                'predictions.jpg',
-                'Improve!',
-                'Help ground truth and improve USGS predictive models of coastal changes to inform evacuation, ' +
-                    'preparedness, and mitigation efforts.',
-                'An image showing a graphical representation of the USGS coastal erosion prediction models for the ' +
-                    'north east United States coastline.'
-            ],
-            [
-                'breach.jpg',
-                'Respect!',
-                'See before and after images of the coast to understand and build a respect for the real dangers ' +
-                    'of extreme storms.',
-                'An image showing the effect of a coastal process called Inundation. An entire barrier island has ' +
-                    'been destroyed with almost complete loss of all housing and transportation infrastructure.'
-            ],
-            [
-                'learn.jpg',
-                'Learn!',
-                'USGS iCoast is designed to also educate the public about how extreme storms can threaten homes, ' +
-                    'businesses, and infrastructure on our Nation’s coast.',
-                'An image showing a popup from the iCoast interface describing a coastal change process.'
-            ]
-        ];
+        var slideShowContent = $jsSlideShowContent;
 
         var loadImage = 0;
-        var numberOfImages = indexImages.length;
-        var nextCaptionTitle;
+        var previousImage;
+        var numberOfImages = slideShowContent.length;
+        var nextCaptionHeader;
         var nextCaption;
 
 EOL;
 
-    $jQueryDocumentDotReadyCode = <<<EOL
+    $jQueryDocumentDotReadyCode .= <<<EOL
         loadIndexImageContent('displayed');
         loadIndexImageContent('next');
-        setInterval(slideNewImage, 15000);
+        var slideTimer = setInterval(slideNewImage, 15000);
 EOL;
 }
 

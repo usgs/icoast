@@ -8,7 +8,7 @@ $pageBody = <<<EOL
     <div id="contentWrapper">
         <div id="logoffImageColumn">
             <div id="logoffImageWrapper">
-                <img src="images/system/indexImages/rodanthe.jpg"
+                <img src="images/system/rodanthe.jpg"
                     alt="An image of the North Carolina coast at Rodanthe where inundation and infrastructure
                         damage following Hurricane Sandy is clearly visible." height="357" width="550" title="" />
             </div>
