@@ -530,9 +530,9 @@ EOL;
         $photoCountResults = $DBH->query($photoCountQuery)->fetchColumn();
         $formattedPhotoCountResults = number_format($photoCountResults);
         if ($photoCountResults == 1) {
-            $photoCountText = 'image matches';
+            $photoCountText = 'photo matches';
         } else {
-            $photoCountText = 'images match';
+            $photoCountText = 'photos match';
         }
         $photoResults = $DBH->query($photoQuery)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -612,7 +612,7 @@ EOL;
 
             $photoDetailsHTML = <<<EOL
                 <p><span class="userData">$formattedPhotoCountResults</span> $photoCountText your selected criteria.</p>
-                <p>Click on an image to toggle its status between Enabled and Disabled.<br>
+                <p>Click on a photo to toggle its status between Enabled and Disabled.<br>
                     A <span style="color: green">green</span> border indicates a photo is enabled. A <span style="color: red">red</span> border indicates a photo is disabled.<br>
                     Use the "View Photo Stats" buttons to display a seperate page showing classification details for the chosen photo.</p>
                 <div id="adminPhotoThumbnailGrid">
