@@ -1,344 +1,501 @@
 <?php
 
-//print 'Raw Data<br><pre>';
-//print_r($_POST);
-//print '</pre><br>';
-
 require_once('../includes/globalFunctions.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 function validateUser($DBH, $userId, $authCheckCode) {
-  $validUser = TRUE;
-  $errorMsg = '';
+    $validUser = TRUE;
+    $errorMsg = '';
 
-  $userValidationQuery = "SELECT auth_check_code, is_enabled FROM users WHERE user_id = :userId LIMIT 1";
-  $userValidationParams['userId'] = $userId;
-  $STH = run_prepared_query($DBH, $userValidationQuery, $userValidationParams);
-  $user = $STH->fetch(PDO::FETCH_ASSOC);
+    $userValidationQuery = "SELECT auth_check_code, is_enabled FROM users WHERE user_id = :userId LIMIT 1";
+    $userValidationParams['userId'] = $userId;
+    $STH = run_prepared_query($DBH, $userValidationQuery, $userValidationParams);
+    $user = $STH->fetch(PDO::FETCH_ASSOC);
 //  $userValidationResult = run_database_query($userValidationQuery);
 //  $user = $userValidationResult->fetch_assoc();
 
-  if ($user['auth_check_code'] != $authCheckCode) {
-    $validUser = FALSE;
-    $errorMsg = 'Authentication code mismatch.';
-  }
+    if ($user['auth_check_code'] != $authCheckCode) {
+        $validUser = FALSE;
+        $errorMsg = 'Authentication code mismatch.';
+    }
 
-  if ($user['is_enabled'] == 0) {
-    $validUser = FALSE;
-    $errorMsg = 'User account is disabled' . $user;
-  }
+    if ($user['is_enabled'] == 0) {
+        $validUser = FALSE;
+        $errorMsg = 'User account is disabled' . $user;
+    }
 
-  return array('validationResult' => $validUser,
-      'errorMsg' => $errorMsg);
+    return array('validationResult' => $validUser,
+        'errorMsg' => $errorMsg);
 }
 
+// file_put_contents('loggerLog.txt', "START\n\r");
+// file_put_contents('loggerLog.txt', "Post Variables:" . print_r($_POST, true) . "\n\r", FILE_APPEND);
 
-
-
-$annotationSessionId = $_POST['annotationSessionId'];
-$userId = $_POST['userId'];
-$authCheckCode = $_POST['authCheckCode'];
-$projectId = $_POST['projectId'];
-$postImageId = $_POST['postImageId'];
-
-unset($_POST['annotationSessionId']);
-unset($_POST['userId']);
-unset($_POST['authCheckCode']);
-unset($_POST['projectId']);
-unset($_POST['postImageId']);
+$annotationSessionId = filter_input(INPUT_POST, 'annotationSessionId');
+$authCheckCode = filter_input(INPUT_POST, 'authCheckCode');
+$userId = filter_input(INPUT_POST, 'userId', FILTER_VALIDATE_INT);
+$projectId = filter_input(INPUT_POST, 'projectId', FILTER_VALIDATE_INT);
+$postImageId = filter_input(INPUT_POST, 'postImageId', FILTER_VALIDATE_INT);
+$preImageId = filter_input(INPUT_POST, 'preImageId', FILTER_VALIDATE_INT);
+$startClassificationFlag = filter_input(INPUT_POST, 'startClassification', FILTER_VALIDATE_BOOLEAN);
+$annotationCompleteFlag = filter_input(INPUT_POST, 'annotationComplete', FILTER_VALIDATE_BOOLEAN);
 
 $validUser = validateUser($DBH, $userId, $authCheckCode);
 if (!$validUser['validationResult']) {
-  print "User authentication error: {$validUser['errorMsg']}";
-  exit;
+    // file_put_contents('loggerLog.txt', "Not a valid user. Exit.", FILE_APPEND);
+    exit;
 }
 
+$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+$postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image');
+if (
+        !$projectMetadata ||
+        !$postImageMetadata ||
+        ($projectMetadata && $projectMetadata['is_public'] == 0) ||
+        ($postImageMetadata && $postImageMetadata['is_globally_disabled'] == 1)
+) {
+    // file_put_contents('loggerLog.txt', "Not valid project or post image. Exit.", FILE_APPEND);
+    exit;
+}
+// file_put_contents('loggerLog.txt', "Project and Post Image Verified\n\r", FILE_APPEND);
+if (isset($preImageId)) {
+    $preImageMetadata = retrieve_entity_metadata($DBH, $preImageId, 'image');
+    if (!$preImageMetadata ||
+            ($preImageMetadata && $preImageMetadata['is_globally_disabled'] == 1)) {
+        // file_put_contents('loggerLog.txt', "Not a valid pre image. Exit.", FILE_APPEND);
+        exit;
+    }
+    // file_put_contents('loggerLog.txt', "Pre Image Verified\n\r", FILE_APPEND);
+}
 
-$annotationExistsQuery = "SELECT * FROM annotations WHERE user_id = $userId AND "
-        . "project_id = $projectId AND image_id = $postImageId";
-$annotationExistsParams = array(
+$existingAnnotationQuery = "
+    SELECT 
+        * 
+    FROM 
+        annotations 
+    WHERE 
+        user_id = :userId AND
+        project_id = :projectId AND 
+        image_id = :postImageId
+    ";
+$existingAnnotationParams = array(
     'userId' => $userId,
     'projectId' => $projectId,
     'postImageId' => $postImageId
 );
-$STH = run_prepared_query($DBH, $annotationExistsQuery, $annotationExistsParams);
-$existingAnnotation = $STH->fetchAll(PDO::FETCH_ASSOC);
-$existingAnnotationStatus = FALSE;
-if (count($existingAnnotation) > 0) {
-  $existingAnnotationStatus = TRUE;
-  $existingAnnotation = $existingAnnotation[0];
+$existingAnnotationResult = run_prepared_query($DBH, $existingAnnotationQuery, $existingAnnotationParams);
+$existingAnnotation = $existingAnnotationResult->fetch(PDO::FETCH_ASSOC);
+if ($existingAnnotation) {
+    // file_put_contents('loggerLog.txt', "Existing Annotation: " . print_r($existingAnnotation, true) . "\n\r", FILE_APPEND);
+} else {
+    // file_put_contents('loggerLog.txt', "No Existing Annotation.\n\r", FILE_APPEND);
 }
-//$annotationExistsResult = run_database_query($annotationExistsQuery);
-//$existingAnnotation = $annotationExistsResult->fetch_assoc();
 
-if (isset($_POST['loadEvent'])) {
-  if (!$existingAnnotationStatus) {
-    $annotationLoadEventQuery = "INSERT INTO annotations (initial_session_id, user_id, "
-            . "project_id, image_id, initial_session_start_time) VALUES (:annotationSessionId, :userId, "
-            . ":projectId, :postImageId, NOW())";
-    $annotationLoadEventParams = array(
-        'annotationSessionId' => $annotationSessionId,
-        'userId' => $userId,
-        'projectId' => $projectId,
-        'postImageId' => $postImageId
-    );
-    $STH = run_prepared_query($DBH, $annotationLoadEventQuery, $annotationLoadEventParams);
-//    $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
-    if ($STH->rowCount() != 1) {
-      //  Placeholder for error management
-      print "Load event database update failed: $annotationLoadEventQuery";
-      exit;
-    }
-  } else {
-    if (is_null($existingAnnotation['user_match_id']) && $existingAnnotation['initial_session_id'] != $annotationSessionId) {
-      $annotationLoadEventQuery = "UPDATE annotations SET initial_session_id = :annotationSessionId, "
-              . "initial_session_start_time = NOW() "
-              . "WHERE annotation_id = :annotationId";
-      $annotationLoadEventParams = array(
-          'annotationSessionId' => $annotationSessionId,
-          'annotationId' => $existingAnnotation['annotation_id']
-      );
-      $STH = run_prepared_query($DBH, $annotationLoadEventQuery, $annotationLoadEventParams);
-//      $annotationLoadEventResult = run_database_query($annotationLoadEventQuery);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Load event database update failed: $annotationLoadEventQuery");
-      }
-    }
-  }
-} else { // End loadEvent If
-  $userDataChange = FALSE;
-
-  if (!$existingAnnotationStatus) {
-    print "Error: No annotation to update.";
-    exit;
-  }
-
-  $preImageId = $_POST['preImageId'];
-  unset($_POST['preImageId']);
-  $annotationComplete = 0;
-  if (isset($_POST['annotationComplete'])) {
-    $annotationComplete = 1;
-    unset($_POST['annotationComplete']);
-  }
-
-//  print 'Raw Selections<br><pre>';
-//  print_r($_POST);
-//  print '</pre>';
-
-
-  if ($existingAnnotation['user_match_id'] != $preImageId ||
-          ($existingAnnotation['annotation_completed'] == 0 && $existingAnnotation['annotation_completed'] != $annotationComplete)) {
-//    print "Changinh userDataChange Flag<br>";
-    $userDataChange = TRUE;
-  }
-
-  $selections = $_POST;
-  $comments = array();
-  unset($_POST);
-
-  foreach ($selections as $tagId => $tagValue) {
-    if (!is_numeric($tagId)) {
-      $selections[$tagValue] = $tagValue;
-      unset($selections[$tagId]);
-    }
-    if (!is_numeric($tagValue) || empty($tagValue)) {
-      if (!empty($tagValue)) {
-        $comments[$tagId] = $tagValue;
-      }
-      unset($selections[$tagId]);
-    }
-  }
-
-//  print 'Unprocessed Selections<br><pre>';
-//  print_r($selections);
-//  print '</pre>';
-
-  $tagSelectionQuery = "SELECT * FROM annotation_selections "
-          . "WHERE annotation_id = :annotationId";
-  $tagSelectionParams['annotationId'] = $existingAnnotation['annotation_id'];
-  $STH = run_prepared_query($DBH, $tagSelectionQuery, $tagSelectionParams);
-  $existingSelections = $STH->fetchAll(PDO::FETCH_ASSOC);
-//  print 'Existing Selections<br><pre>';
-//  print_r($existingSelections);
-//  print '</pre>';
-
-//  $tagSelectionResult = run_database_query($tagSelectionQuery);
-
-  foreach ($existingSelections as $existingSelection) {
-    $databaseTagId = $existingSelection['tag_id'];
-    $databaseEntryId = $existingSelection['table_id'];
-    if (in_array($databaseTagId, $selections)) {
-      unset($selections[$databaseTagId]);
-    } else {
-      $tagSelectionDeleteQuery = "DELETE FROM annotation_selections "
-              . "WHERE table_id = :databaseEntryId LIMIT 1";
-      $tagSelectionDeleteParams['databaseEntryId'] = $databaseEntryId;
-      $STH = run_prepared_query($DBH, $tagSelectionDeleteQuery, $tagSelectionDeleteParams);
-
-//      $tagSelectionDeleteResult = run_database_query($tagSelectionDeleteQuery);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Deletion of unselcted tag from database failed: $annotationLoadEventQuery");
-      }
-      $userDataChange = TRUE;
-    }
-  }
-
-//    print 'Selections to insert<br><pre>';
-//  print_r($selections);
-//  print '</pre>';
-  if (count($selections > 0)) {
-    foreach ($selections as $selection) {
-      $tagSelectionInsertQuery = "INSERT INTO annotation_selections (annotation_id, tag_id) VALUES "
-              . "(:annotationId, :tagId)";
-      $tagSelectionInsertParams = array(
-          'annotationId' => $existingAnnotation['annotation_id'],
-          'tagId' => $selection
-      );
-      $STH = run_prepared_query($DBH, $tagSelectionInsertQuery, $tagSelectionInsertParams);
-//      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Insertion of  newly selcted tag from database failed: $annotationLoadEventQuery");
-      }
-      $userDataChange = TRUE;
-    }
-  }
-
-//  print 'Unprocessed Comments<br><pre>';
-//  print_r($comments);
-//  print '</pre>';
-
-
-  $tagCommentQuery = "SELECT * FROM annotation_comments"
-          . " WHERE annotation_id = :annotationId";
-  $tagCommentParams['annotationId'] = $existingAnnotation['annotation_id'];
-  $STH = run_prepared_query($DBH, $tagCommentQuery, $tagCommentParams);
-  $existingComments = $STH->fetchAll(PDO::FETCH_ASSOC);
-//  $tagCommentResult = run_database_query($tagCommentQuery);
-//  print 'Existing Comments<br><pre>';
-//  print_r($existingComments);
-//  print '</pre>';
-
-  foreach ($existingComments as $existingComment) {
-    $databaseTagId = $existingComment['tag_id'];
-    $databaseEntryId = $existingComment['table_id'];
-    $databaseComment = $existingComment['comment'];
-    if (array_key_exists($databaseTagId, $comments)) {
-      if (strcmp($databaseComment, $comments[$databaseTagId]) == 0) {
-        unset($comments[$databaseTagId]);
-      } else {
-        $tagCommentUpdateQuery = "UPDATE annotation_comments "
-                . "SET comment = :comment "
-                . "WHERE table_id = :databaseEntryId LIMIT 1";
-        $tagCommentUpdateParams = array(
-            'comment' => $comments[$databaseTagId],
-            'databaseEntryId' => $databaseEntryId
+if ($startClassificationFlag) {
+    // file_put_contents('loggerLog.txt', "Just loaded classification.\n\r", FILE_APPEND);
+    if (empty($existingAnnotation)) {
+        // file_put_contents('loggerLog.txt', "New Classification.\n\r", FILE_APPEND);
+        $insertAnnotationQuery = "
+            INSERT INTO 
+                annotations 
+            (
+                initial_session_id, 
+                user_id, 
+                project_id, 
+                image_id, 
+                initial_session_start_time
+            ) 
+            VALUES 
+            (
+                :annotationSessionId, 
+                :userId, 
+                :projectId, 
+                :postImageId, 
+                NOW())
+            ";
+        $insertAnnotationParams = array(
+            'annotationSessionId' => $annotationSessionId,
+            'userId' => $userId,
+            'projectId' => $projectId,
+            'postImageId' => $postImageId
         );
-        $STH = run_prepared_query($DBH, $tagCommentUpdateQuery, $tagCommentUpdateParams);
-//        $tagCommentDeleteResult = run_database_query($tagCommentDeleteQuery);
-        if ($STH->rowCount() != 1) {
-          //  Placeholder for error management
-          exit("Update of existing comment in database failed: $annotationLoadEventQuery");
+        $insertAnnotationResult = run_prepared_query($DBH, $insertAnnotationQuery, $insertAnnotationParams);
+        if ($insertNewAnnotationResult->rowCount() != 1) {
+            // file_put_contents('loggerLog.txt', "New annotation insert failed. Exit.", FILE_APPEND);
+            exit;
         }
-        unset($comments[$databaseTagId]);
+    } else { // END if (empty($existingAnnotation))
+        // file_put_contents('loggerLog.txt', "Existing Classification\n\r", FILE_APPEND);
+        if (
+                is_null($existingAnnotation['user_match_id']) &&
+                $existingAnnotation['initial_session_id'] != $annotationSessionId
+        ) {
+            // file_put_contents('loggerLog.txt', "Resetting existing classification.\n\r", FILE_APPEND);
+            $updateAnnotationQuery = "
+                UPDATE 
+                    annotations 
+                SET 
+                    initial_session_id = :annotationSessionId,
+                    initial_session_start_time = NOW()
+                WHERE
+                    annotation_id = :annotationId";
+            $updateAnnotationParams = array(
+                'annotationSessionId' => $annotationSessionId,
+                'annotationId' => $existingAnnotation['annotation_id']
+            );
+            $updateAnnotationResult = run_prepared_query($DBH, $updateAnnotationQuery, $updateAnnotationParams);
+            if ($updateAnnotationResult->rowCount() != 1) {
+                // file_put_contents('loggerLog.txt', "Update of exissting annotaion failed. Exit.", FILE_APPEND);
+                exit;
+            }
+        }
+    } // END if (empty($existingAnnotation)) ELSE
+} else { // END if ($startClassificationFlag)
+    // file_put_contents('loggerLog.txt', "Working through the tasks.\n\r", FILE_APPEND);
+    $userDataChange = FALSE;
+
+    if (empty($existingAnnotation)) {
+        // file_put_contents('loggerLog.txt', "There should be an existing classification. But there isn't!\n\r", FILE_APPEND);
+        exit;
+    }
+
+
+    if (
+            $existingAnnotation['user_match_id'] != $preImageId ||
+            ($existingAnnotation['annotation_completed'] == 0 && $annotationCompleteFlag)
+    ) {
+        // file_put_contents('loggerLog.txt', "The Pre Image has changed or the annotation needs to be marked as completed.\n\r", FILE_APPEND);
         $userDataChange = TRUE;
-      }
     }
-  }
-//    print 'Comments to insert<br><pre>';
-//  print_r($comments);
-//  print '</pre>';
-  if (count($comments > 0)) {
-    foreach ($comments as $tagId => $comment) {
-      $tagSelectionInsertQuery = "INSERT INTO annotation_comments (annotation_id, tag_id, comment) "
-              . "VALUES (:annotationId, :tagId, :comment)";
-      $tagSelectionInsertParams = array(
-          'annotationId' => $existingAnnotation['annotation_id'],
-          'tagId' => $tagId,
-          'comment' => $comment
-      );
-      $STH = run_prepared_query($DBH, $tagSelectionInsertQuery, $tagSelectionInsertParams);
-//      $tagSelectionInsertResult = run_database_query($tagSelectionInsertQuery);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Insertion of new comment into database failed: $annotationLoadEventQuery");
-      }
-      $userDataChange = TRUE;
+
+
+
+    $validTagIdsQueryParam['projectId'] = $projectId;
+    $validTagIdsQuery = "
+    SELECT 
+        tag_id, 
+        is_comment_box
+    FROM 
+        tags
+    WHERE
+        project_id = :projectId AND
+        is_enabled = 1
+    ";
+    $validTagIdsResult = run_prepared_query($DBH, $validTagIdsQuery, $validTagIdsQueryParam);
+
+    $validTagIds = array();
+    $validCommentIds = array();
+    while ($validTagId = $validTagIdsResult->fetch()) {
+        if ($validTagId['is_comment_box'] == 0) {
+            $validTagIds[] = $validTagId['tag_id'];
+        } else {
+            $validCommentIds[] = $validTagId['tag_id'];
+        }
     }
-  }
+    // file_put_contents('loggerLog.txt', "Project Tags are:" . print_r($validTagIds, true) . "\n\r", FILE_APPEND);
+    // file_put_contents('loggerLog.txt', "Project Comment Tags are:" . print_r($validCommentIds, true) . "\n\r", FILE_APPEND);
 
+    $newSelectedTagIds = array();
+    $newUserComments = array();
+    foreach ($_POST as $tagId => $tagValue) {
+        $filteredTagId = filter_var($tagId, FILTER_VALIDATE_INT);
+        $filteredTagValue = filter_var(trim($tagValue));
+        // file_put_contents('loggerLog.txt', "Checking POST entry $tagId ($filteredTagId) containing value '$tagValue' ($filteredTagValue).\n\r", FILE_APPEND);
 
-
-
-  if ($userDataChange) {
-    if ($annotationSessionId == $existingAnnotation['initial_session_id']) {
-
-
-      if ($annotationComplete == 0) {
-        $annotationUpdateQuery = "UPDATE annotations SET user_match_id = :preImageId,"
-                . "initial_session_end_time = NOW() "
-                . "WHERE annotation_id = :annotationId";
-      } else {
-        $annotationUpdateQuery = "UPDATE annotations SET user_match_id = :preImageId,"
-                . "initial_session_end_time = NOW(), annotation_completed = 1 "
-                . "WHERE annotation_id = :annotationId";
-      }
-      $annotationUpdateParams = array(
-          'preImageId' => $preImageId,
-          'annotationId' => $existingAnnotation['annotation_id']
-      );
-      $STH = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Update of annotations table in database failed: $annotationLoadEventQuery");
-      }
-
-//      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
-//      if (!$annotationUpdateResult) {
-//        print "Query Failure: $annotationUpdateResult";
-//        exit;
-//      }
-    } else {
-      if ($annotationSessionId != $existingAnnotation['revision_session_id']) {
-        $revisionCount = $existingAnnotation['revision_count'] + 1;
-      } else {
-        $revisionCount = $existingAnnotation['revision_count'];
-      }
-      $annotationUpdateQuery = "UPDATE annotations "
-              . "SET user_match_id = :preImageId, "
-              . "revision_session_id = :annotationSessionId, "
-              . "revision_count = :revisionCount, last_revision_time = NOW() "
-              . "WHERE annotation_id = :annotationId";
-      if ($annotationComplete == 1 && $existingAnnotation['annotation_completed'] == 0) {
-        $annotationUpdateQuery = "UPDATE annotations "
-                . "SET user_match_id = :preImageId, "
-                . "revision_session_id = :annotationSessionId, "
-                . "revision_count = :revisionCount, last_revision_time = NOW(), "
-                . "annotation_completed = 1, annotation_completed_under_revision = 1 "
-                . "WHERE annotation_id = :annotationId";
-      }
-      $annotationUpdateParams = array(
-          'preImageId' => $preImageId,
-          'annotationSessionId' => $annotationSessionId,
-          'revisionCount' => $revisionCount,
-          'annotationId' => $existingAnnotation['annotation_id'],
-      );
-      $STH = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
-      if ($STH->rowCount() != 1) {
-        //  Placeholder for error management
-        exit("Update of annotations table in database failed: $annotationLoadEventQuery");
-      }
-
-//      $annotationUpdateResult = run_database_query($annotationUpdateQuery);
-//      if (!$annotationUpdateResult) {
-//        print "Query Failure: $annotationUpdateResult";
-//        exit;
-//      }
+        if (
+                $filteredTagId &&
+                array_search($filteredTagId, $validTagIds) !== false) {
+            $newSelectedTagIds[$filteredTagValue] = $filteredTagValue;
+            // file_put_contents('loggerLog.txt', "The tag is a valid tag.\n\r", FILE_APPEND);
+        } else if (
+                $filteredTagId &&
+                array_search($filteredTagId, $validCommentIds) !== false) {
+            $newUserComments[$filteredTagId] = $filteredTagValue;
+            // file_put_contents('loggerLog.txt', "The tag is a valid comment tag.\n\r", FILE_APPEND);
+        }
     }
-  }
-} // End loadEvent Else
+    // file_put_contents('loggerLog.txt', "New Tags are:" . print_r($newSelectedTagIds, true) . "\n\r", FILE_APPEND);
+    // file_put_contents('loggerLog.txt', "New Comment Tags are:" . print_r($newUserComments, true) . "\n\r", FILE_APPEND);
+
+
+    $existingTagSelectionsQuery = "
+        SELECT 
+            * 
+        FROM 
+            annotation_selections
+        WHERE 
+            annotation_id = :annotationId";
+    $existingTagSelectionsParams['annotationId'] = $existingAnnotation['annotation_id'];
+    $existingTagSelectionsResult = run_prepared_query($DBH, $existingTagSelectionsQuery, $existingTagSelectionsParams);
+    $existingTagSelections = $existingTagSelectionsResult->fetchAll(PDO::FETCH_ASSOC);
+    // file_put_contents('loggerLog.txt', "Existing tags are:" . print_r($existingTagSelections, true) . "\n\r", FILE_APPEND);
+
+
+    foreach ($existingTagSelections as $existingTagSelection) {
+        $existingTagId = $existingTagSelection['tag_id'];
+        $existingTableId = $existingTagSelection['table_id'];
+        // file_put_contents('loggerLog.txt', "Checking existing tag $existingTagId in row $existingTableId.\n\r", FILE_APPEND);
+        if (in_array($existingTagId, $newSelectedTagIds)) {
+            // file_put_contents('loggerLog.txt', "The existing tag is unchanged in the new submission.\n\r", FILE_APPEND);
+            unset($newSelectedTagIds[$existingTagId]);
+        } else {
+            // file_put_contents('loggerLog.txt', "The existing tag is no longer selected and is being rmoved form the DB.\n\r", FILE_APPEND);
+            $unselectedTagDeleteQuery = "
+                DELETE FROM 
+                    annotation_selections
+                WHERE 
+                    table_id = :existingTableId 
+                LIMIT 
+                    1
+            ";
+            $unselectedTagDeleteParams['existingTableId'] = $existingTableId;
+            $unselectedTagDeleteResult = run_prepared_query($DBH, $unselectedTagDeleteQuery, $unselectedTagDeleteParams);
+
+            if ($unselectedTagDeleteResult->rowCount() != 1) {
+                // file_put_contents('loggerLog.txt', "Deleting an unselcted tag failed. Exit.", FILE_APPEND);
+                exit;
+            }
+            $userDataChange = TRUE;
+        }
+    }
+
+
+    if (count($newSelectedTagIds) > 0) {
+        // file_put_contents('loggerLog.txt', "New tags have been selected and must be added to the DB.\n\r", FILE_APPEND);
+        foreach ($newSelectedTagIds as $newSelectedTagId) {
+            // file_put_contents('loggerLog.txt', "Adding tag $newSelectedTagId to annotation {$existingAnnotation['annotation_id']}\n\r", FILE_APPEND);
+            $newSelectedTagInsertQuery = "
+                INSERT INTO 
+                    annotation_selections 
+                (
+                    annotation_id, 
+                    tag_id
+                ) 
+                VALUES 
+                (
+                    :annotationId, 
+                    :tagId
+                )
+            ";
+            $newSelectedTagInsertParams = array(
+                'annotationId' => $existingAnnotation['annotation_id'],
+                'tagId' => $newSelectedTagId
+            );
+            $newSelectedTagInsertResult = run_prepared_query($DBH, $newSelectedTagInsertQuery, $newSelectedTagInsertParams);
+            if ($newSelectedTagInsertResult->rowCount() != 1) {
+                // file_put_contents('loggerLog.txt', "Inserting a new tag failed. Exit.", FILE_APPEND);
+                exit;
+            }
+            $userDataChange = TRUE;
+        }
+    }
+
+
+
+
+    $existingCommentsQuery = "
+        SELECT 
+            * 
+        FROM 
+            annotation_comments
+        WHERE 
+            annotation_id = :annotationId
+        ";
+    $existingCommentsParams['annotationId'] = $existingAnnotation['annotation_id'];
+    $existingCommentsResult = run_prepared_query($DBH, $existingCommentsQuery, $existingCommentsParams);
+    $existingComments = $existingCommentsResult->fetchAll(PDO::FETCH_ASSOC);
+    // file_put_contents('loggerLog.txt', "Existing comments are:" . print_r($existingComments, true) . "\n\r", FILE_APPEND);
+
+    foreach ($existingComments as $existingComment) {
+        $existingCommentTagId = $existingComment['tag_id'];
+        $existingCommentTableId = $existingComment['table_id'];
+        $existingCommentText = $existingComment['comment'];
+        // file_put_contents('loggerLog.txt', "Checking existing comment id $existingCommentTagId with comment '$existingCommentText' against new submission. \n\r", FILE_APPEND);
+        if (array_key_exists($existingCommentTagId, $newUserComments)) {
+            if (strcmp($existingCommentText, $newUserComments[$existingCommentTagId]) == 0) {
+                // file_put_contents('loggerLog.txt', "Existing comment is unchanged in new submission.\n\r", FILE_APPEND);
+                unset($newUserComments[$existingCommentTagId]);
+            } else {
+                if ($newUserComments[$existingCommentTagId]) {
+                    // file_put_contents('loggerLog.txt', "Existing comment has changed. Updating comment to new submission.\n\r", FILE_APPEND);
+                    $updateExistingCommentQuery = "
+                        UPDATE 
+                            annotation_comments
+                        SET 
+                            comment = :comment
+                        WHERE 
+                            table_id = :existingCommentTableId 
+                        LIMIT 
+                            1
+                    ";
+                    $updateExistingCommentParams = array(
+                        'comment' => $newUserComments[$existingCommentTagId],
+                        'existingCommentTableId' => $existingCommentTableId
+                    );
+                    $updateExistingCommentResult = run_prepared_query($DBH, $updateExistingCommentQuery, $updateExistingCommentParams);
+                    if ($updateExistingCommentResult->rowCount() != 1) {
+                        // file_put_contents('loggerLog.txt', "Update of existing comment failed. Exit.", FILE_APPEND);
+                        exit;
+                    }
+                } else {
+                    // file_put_contents('loggerLog.txt', "Existing comment is no longer supplied. Removing it from the DB.\n\r", FILE_APPEND);
+                    $deleteExistingCommentQuery = "
+                        DELETE FROM 
+                            annotation_comments
+                        WHERE 
+                            table_id = :existingCommentTableId 
+                        LIMIT 
+                            1
+                    ";
+                    $deleteExistingCommentParams = array(
+                        'existingCommentTableId' => $existingCommentTableId
+                    );
+                    $deleteExistingCommentResult = run_prepared_query($DBH, $deleteExistingCommentQuery, $deleteExistingCommentParams);
+                    if ($deleteExistingCommentResult->rowCount() != 1) {
+                        // file_put_contents('loggerLog.txt', "Deletion of existing comment failed. Exit.", FILE_APPEND);
+                        exit;
+                    }
+                }
+                unset($newUserComments[$existingCommentTagId]);
+                $userDataChange = TRUE;
+            }
+        }
+    }
+    if (count($newUserComments) > 0) {
+        // file_put_contents('loggerLog.txt', "New user comments exist that may need to be added to the DB.\n\r", FILE_APPEND);
+        foreach ($newUserComments as $newCommentTagId => $newCommentText) {
+            if ($newCommentText) {
+                // file_put_contents('loggerLog.txt', "Adding '$newCommentText' under tag id $newCommentTagId. \n\r", FILE_APPEND);
+                $newCommentInsertQuery = "
+                INSERT INTO 
+                    annotation_comments 
+                (
+                    annotation_id,
+                    tag_id,
+                    comment
+                )
+                VALUES 
+                (
+                    :existingAnnotationId, 
+                    :newCommentTagId, 
+                    :newCommentText
+                )
+            ";
+                $newCommentInsertParams = array(
+                    'existingAnnotationId' => $existingAnnotation['annotation_id'],
+                    'newCommentTagId' => $newCommentTagId,
+                    'newCommentText' => $newCommentText
+                );
+                $newCommentInsertResult = run_prepared_query($DBH, $newCommentInsertQuery, $newCommentInsertParams);
+                if ($newCommentInsertResult->rowCount() != 1) {
+                    // file_put_contents('loggerLog.txt', "Insertion of new user comment failed. Exit.", FILE_APPEND);
+                    exit;
+                }
+                $userDataChange = TRUE;
+            } else {
+                // file_put_contents('loggerLog.txt', "Comment is empty.\n\r", FILE_APPEND);
+            }
+        }
+    }
+
+
+
+
+    if ($userDataChange) {
+        // file_put_contents('loggerLog.txt', "Data has changed. The main annotation row must be updated.\n\r", FILE_APPEND);
+
+        if ($annotationSessionId == $existingAnnotation['initial_session_id']) {
+            // file_put_contents('loggerLog.txt', "The update is part of an ongoing classifcation.\n\r", FILE_APPEND);
+
+            if (!$annotationCompleteFlag) {
+                // file_put_contents('loggerLog.txt', "The annotation isn't complete yet.\n\r", FILE_APPEND);
+                $annotationUpdateQuery = "
+                    UPDATE 
+                        annotations 
+                    SET 
+                        user_match_id = :preImageId,
+                        initial_session_end_time = NOW()
+                    WHERE 
+                        annotation_id = :existingAnnotationId
+                ";
+            } else {
+                // file_put_contents('loggerLog.txt', "The annotation is complete.\n\r", FILE_APPEND);
+                $annotationUpdateQuery = "
+                    UPDATE 
+                        annotations 
+                    SET 
+                        user_match_id = :preImageId,
+                        initial_session_end_time = NOW(), 
+                        annotation_completed = 1
+                    WHERE 
+                        annotation_id = :existingAnnotationId
+                ";
+            }
+            $annotationUpdateParams = array(
+                'preImageId' => $preImageId,
+                'existingAnnotationId' => $existingAnnotation['annotation_id']
+            );
+            $annotationUpdateResult = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
+            if ($annotationUpdateResult->rowCount() != 1) {
+                // file_put_contents('loggerLog.txt', "Updating the annotation row failed. Exit.", FILE_APPEND);
+                exit;
+            }
+        } else {
+            if ($annotationSessionId != $existingAnnotation['revision_session_id']) {
+                $revisionCount = $existingAnnotation['revision_count'] + 1;
+                // file_put_contents('loggerLog.txt', "This change is part of a new revision to an existign annotaion.\n\r", FILE_APPEND);
+            } else {
+                $revisionCount = $existingAnnotation['revision_count'];
+                // file_put_contents('loggerLog.txt', "This change is part of a revision in progress.\n\r", FILE_APPEND);
+            }
+
+            if (
+                    $annotationCompleteFlag &&
+                    $existingAnnotation['annotation_completed'] == 0) {
+                // file_put_contents('loggerLog.txt', "The annotaion has been completed under this revision.\n\r", FILE_APPEND);
+                $annotationUpdateQuery = "
+                    UPDATE 
+                        annotations 
+                    SET 
+                        user_match_id = :preImageId, 
+                        revision_session_id = :annotationSessionId, 
+                        revision_count = :revisionCount, 
+                        last_revision_time = NOW(), 
+                        annotation_completed = 1, 
+                        annotation_completed_under_revision = 1 
+                    WHERE 
+                    annotation_id = :existingAnnotationId
+                ";
+            } else {
+                // file_put_contents('loggerLog.txt', "The annotaion completed status has not changed.\n\r", FILE_APPEND);
+                $annotationUpdateQuery = "
+                    UPDATE 
+                        annotations 
+                    SET 
+                        user_match_id = :preImageId, 
+                        revision_session_id = :annotationSessionId, 
+                        revision_count = :revisionCount, 
+                        last_revision_time = NOW() 
+                    WHERE 
+                        annotation_id = :existingAnnotationId
+                ";
+            }
+            $annotationUpdateParams = array(
+                'preImageId' => $preImageId,
+                'annotationSessionId' => $annotationSessionId,
+                'revisionCount' => $revisionCount,
+                'existingAnnotationId' => $existingAnnotation['annotation_id'],
+            );
+            $annotationUpdateResult = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
+            if ($annotationUpdateResult->rowCount() != 1) {
+                // file_put_contents('loggerLog.txt', "Updating the annotaion row under revision failed. Exit.", FILE_APPEND);
+                exit;
+            }
+        }
+    } // END if ($userDataChange)
+}  // END if ($startClassificationFlag) ELSE
+
+// file_put_contents('loggerLog.txt', "END", FILE_APPEND);
 
 

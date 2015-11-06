@@ -7,14 +7,12 @@ $pageBody = <<<EOL
         $adminNavHTML
         <div id="adminContentWrapper">
             <div id="adminBanner">
-                <p>You are logged in as <span class="userData">$maskedEmail</span>. Your admin level is
-                    <span class="userData">$adminLevelText</span></p>
+                <p>You are logged in as <span class="userData">$maskedEmail</span>.</p>
             </div>
             <div>
                 <h1 id="photoSelectHeader">Photo Editor</h1>
-                $photoSelectHTML
-                $displaySelectHTML
-                $photoDetailsHTML
+                $targetSelectionHTML
+                $targetHTML
             </div>
         </div>
     </div>

@@ -17,8 +17,6 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 // Look for and setup user specified query paramters
@@ -104,7 +102,7 @@ $percentageOfUsersWithoutAClassification = round(($numberOfUsersWithoutAClassifi
 
 $numberOfPhotosQuery = "SELECT COUNT(*) "
         . "FROM images i "
-        . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.post_collection_id IN "
+        . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.is_enabled = 1 AND m.post_collection_id IN "
         . "("
         . "     SELECT DISTINCT post_collection_id "
         . "     FROM projects "
@@ -116,16 +114,11 @@ $numberOfPhotosQuery = "SELECT COUNT(*) "
         . "     FROM projects "
         . "     $queryProjectWhereClause"
         . ") "
-        . "WHERE i.has_display_file = 1 AND i.is_globally_disabled = 0 AND i.dataset_id IN "
+        . "WHERE i.is_globally_disabled = 0 AND i.collection_id IN "
         . "("
-        . "     SELECT dataset_id "
-        . "     FROM datasets "
-        . "     WHERE collection_id IN "
-        . "     ("
-        . "         SELECT DISTINCT post_collection_id "
-        . "         FROM projects "
-        . "         $queryProjectWhereClause"
-        . "     )"
+        . "     SELECT DISTINCT post_collection_id "
+        . "     FROM projects "
+        . "     $queryProjectWhereClause"
         . ")";
 
 //$numberOfPhotosQuery .= ")"
@@ -140,8 +133,8 @@ $formattedNumberOfPhotos = number_format($numberOfPhotos);
 $numberOfClassifiedPhotosQuery = <<<EOL
                     SELECT COUNT(DISTINCT(a.image_id)) AS result_count
                     FROM annotations a
-                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1
-                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                    INNER JOIN images i ON a.image_id = i.image_id
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0  AND m.is_enabled = 1 AND m.post_collection_id IN
                          (
                              SELECT DISTINCT post_collection_id
                              FROM projects
@@ -186,8 +179,8 @@ $formattedNumberOfTags = number_format($numberOfTags);
 $numberOfCompleteClassificationsQuery = <<<EOL
                     SELECT COUNT(*)
                     FROM annotations a
-                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
-                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.is_enabled = 1 AND m.post_collection_id IN
                          (
                              SELECT DISTINCT post_collection_id
                              FROM projects
@@ -213,8 +206,8 @@ $totalClassifications += $numberOfCompleteClassifications;
 $numberOfIncompleteClassificationsQuery = <<<EOL
                     SELECT COUNT(*)
                     FROM annotations a
-                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
-                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.is_enabled = 1 AND m.post_collection_id IN
                          (
                              SELECT DISTINCT post_collection_id
                              FROM projects
@@ -240,8 +233,8 @@ $totalClassifications += $numberOfIncompleteClassifications;
 $numberOfUnstartedClassificationsQuery = <<<EOL
                     SELECT COUNT(*)
                     FROM annotations a
-                    INNER JOIN images i ON a.image_id = i.image_id AND i.has_display_file = 1 AND i.is_globally_disabled = 0
-                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.post_collection_id IN
+                    INNER JOIN images i ON a.image_id = i.image_id AND i.is_globally_disabled = 0
+                    INNER JOIN matches m ON i.image_id = m.post_image_id AND m.pre_image_id != 0 AND m.is_enabled = 1 AND m.post_collection_id IN
                          (
                              SELECT DISTINCT post_collection_id
                              FROM projects
@@ -341,7 +334,7 @@ if ($numberOfCompleteClassifications > 0) {
 //                . "ORDER BY i.state, i.city";
         $classificationMappingQuery = "SELECT COUNT(DISTINCT a.annotation_id) as annotation_count, i.image_id, i.thumb_url, i.latitude, i.longitude, i.city, i.state "
                 . "FROM images i "
-                . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.post_collection_id IN "
+                . "INNER JOIN matches m ON m.post_image_id = i.image_id AND m.pre_image_id != 0 AND m.is_enabled = 1 AND m.post_collection_id IN "
                 . "     ("
                 . "         SELECT DISTINCT post_collection_id "
                 . "         FROM projects "
@@ -354,16 +347,11 @@ if ($numberOfCompleteClassifications > 0) {
                 . "         $queryProjectWhereClause"
                 . "     ) "
                 . "LEFT JOIN annotations a ON a.image_id = i.image_id "
-                . "WHERE i.has_display_file = 1 AND i.is_globally_disabled = 0 AND i.dataset_id IN "
+                . "WHERE i.is_globally_disabled = 0 AND i.collection_id IN "
                 . "("
-                . "     SELECT dataset_id "
-                . "     FROM datasets "
-                . "     WHERE collection_id IN "
-                . "     ("
-                . "         SELECT DISTINCT post_collection_id "
-                . "         FROM projects "
-                . "         $queryProjectWhereClause"
-                . "     )"
+                . "     SELECT DISTINCT post_collection_id "
+                . "     FROM projects "
+                . "     $queryProjectWhereClause"
                 . ")"
                 . "GROUP BY i.image_id ";
         $mapLegend = <<<EOL
@@ -382,7 +370,8 @@ if ($numberOfCompleteClassifications > 0) {
                 </div>
                 <div class="adminMapLegendRow">
                     <div class="adminMapLegendRowIcon">
-                      <img width="13" height="24" title="" alt="Image of a blue map marker pin" src="http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png">
+                      <img src="images/system/redMarker.png" alt="Image of a red map marker pin"
+                          width="13" height="24" title="">
                     </div>
                     <div class="adminMapLegendRowText">
                       <p>Photo with 0<br>classifications</p>
@@ -390,11 +379,20 @@ if ($numberOfCompleteClassifications > 0) {
                 </div>
                 <div class="adminMapLegendRow">
                   <div class="adminMapLegendRowIcon">
-                    <img src="images/system/redMarker.png" alt="Image of a red map marker pin"
+                    <img src="images/system/orangeMarker.png" alt="Image of a orange map marker pin"
                         width="13" height="24" title="">
                   </div>
                   <div class="adminMapLegendRowText">
-                    <p>Photo with 1 or 2 classifications</p>
+                    <p>Photo with 1 to 3 classifications</p>
+                  </div>
+                </div>
+                <div class="adminMapLegendRow">
+                  <div class="adminMapLegendRowIcon">
+                    <img src="images/system/yellowMarker.png" alt="Image of a yellow map marker pin"
+                        width="13" height="24" title="">
+                  </div>
+                  <div class="adminMapLegendRowText">
+                    <p>Photo with 3 to 9 classifications</p>
                   </div>
                 </div>
                 <div class="adminMapLegendRow">
@@ -403,7 +401,7 @@ if ($numberOfCompleteClassifications > 0) {
                         width="13" height="24" title="">
                   </div>
                   <div class="adminMapLegendRowText">
-                    <p>Photo with 3 or more classifications</p>
+                    <p>Photo with 10 or more classifications</p>
                   </div>
                 </div>
             </div>
@@ -529,6 +527,18 @@ EOL;
                     iconAnchor: [12, 41],
                     popupAnchor: [0, -35]
                 });
+                var yellowMarker = L.icon({
+                    iconUrl: 'images/system/yellowMarker.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [0, -35]
+                });
+                var orangeMarker = L.icon({
+                    iconUrl: 'images/system/orangeMarker.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [0, -35]
+                });
                 markers = L.markerClusterGroup({
                     disableClusteringAtZoom: 9,
                     maxClusterRadius: 60
@@ -544,12 +554,14 @@ EOL;
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: greenMarker});
                     } else if (typeof (photo.commentCount) != "undefined" && photo.commentCount == 1) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: redMarker});
-                    } else if (photo.annotation_count >= 3) {
+                    } else if (photo.annotation_count >= 10) {
                         var marker = L.marker([photo.latitude, photo.longitude], {icon: greenMarker});
+                    } else if (photo.annotation_count >= 4) {
+                        var marker = L.marker([photo.latitude, photo.longitude], {icon: yellowMarker});
                     } else if (photo.annotation_count >= 1) {
-                        var marker = L.marker([photo.latitude, photo.longitude], {icon: redMarker});
+                        var marker = L.marker([photo.latitude, photo.longitude], {icon: orangeMarker});
                     } else {
-                        var marker = L.marker([photo.latitude, photo.longitude]);
+                        var marker = L.marker([photo.latitude, photo.longitude], {icon: redMarker});
                     }
                     if (typeof (photo.comment) != "undefined") {
                         var markerPopup = 'Image ID: <a href="photoStats.php?targetPhotoId=' + photo.image_id + '">' + photo.image_id + '</a><br>'
@@ -861,12 +873,12 @@ ORDER BY task_order_in_project, upper_group_order_in_task, order_in_upper_parent
 
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-$projectCount = count($userAdministeredProjects);
+$projectList = find_projects($DBH, TRUE);
+$projectCount = count($projectList);
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
 $projectSelectHTML = "<option title=\"All Projects in the iCoast system.\" value=\"0\">All iCoast Projects</option>";
-foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+foreach ($projectList as $singeUserAdministeredProject) {
     $optionProjectId = $singeUserAdministeredProject['project_id'];
     $optionProjectName = $singeUserAdministeredProject['name'];
     $optionProjectDescription = $singeUserAdministeredProject['description'];

@@ -9,8 +9,7 @@ $pageBody = <<<EOL
             $adminNavHTML
             <div id="adminContentWrapper">
                 <div id="adminBanner">
-                    <p>You are logged in as <span class="userData">$maskedEmail</span>. Your admin level is
-                        <span class="userData">$adminLevelText</span></p>
+                    <p>You are logged in as <span class="userData">$maskedEmail</span>.</p>
                 </div>
                 <div>
                     <h1>Classification Statistics</h1>
@@ -31,9 +30,10 @@ $pageBody = <<<EOL
                     </table>
                         <input type="button" id="allClassificationDownload" class="clickableButton disabledClickableButton" title="This button will give you the option to save all classifications data for the selected project to a CSV file on your hard drive for further analysis with other tools. If this button is unavailable then you wither have not selected a specific project or there are no complete classifications to download for the chosen project."value="Download All Project Classifications In CSV Format" disabled>
                     $mapHTML
+                    $tagBreakdown
                     $userStatsTableContent
                     $tagStatsTableContent
-                    $tagBreakdown
+
                 </div>
 
             </div>

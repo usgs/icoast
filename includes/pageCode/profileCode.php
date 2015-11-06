@@ -39,8 +39,10 @@ $stickyCrowdType = FALSE;
 $crowdTypeReset = '';
 $stickyTimeZone = FALSE;
 $timeZoneReset = '';
-$optInSelected = '';
-$optOutSelected = '';
+$emailOptInSelected = '';
+$emailOptOutSelected = '';
+$emailPreferenceError = '';
+$profileFormErrorControl = '';
 
 $crowdTypeSelectHTML = '';
 

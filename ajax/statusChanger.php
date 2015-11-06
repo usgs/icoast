@@ -5,7 +5,10 @@ require_once('../includes/globalFunctions.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
-$userData = authenticate_user($DBH, TRUE, FALSE, TRUE);
+$userData = authenticate_user($DBH, TRUE, FALSE, TRUE, TRUE, FALSE, FALSE);
+if (!$userData) {
+    exit;
+}
 
 if (isset($_GET['photoId'])) {
     settype($_GET['photoId'], 'integer');
@@ -14,13 +17,38 @@ if (isset($_GET['photoId'])) {
     }
 }
 
-if (isset($_GET['currentStatus'])) {
+
+
+if (isset($_GET['currentStatus']) && ($_GET['currentStatus'] == 0 || $_GET['currentStatus'] == 1)) {
     $currentStatus = $_GET['currentStatus'];
 }
 
 if (!isset($userData) || !isset($photoMetadata) || !isset($currentStatus)) {
     exit();
 }
+
+$image = imagecreatefromjpeg("../images/collections/{$photoMetadata['collection_id']}/main/{$photoMetadata['filename']}");
+if ($image) {
+    $imageWidth = imagesx($image);
+    $imageHeight = imagesy($image);
+    if ($imageWidth < $imageHeight) {
+        $returnData = array(
+            'success' => 1,
+            'newImageStatus' => (int)$photoMetadata['is_globally_disabled']
+        );
+    }
+    imagedestroy($image);
+} else {
+    $returnData = array(
+        'success' => 0,
+        'newImageStatus' => (int)$photoMetadata['is_globally_disabled']
+    );
+}
+if (isset($returnData)) {
+    print json_encode($returnData);
+    exit;
+}
+
 
 
 if ($photoMetadata['is_globally_disabled'] == $currentStatus) {
@@ -32,8 +60,6 @@ if ($photoMetadata['is_globally_disabled'] == $currentStatus) {
         $updateQuery .= '0';
     }
     $updateQuery .= " WHERE image_id = {$photoMetadata['image_id']} LIMIT 1";
-//        $updateQuery .= " WHERE image_id = 999999999 LIMIT 1";
-
 
     $queryResult = $DBH->query($updateQuery);
     $affectedRows = $queryResult->rowCount();
@@ -41,22 +67,21 @@ if ($photoMetadata['is_globally_disabled'] == $currentStatus) {
     if ($affectedRows) {
         $newImageMetadata = retrieve_entity_metadata($DBH, $photoMetadata['image_id'], 'image');
         $returnData = array(
-            'success' => 1,
-            'newImageStatus' => $newImageMetadata['is_globally_disabled']
+            'success' => 2,
+            'newImageStatus' => (int)$newImageMetadata['is_globally_disabled']
         );
     } else {
         $returnData = array(
             'success' => 0,
-            'newImageStatus' => $photoMetadata['is_globally_disabled']
+            'newImageStatus' => (int)$photoMetadata['is_globally_disabled']
         );
     }
 
     print json_encode($returnData);
 } else {
-
     $returnData = array(
-        'success' => 1,
-        'newImageStatus' => $photoMetadata['is_globally_disabled']
+        'success' => 2,
+        'newImageStatus' => (int)$photoMetadata['is_globally_disabled']
     );
     print json_encode($returnData);
 }

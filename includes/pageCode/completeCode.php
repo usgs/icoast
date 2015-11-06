@@ -36,14 +36,32 @@ if (!$postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image'))
     exit("Image $postImageId not found in Database");
 }
 $projectName = $projectMetadata['name'];
-$postDisplayImageURL = "images/datasets/{$postImageMetadata['dataset_id']}/main/{$postImageMetadata['filename']}";
+$postDisplayImageURL = "images/collections/{$postImageMetadata['collection_id']}/main/{$postImageMetadata['filename']}";
 $postImageLocation = build_image_location_string($postImageMetadata);
 
 
 //--------------------------------------------------------------------------------------------------
 // Determine total number of user annotations in iCoast and update user metadata is needed.
-$annotationCountQuery = "SELECT COUNT(*) FROM annotations WHERE user_id = :userId AND"
-        . " annotation_completed = 1";
+
+//Project annotation count
+$annotationsInProjectCountQuery = "
+    SELECT COUNT(*)
+    FROM annotations
+    WHERE user_id = :userId
+        AND annotation_completed = 1
+        AND project_id = {$projectMetadata['project_id']}";
+$annotationsInProjectCountParams['userId'] = $userId;
+$STH = run_prepared_query($DBH, $annotationsInProjectCountQuery, $annotationsInProjectCountParams);
+$numberOfAnnotationsInProject = $STH->fetchColumn();
+$ordinalNumberOfAnnotationsInProject = ordinal_suffix($numberOfAnnotationsInProject);
+
+
+// iCOast annotation count
+$annotationCountQuery = "
+    SELECT COUNT(*)
+    FROM annotations
+    WHERE user_id = :userId
+        AND annotation_completed = 1";
 $annotationCountParams['userId'] = $userId;
 $STH = run_prepared_query($DBH, $annotationCountQuery, $annotationCountParams);
 $numberOfAnnotations = $STH->fetchColumn();
@@ -64,11 +82,12 @@ if ($numberOfAnnotations != $userData['completed_annotation_count']) {
         exit;
     }
 }
-$ordinalNumberOfAnnotations = ordinal_suffix($numberOfAnnotations);
 
-
-$positionQuery = "SELECT completed_annotation_count FROM users WHERE completed_annotation_count > :numberOfAnnotations "
-        . "ORDER BY completed_annotation_count DESC";
+$positionQuery = "
+    SELECT completed_annotation_count
+    FROM users
+    WHERE completed_annotation_count > :numberOfAnnotations
+    ORDER BY completed_annotation_count DESC";
 $positionParams['numberOfAnnotations'] = $numberOfAnnotations;
 $STH = run_prepared_query($DBH, $positionQuery, $positionParams);
 $annotaionPositions = $STH->fetchAll(PDO::FETCH_ASSOC);
@@ -119,7 +138,7 @@ $tagCount = tagsInAnnotation($DBH, $annotationId);
 
 //--------------------------------------------------------------------------------------------------
 // Find image id's of next and previous post images
-$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId, $userId);
+$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId, $userId, 1, 20);
 $previousImageId = $postImageArray[0]['image_id'];
 if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
     //  Placeholder for error management
@@ -127,7 +146,7 @@ if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata(
 }
 $previousImageLatitude = $previousImageMetadata['latitude'];
 $previousImageLongitude = $previousImageMetadata['longitude'];
-$previousImageDisplayURL = "images/datasets/{$previousImageMetadata['dataset_id']}/main/{$previousImageMetadata['filename']}";
+$previousImageDisplayURL = "images/collections/{$previousImageMetadata['collection_id']}/main/{$previousImageMetadata['filename']}";
 $previousImageLocation = build_image_location_string($previousImageMetadata);
 
 $nextImageId = $postImageArray[2]['image_id'];
@@ -137,7 +156,7 @@ if ($nextImageId != 0 && !$nextImageMetadata = retrieve_entity_metadata($DBH, $n
 }
 $nextImageLatitude = $nextImageMetadata['latitude'];
 $nextImageLongitude = $nextImageMetadata['longitude'];
-$nextImageDisplayURL = "images/datasets/{$nextImageMetadata['dataset_id']}/main/{$nextImageMetadata['filename']}";
+$nextImageDisplayURL = "images/collections/{$nextImageMetadata['collection_id']}/main/{$nextImageMetadata['filename']}";
 $nextImageLocation = build_image_location_string($nextImageMetadata);
 
 //--------------------------------------------------------------------------------------------------
@@ -223,7 +242,7 @@ if ($numberOfProjects >= 1) {
     }
     $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
     $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
-    $newRandomImageDisplayURL = "images/datasets/{$newRandomImageMetadata['dataset_id']}/main/{$newRandomImageMetadata['filename']}";
+    $newRandomImageDisplayURL = "images/collections/{$newRandomImageMetadata['collection_id']}/main/{$newRandomImageMetadata['filename']}";
     $newRandomImageLocation = build_image_location_string($newRandomImageMetadata);
     $newRandomImageAltTag = "An oblique image of the United States coastline taken near $newRandomImageLocation.";
 

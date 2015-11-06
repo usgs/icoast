@@ -9,6 +9,8 @@ $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearch.js';
 $javaScriptLinkArray[] = 'scripts/leafletGeoSearchProvider.js';
 
+$jQueryDocumentDotReadyCode = '';
+
 
 require_once('includes/userFunctions.php');
 require_once('includes/globalFunctions.php');
@@ -17,28 +19,54 @@ require_once($dbConnectionFile);
 
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH);
+$userId = $userData['user_id'];
 
 $filtered = TRUE;
-$userId = $_COOKIE['userId'];
+
+$requestedProjectId = filter_input(INPUT_GET, 'requestedProjectId', FILTER_VALIDATE_INT);
+$requestedProjectMetadata = retrieve_entity_metadata($DBH, $requestedProjectId, 'project');
+if ($requestedProjectMetadata &&
+        $requestedProjectMetadata['is_complete'] == 0 &&
+        $requestedProjectMetadata['is_public'] == 0) {
+    $requestedProjectMetadata = null;
+    $requestedProjectId = null;
+} else {
+    $targetProject = $requestedProjectId;
+}
 
 $variableContent = '';
+$focusedProjectReminder = '';
 $allProjects = array();
-$allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 ORDER BY project_id ASC";
+
+$allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 AND is_complete = 1 ORDER BY project_id DESC";
 foreach ($DBH->query($allProjectsQuery) as $row) {
     $allProjects[] = $row;
 }
 $numberOfProjects = count($allProjects);
 if ($numberOfProjects > 1) {
 
-    $lastAnnotatedProjectQuery = "SELECT project_id FROM annotations WHERE user_id = :userId AND "
-            . "annotation_completed = 1 ORDER BY initial_session_end_time DESC LIMIT 1";
-    $lastAnnotatedProjectParams['userId'] = $userId;
-    $STH = run_prepared_query($DBH, $lastAnnotatedProjectQuery, $lastAnnotatedProjectParams);
-    $lastAnnotatedProject = $STH->fetchColumn();
+    $projectInFocusQuery = '
+        SELECT home_page_project
+        FROM system';
+    $projectInFocusResult = run_prepared_query($DBH, $projectInFocusQuery);
+    $projectInFocus = $projectInFocusResult->fetchColumn();
+
+    if (!$requestedProjectMetadata) {
+        $lastAnnotatedProjectQuery = "SELECT project_id FROM annotations WHERE user_id = :userId AND "
+                . "annotation_completed = 1 ORDER BY initial_session_end_time DESC LIMIT 1";
+        $lastAnnotatedProjectParams['userId'] = $userId;
+        $STH = run_prepared_query($DBH, $lastAnnotatedProjectQuery, $lastAnnotatedProjectParams);
+        $targetProject = $STH->fetchColumn();
+    }
+    if ($targetProject && ($targetProject != $projectInFocus)) {
+        $projectInFocusMetadata = retrieve_entity_metadata($DBH, $projectInFocus, 'project');
+        $focusedProjectReminder = "<p class=\"focusedProjectTextHighlight\">Don't forget to check out our current focused project, <a href=\"start.php?requestedProjectId=$projectInFocus\">{$projectInFocusMetadata['name']}</a>.</p>";
+    }
+
     $projectSelectOptionHTML = "";
-    if ($lastAnnotatedProject) {
+    if ($targetProject) {
         for ($i = 0; $i < $numberOfProjects; $i++) {
-            if ($allProjects[$i]['project_id'] == $lastAnnotatedProject) {
+            if ($allProjects[$i]['project_id'] == $targetProject) {
                 $projectId = $allProjects[$i]['project_id'];
                 $projectName = $allProjects[$i]['name'];
                 $projectSelectOptionHTML .= "<option value=\"$projectId\">$projectName</option>\r\n";
@@ -46,8 +74,14 @@ if ($numberOfProjects > 1) {
             }
         }
     } else {
-        $projectId = $allProjects[0]['project_id'];
-        $projectName = $allProjects[0]['name'];
+        for ($i = 0; $i < $numberOfProjects; $i++) {
+            if ($allProjects[$i]['project_id'] == $projectInFocus) {
+                $projectId = $allProjects[$i]['project_id'];
+                $projectName = $allProjects[$i]['name'];
+                $projectSelectOptionHTML .= "<option value=\"$projectId\">$projectName</option>\r\n";
+                unset($allProjects[$i]);
+            }
+        }
     }
 
     foreach ($allProjects as $project) {
@@ -56,22 +90,22 @@ if ($numberOfProjects > 1) {
         $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>\r\n";
     }
     $projectSelectionHTML = <<<EOL
-          <label for="projectSelect">
-              Choose a Different Project
-          </label>
-          <div class="formFieldRow standAloneFormElement">
-            <select class="formInputStyle" id="projectSelect" name="projectId" title="Selecting a new project
-                from this list will cause iCoast to pick a new random image from the new project for you to tag.">
-              $projectSelectOptionHTML
-            </select>
-          </div>
+
+            <div>
+                <span id="selectedProjectTitle">Current Project:</span>
+                <select class="formInputStyle" id="projectSelect" name="projectId" title="Selecting a new project
+                    from this list will cause iCoast to pick a new random image from the new project for you to tag.">
+                  $projectSelectOptionHTML
+                </select>
+            </div>
+
 
 EOL;
 } else if ($numberOfProjects == 1) {
     $projectId = $allProjects[0]['project_id'];
     $projectName = $allProjects[0]['name'];
     $projectSelectionHTML = <<<EOL
-            <p>You are annotating the only project currently available in iCoast. Other selections are not available at this time.</p>
+            <p id="selectedProjectTitle">Current Project: $projectName</p>
 
 EOL;
 } else {
@@ -99,14 +133,15 @@ if ($numberOfProjects >= 1) {
     $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
     $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
     $newRandomImageLocation = build_image_location_string($newRandomImageMetadata);
-    $newRandomImageDisplayURL = "images/datasets/{$newRandomImageMetadata['dataset_id']}/main/{$newRandomImageMetadata['filename']}";
+    $newRandomImageDisplayURL = "images/collections/{$newRandomImageMetadata['collection_id']}/main/{$newRandomImageMetadata['filename']}";
     $newRandomImageAltTag = "An oblique image of the United States coastline taken near $newRandomImageLocation.";
 
 
 
 
     $variableContent = <<<EOL
-<h2 id="currentProjectText">Current Project: $projectName</h2>
+$projectSelectionHTML
+$focusedProjectReminder
 <div id="randomPostImagePreviewWrapper">
     <p>Here is a random photo near<br><span id="projectName" class="captionTitle">$newRandomImageLocation</span></p>
     <div>
@@ -160,9 +195,6 @@ if ($numberOfProjects >= 1) {
                          from your selected project to tag.">
                 </button>
             </div>
-            <div class="stackedNavSelectWrapper">
-                $projectSelectionHTML
-            </div>
         </div>
 </div>
 
@@ -174,7 +206,7 @@ EOL;
 
     $javaScript = "$mapScript";
 
-    $jQueryDocumentDotReadyCode = <<<EOL
+    $jQueryDocumentDotReadyCode .= <<<EOL
     $mapDocumentReadyScript
 
     if ($('#projectSelect').length) {
@@ -185,3 +217,27 @@ EOL;
 } else {
     $variableContent = $projectSelectionHTML;
 }
+
+$embeddedCSS = <<<EOL
+        .focusedProjectTextHighlight {
+            font-weight: bold;
+        }
+        
+        #projectSelect {
+            min-width: 200px;
+            max-width: 350px;
+        }
+        
+        #selectedProjectTitle {
+            position: relative;
+            top: 3px;
+            display: inline-block;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .stackedNavButtonWrapper:first-of-type {
+            margin-top: 40px;
+        }
+EOL;
+        

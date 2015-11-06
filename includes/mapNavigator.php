@@ -164,7 +164,7 @@ $mapScript = <<<EOL
 //            selectedImageId = ajaxMarkerData.metadata.selectedImageId;
 
             $.each(ajaxMarkerData, function(imageNo, imageData) {
-        console.log(imageData.image_id);
+        // console.log(imageData.image_id);
                 var markerLatLng = L.latLng(imageData.latitude, imageData.longitude);
                 var infoString = 'Image taken near: ' + imageData.location_string;
                 var markerPopup = L.popup({offset: L.point(0,-40), closeButton: false, autoPan :false}).setContent(infoString).setLatLng(markerLatLng);

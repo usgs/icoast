@@ -8,6 +8,9 @@ $javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/elevateZoom.js';
 $javaScriptLinkArray[] = 'scripts/tipTip.js';
 
+$jQueryDocumentDotReadyCode = '';
+$javaScript = '';
+
 
 
 // => Define required files and initial includes
@@ -21,6 +24,21 @@ $userData = authenticate_user($DBH);
 $userId = $userData['user_id'];
 $authCheckCode = $userData['auth_check_code'];
 
+$url = 'http://' . $_SERVER["SERVER_NAME"] . $_SERVER["PHP_SELF"];
+$queryString = htmlentities($_SERVER['QUERY_STRING']);
+$postData = '';
+$firstValue = TRUE;
+foreach ($_POST as $postField => $postValue) {
+    urlencode($postField);
+    urldecode($postValue);
+    if (!$firstValue) {
+        $postData .= '&';
+    }
+    $postData .= $postField . '=' . $postValue;
+    $firstValue = FALSE;
+}
+$clientAgent = $_SERVER['HTTP_USER_AGENT'];
+
 $filtered = TRUE;
 
 $projectId = "";
@@ -33,12 +51,14 @@ if (empty($_POST['projectId']) && empty($_GET['projectId'])) {
     } else {
         $projectId = $_GET['projectId'];
     }
-    $validProjectQuery = "SELECT COUNT(*) FROM projects WHERE project_id = :projectId";
-    $validProjectParams['projectId'] = $projectId;
-    $STH = run_prepared_query($DBH, $validProjectQuery, $validProjectParams);
-    $matchingProjectCount = $STH->fetchColumn();
-    if ($matchingProjectCount == 0) {
-        header("location: welcome.php?userType=existing");
+
+    settype($projectId, 'integer');
+    if (!empty($projectId)) {
+        $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+    }
+
+    if (!$projectMetadata) {
+        header("location: index.php?userType=existing");
         exit;
     }
 }
@@ -48,7 +68,6 @@ if (empty($_POST['projectId']) && empty($_GET['projectId'])) {
 // => If the page has been called without a random image id in the query string then generate
 // => an image id and redirect back to the page with a string attached.
 if (empty($_GET['imageId'])) {
-    $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
     $postImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
     header("location: classification.php?projectId=$projectId&imageId=$postImageId");
     exit();
@@ -60,7 +79,7 @@ if (empty($_GET['imageId'])) {
 function build_image_header($imageMetadata, $header) {
     $imageLocalTime = utc_to_timezone($imageMetadata['image_time'], 'H:i:s T', $imageMetadata['longitude']);
     $imageDate = utc_to_timezone($imageMetadata['image_time'], 'd M Y', $imageMetadata['longitude']);
-    $imageLocation = build_image_location_string($imageMetadata);
+    $imageLocation = build_image_location_string($imageMetadata, TRUE);
     $imageHeader = <<<EOT
             <p>$header</p>
             <p>$imageDate at $imageLocalTime near $imageLocation</p>
@@ -191,17 +210,13 @@ If (isset($_GET['preImageId'])) {
     $preImageId = $_GET['preImageId'];
     $specifiedPreImage = 1;
 }
-// Find project metadata $projectMetadata
-if (!$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project')) {
-    //  Placeholder for error management
-    exit("Project $projectId not found in Database");
-}
+
 // Find match data $imageMatchData
 $imageMatchData = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $postImageId);
+$computerMatchImageId = $imageMatchData['pre_image_id'];
 if (!isset($preImageId)) {
     $preImageId = $imageMatchData['pre_image_id'];
 }
-$ComputerMatchImageId = $imageMatchData['pre_image_id'];
 
 //--------------------------------------------------------------------------------------------------
 // Determine if the user has already annotated the displayed image
@@ -224,15 +239,16 @@ if ($existingAnnotation) {
 
 // Find post image metadata $postImageMetadata
 if (!$postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image')) {
-    //  Placeholder for error management
+//  Placeholder for error management
     exit("Image $postImageId not found in Database");
 }
 $postImageLatitude = $postImageMetadata['latitude'];
 $postImageLongitude = $postImageMetadata['longitude'];
+$postImageLocation = build_image_location_string($postImageMetadata, TRUE);
 
 // Find pre image metadata $preImageMetadata
 if (!$preImageMetadata = retrieve_entity_metadata($DBH, $preImageId, 'image')) {
-    //  Placeholder for error management
+//  Placeholder for error management
     exit("Image $preImageId not found in Database");
 }
 
@@ -256,67 +272,15 @@ $annotationMetaDataQueryString = "&annotationSessionId=$annotationSessionId&user
 //--------------------------------------------------------------------------------------------------
 // Build headers for images
 $postDetailedImageURL = $postImageMetadata['full_url'];
-$postDisplayImageURL = "images/datasets/{$postImageMetadata['dataset_id']}/main/{$postImageMetadata['filename']}";
+$postDisplayImageURL = "images/collections/{$postImageMetadata['collection_id']}/main/{$postImageMetadata['filename']}";
 $postImageTitle = build_image_header($postImageMetadata, $projectMetadata['post_image_header']);
-$postImageAltTagHTML = "An oblique image of the " . build_image_location_string($postImageMetadata, TRUE) . " coastline.";
+$postImageAltTagHTML = "An oblique image of the $postImageLocation coastline.";
 
 $preDetailedImageURL = $preImageMetadata['full_url'];
-$preDisplayImageURL = "images/datasets/{$preImageMetadata['dataset_id']}/main/{$preImageMetadata['filename']}";
+$preDisplayImageURL = "images/collections/{$preImageMetadata['collection_id']}/main/{$preImageMetadata['filename']}";
 $preImageTitle = build_image_header($preImageMetadata, $projectMetadata['pre_image_header']);
 $preImageAltTagHTML = "An oblique image of the " . build_image_location_string($preImageMetadata, TRUE) . " coastline.";
 
-
-//--------------------------------------------------------------------------------------------------
-// Build map marker tooltip
-$markerToolTip = build_image_location_string($postImageMetadata);
-
-
-
-
-
-//--------------------------------------------------------------------------------------------------
-// Build thumbnail data.
-$thumbnailArray2 = find_adjacent_images($DBH, $preImageMetadata['image_id']);
-if ($thumbnailArray2[0]['image_id'] != 0) {
-    $thumbnailArray1 = find_adjacent_images($DBH, $thumbnailArray2[0]['image_id']);
-} else {
-    $thumbnailArray1[0]['image_id'] = 0;
-}
-if ($thumbnailArray2[2]['image_id'] != 0) {
-    $thumbnailArray3 = find_adjacent_images($DBH, $thumbnailArray2[2]['image_id']);
-} else {
-    $thumbnailArray3[2]['image_id'] = 0;
-}
-$thumbnailCounter = 1;
-if ($thumbnailArray1[0]['image_id'] != 0) {
-    $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
-    $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
-    $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
-    $$thumbnailUrlVarName = $thumbnailArray1[0]['thumb_url'];
-    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnailArray1[0]['image_id']}&amp;sessId=$annotationSessionId";
-    $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray1[0], TRUE) . " coastline.";
-}
-
-$thumbnailCounter++;
-foreach ($thumbnailArray2 as $thumbnail) {
-    if ($thumbnail['image_id'] != 0) {
-        $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
-        $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
-        $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
-        $$thumbnailUrlVarName = $thumbnail['thumb_url'];
-        $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnail['image_id']}&amp;sessId=$annotationSessionId";
-        $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnail, TRUE) . " coastline.";
-    }
-    $thumbnailCounter++;
-}
-if ($thumbnailArray3[2]['image_id'] != 0) {
-    $thumbnailUrlVarName = "thumbnail" . $thumbnailCounter . "Url";
-    $thumbnailLinkVarName = "thumbnail" . $thumbnailCounter . "Link";
-    $thumbnailAltVerName = "thumbnail" . $thumbnailCounter . "Alt";
-    $$thumbnailUrlVarName = $thumbnailArray3[2]['thumb_url'];
-    $$thumbnailLinkVarName = "classification.php?projectId=$projectId&amp;imageId=$postImageId&amp;preImageId={$thumbnailArray3[2]['image_id']}&amp;sessId=$annotationSessionId";
-    $$thumbnailAltVerName = "An oblique image of the " . build_image_location_string($thumbnailArray3[2], TRUE) . " coastline.";
-}
 
 
 //--------------------------------------------------------------------------------------------------
@@ -360,7 +324,6 @@ if (count($taskMetadata) > 0) {
         $taskId = $task['task_id'];
         $annotations[$taskId] = array(
             'title' => $task['display_title'],
-            'text' => $task['display_text'],
             'groups' => array()
         );
 
@@ -563,147 +526,127 @@ EOT;
 
 
 //--------------------------------------------------------------------------------------------------
+// Build thumbnail data.
+$thumbnailArray = find_adjacent_images($DBH, $computerMatchImageId, NULL, NULL, 3, 20);
+
+//--------------------------------------------------------------------------------------------------
 // Build thumbnail HTML
-$previousThumbnailHtml = "";
-$nextThumbnailHtml = "";
-$currentThumbnailHtml = "";
-$navThumbnailTitle = "Click this THUMBNAIL to see if this PRE-STORM photo along the coast better matches the POST-STORM photo on the right. Is this a better match than what the computer found?";
-$currentImageTitle = "This THUMBNAIL is the PRE-STORM photo currently displayed above. If this PRE-STORM photo best matches the POST-STORM photo on the left, then click the Confirm Match button.";
-$computerMatchTitle = "This HIGHLIGHTED THUMBNAIL is the closest PRE-STORM photo the computer found. Can you find a better match?";
-$noMoreImagesTitle = "You have reached the end of this dataset. There are no more images to display in this section of coast.";
-if ($thumbnailArray1[0]['image_id'] == $ComputerMatchImageId) {
-    $previousThumbnailHtml .= <<<EOT
+$thumbnailHtml = '';
+$noMatchThumbnailHTML = '';
+$jsThumbnailMapScript = '';
+$navThumbnailTitle = "Click this thumbnail to see if this pre-storm photo along the coast better matches the post-storm photo on the right. Is this a better match than what the computer found?";
+$currentImageTitle = "This thumbnail is the pre-storm photo currently displayed above. If this pre-storm photo best matches the post-storm photo on the left, then click the Confirm Match button.";
+$computerMatchTitle = "This thumbnail is the closest pre-storm photo the computer found. Can you find a better match?";
+$noMoreImagesTitle = "You have reached the end of this collection. There are no more images to display in this direction.";
+
+
+
+for ($i = 0; $i < count($thumbnailArray); $i++) {
+    if ($thumbnailArray[$i]['image_id'] != 0) {
+
+        $noMatchThumbnailHTML .= <<<EOL
+            <div class="matchPhotoWrapper">
+                <img src="{$thumbnailArray[$i]['thumb_url']}" height="72" width="108">
+            </div>
+EOL;
+
+        $locationString = build_image_location_string($thumbnailArray[$i], TRUE);
+        $thumbnailClass = '';
+        $thumbnailText = '';
+        if ($thumbnailArray[$i]['image_id'] == $computerMatchImageId && $thumbnailArray[$i]['image_id'] == $preImageMetadata['image_id']) {
+            $thumbnailClass = 'selectedMatch';
+            $thumbnailText = 'Computer Match &amp; Currently Displayed Photo';
+            $jsThumbnailMapScript .= <<<EOL
+                thumbnail{$i}Marker = L.marker(L.latLng({$thumbnailArray[$i]['latitude']}, {$thumbnailArray[$i]['longitude']}),
+                {
+                    clickable: false,
+                    icon: blueMarker
+                });
+                thumbnailLayer.addLayer(thumbnail{$i}Marker);
+
+EOL;
+        } else if ($thumbnailArray[$i]['image_id'] == $computerMatchImageId) {
+            $thumbnailClass = 'computerMatch';
+            $thumbnailText = 'Computer Match';
+            $jsThumbnailMapScript .= <<<EOL
+                thumbnail{$i}Marker = L.marker(L.latLng({$thumbnailArray[$i]['latitude']}, {$thumbnailArray[$i]['longitude']}),
+                {
+                    icon: greenMarker
+                });
+                thumbnail{$i}Marker.on('click', function() {
+                    window.location.replace("classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray[$i]['image_id']}&sessId=$annotationSessionId");
+                });
+                thumbnailLayer.addLayer(thumbnail{$i}Marker);
+
+EOL;
+        } else if ($thumbnailArray[$i]['image_id'] == $preImageMetadata['image_id']) {
+            $thumbnailClass = 'selectedMatch';
+            $thumbnailText = 'Currently Displayed Photo';
+            $jsThumbnailMapScript .= <<<EOL
+                thumbnail{$i}Marker = L.marker(L.latLng({$thumbnailArray[$i]['latitude']}, {$thumbnailArray[$i]['longitude']}),
+                {
+                    clickable: false,
+                    icon: blueMarker
+                });
+                thumbnailLayer.addLayer(thumbnail{$i}Marker);
+
+EOL;
+        } else {
+            $jsThumbnailMapScript .= <<<EOL
+                thumbnail{$i}Marker = L.marker(L.latLng({$thumbnailArray[$i]['latitude']}, {$thumbnailArray[$i]['longitude']}),
+                {
+                    icon: yellowMarker
+                });
+                thumbnail{$i}Marker.on('click', function() {
+                    window.location.replace("classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray[$i]['image_id']}&sessId=$annotationSessionId");
+                });
+                thumbnailLayer.addLayer(thumbnail{$i}Marker);
+
+EOL;
+        }
+
+        $thumbnailHtml .= <<<EOL
             <div class="navThumbnailWrapper">
-              <a href="$thumbnail1Link">
-                <img id="computerMatch" src="$thumbnail1Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail1Alt">
-              </a>
-          <p>Computer Match</p>
+                <a href="classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray[$i]['image_id']}&sessId=$annotationSessionId">
+                    <img id="thumbnail$i" class="$thumbnailClass" src="{$thumbnailArray[$i]['thumb_url']}" alt="An oblique image of the $locationString coastline.">
+                </a>
+                <p>$thumbnailText</p>
             </div>
+EOL;
 
-EOT;
-} elseif ($thumbnailArray1[0]['image_id'] != 0) {
-    $previousThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail1Link">
-                <img src="$thumbnail1Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail1Alt">
-              </a>
-            </div>
+        if ($thumbnailArray[$i]['image_id'] == $preImageMetadata['image_id']) {
+            if ($i != 0 && $thumbnailArray[$i - 1]['image_id'] != 0) {
+                $jQueryDocumentDotReadyCode .= <<<EOL
+            $('#leftButton').click(function() {
+                window.location.replace("classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray[$i - 1]['image_id']}&sessId=$annotationSessionId");
+           });
 
-EOT;
-} else {
-    $previousThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle"  alt="There are no more images in this dataset">
-          <p>Currently Displayed Photo</p>
-            </div>
+EOL;
+            } else {
+                $jQueryDocumentDotReadyCode .= <<<EOL
+                    $('#leftButton').addClass('disabledClickableButton');
+                    $('#leftButton').attr('disabled', 'disabled');
 
-EOT;
-}
+EOL;
+            }
+            if ($i != (count($thumbnailArray) - 1) && $thumbnailArray[$i + 1]['image_id'] != 0) {
+                $jQueryDocumentDotReadyCode .= <<<EOL
+            $('#rightButton').click(function() {
+                window.location.replace("classification.php?projectId=$projectId&imageId=$postImageId&preImageId={$thumbnailArray[$i + 1]['image_id']}&sessId=$annotationSessionId");
+           });
 
-if ($thumbnailArray2[0]['image_id'] == $ComputerMatchImageId) {
-    $previousThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail2Link">
-                <img id="computerMatch" src="$thumbnail2Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail2Alt">
-              </a>
-          <p>Computer Match</p>
-            </div>
+EOL;
+            } else {
+                $jQueryDocumentDotReadyCode .= <<<EOL
+                    $('#rightButton').addClass('disabledClickableButton');
+                    $('#rightButton').attr('disabled', 'disabled');
 
-EOT;
-} elseif ($thumbnailArray2[0]['image_id'] != 0) {
-    $previousThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail2Link">
-                <img src="$thumbnail2Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail2Alt">
-              </a>
-            </div>
+EOL;
+            }
+        }
+    } else {
 
-EOT;
-} else {
-    $previousThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle"  alt="There are no more images in this dataset">
-          <p>Currently Displayed Photo</p>
-            </div>
-
-EOT;
-}
-
-if ($thumbnailArray2[1]['image_id'] == $ComputerMatchImageId) {
-    $currentThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper currentThumbnailWrapper">
-              <img id="computerMatch" src="$thumbnail3Url" height="103" width="156" title="$computerMatchTitle" alt="$thumbnail3Alt">
-          <p>Computer Match &amp;</p>
-          <p>Currently Displayed Photo</p>
-            </div>
-
-EOT;
-} else {
-    $currentThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper currentThumbnailWrapper">
-              <img src="$thumbnail3Url" height="103" width="156" title="$currentImageTitle" alt="$thumbnail3Alt">
-          <p>Currently Displayed Photo</p>
-            </div>
-
-EOT;
-}
-
-if ($thumbnailArray2[2]['image_id'] == $ComputerMatchImageId) {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail4Link">
-                <img id="computerMatch" src="$thumbnail4Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail4Alt">
-              </a>
-          <p>Computer Match</p>
-            </div>
-
-EOT;
-} elseif ($thumbnailArray2[2]['image_id'] != 0) {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail4Link">
-                <img src="$thumbnail4Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail4Alt">
-              </a>
-            </div>
-
-EOT;
-} else {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle" alt="There are no more images in this dataset">
-          <p>Currently Displayed Photo</p>
-            </div>
-
-EOT;
-}
-
-if ($thumbnailArray3[2]['image_id'] == $ComputerMatchImageId) {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail5Link">
-                <img id="computerMatch" src="$thumbnail5Url" height="93" width="140" title="$computerMatchTitle" alt="$thumbnail5Alt">
-              </a>
-          <p>Computer Match</p>
-            </div>
-
-EOT;
-} elseif ($thumbnailArray3[2]['image_id'] != 0) {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <a href="$thumbnail5Link">
-                <img src="$thumbnail5Url" height="93" width="140" title="$navThumbnailTitle" alt="$thumbnail5Alt">
-              </a>
-            </div>
-
-EOT;
-} else {
-    $nextThumbnailHtml .= <<<EOT
-            <div class="navThumbnailWrapper">
-              <img src="images/system/noMoreImages.png" width="150" height="96" title="$noMoreImagesTitle" alt="There are no more images in this dataset">
-          <p>Currently Displayed Photo</p>
-            </div>
-
-EOT;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -714,7 +657,6 @@ $taskCounter = 0;
 foreach ($annotations as $task) {
     $taskCounter++;
     $taskTitle = $task['title'];
-    $taskText = $task['text'];
     $groups = $task['groups'];
     $hiddenDataHTML = '';
     if ($taskCounter == 1) {
@@ -834,6 +776,11 @@ EOT;
               <input id="task{$taskCounter}PreviousButton" class="clickableButton" type="button" value="PREVIOUS TASK" title="Click to go to the PREVIOUS task.">
 
 EOT;
+    } else {
+        $taskHtmlString .= <<<EOT
+              <input id="returnToMatchingButton" class="clickableButton" type="button" value="RETURN TO PHOTO MATCHING" title="">
+
+EOT;
     }
 
     if ($taskCounter < count($annotations)) {
@@ -857,16 +804,25 @@ EOT;
 
 
 $javaScript = <<<EOL
-    icDisplayedTask = 1;
+    icDisplayedTask = 0;
     var map = null;
-    var currentImageLatLon = null;
-    icCurrentImageMarker = null;
-    icProjectId = '';
+    var postImageAspectRatio = {$postImageMetadata['display_image_height']} / {$postImageMetadata['display_image_width']};
+    var preImageAspectRatio = {$preImageMetadata['display_image_height']} / {$preImageMetadata['display_image_width']};
+    var postImageLatLon = null;
+    var projectId = $projectId;
+    var thumbnail0Marker;
+    var thumbnail1Marker;
+    var thumbnail2Marker;
+    var thumbnail3Marker;
+    var thumbnail4Marker;
+    var thumbnail5Marker;
+    var thumbnail6Marker;
+    var thumbnailLayer = L.featureGroup();
 
     function initializeMaps() {
-        currentImageLatLon = L.latLng($postImageLatitude, $postImageLongitude);
+        postImageLatLon = L.latLng($postImageLatitude, $postImageLongitude);
 
-        map = L.map("mapInsert").setView(currentImageLatLon, 12);
+        map = L.map("mapInsert").setView(postImageLatLon, 17);
         L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
         }).addTo(map);
@@ -876,18 +832,39 @@ $javaScript = <<<EOL
             metric: false
         }).addTo(map);
 
-        var mapCurrentIcon = L.icon({
-            iconSize: [32, 37],
-            iconAnchor: [16, 37],
-            iconUrl: 'images/system/photoCurrent.png',
-            popupAnchor: [16, 18]
-          });
-          currentImageMarker = L.marker(currentImageLatLon,
-          {
-              clickable: false,
-              icon: mapCurrentIcon
-          }).addTo(map);
+        var redMarker = L.icon({
+            iconUrl: 'images/system/redMarker.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -35]
+        });
+        var greenMarker = L.icon({
+            iconUrl: 'images/system/greenMarker.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -35]
+        });
+        var yellowMarker = L.icon({
+            iconUrl: 'images/system/yellowMarker.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -35]
+        });
+        var blueMarker = L.icon({
+            iconUrl: 'images/system/blueMarker.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -35]
+        });
 
+        postImageMarker = L.marker(postImageLatLon,
+        {
+            clickable: false,
+            icon: redMarker,
+            zIndexOffset: 10000
+        }).addTo(map);
+        $jsThumbnailMapScript
+        map.addLayer(thumbnailLayer);
     }
 
     function hideLoader(isPost) {
@@ -902,134 +879,175 @@ $javaScript = <<<EOL
 
 
         // Resize annotation groups to window width
-        var taskWidth = $('#task' + icDisplayedTask).width();
-        var numberOfGroups = icTaskMap[icDisplayedTask];
-        if (numberOfGroups > 0) {
-            var groupWidth = (taskWidth / (numberOfGroups)) - 51;
-        }
-        var subGroups = document
-                .getElementById('task' + icDisplayedTask).getElementsByClassName('annotationSubgroup');
-        for (var i = 0; i < subGroups.length; i++) {
-            var childNumber = i + 2;
-            if (!$('#task' + icDisplayedTask +
-                    ' .annotationSubgroup:nth-child(' + childNumber + ')').hasClass('forceWidth')) {
-                var groupMinWidth = $('#task' + icDisplayedTask +
-                        ' .annotationSubgroup:nth-child(' + childNumber + ')').css('min-width').replace('px', '');
-                if (groupWidth > groupMinWidth && subGroups[i].borderWidth === 0) {
-                    $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
-                            .width(groupWidth);
-                } else if (groupWidth >= (parseInt(groupMinWidth) + 60)) {
-                    $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
-                            .width(parseInt(groupMinWidth) + 60);
-                } else {
-                    $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
-                            .width(parseInt(groupMinWidth) + 1);
-                }
+        if (icDisplayedTask > 0) {
+            var taskWidth = $('#task' + icDisplayedTask).width();
+            var numberOfGroups = icTaskMap[icDisplayedTask];
+            if (numberOfGroups > 0) {
+                var groupWidth = (taskWidth / (numberOfGroups)) - 51;
             }
-        }
-        for (var i = 0; i < 5; i++) {
-            var childNumber = i + 1;
-            if ($('#task' + icDisplayedTask +
-                    ' .annotationGroup:nth-child(' + childNumber + ')').length !== 0) {
+            var subGroups = document
+                    .getElementById('task' + icDisplayedTask).getElementsByClassName('annotationSubgroup');
+            for (var i = 0; i < subGroups.length; i++) {
+                var childNumber = i + 2;
                 if (!$('#task' + icDisplayedTask +
-                        ' .annotationGroup:nth-child(' + childNumber + ')').hasClass('forceWidth')) {
+                        ' .annotationSubgroup:nth-child(' + childNumber + ')').hasClass('forceWidth')) {
                     var groupMinWidth = $('#task' + icDisplayedTask +
-                            ' .annotationGroup:nth-child(' + childNumber + ')')
-                            .css('min-width').replace('px', '');
-                    var borderWidth =
-                            $('#task' + icDisplayedTask +
-                                    ' .annotationGroup:nth-child(' + childNumber + ')')
-                            .css('border-left-width').replace('px', '');
-                    if (groupWidth > groupMinWidth && parseInt(borderWidth) === 0) {
-                        $('#task' + icDisplayedTask +
-                                ' .annotationGroup:nth-child(' + childNumber + ')').width(groupWidth);
+                            ' .annotationSubgroup:nth-child(' + childNumber + ')').css('min-width').replace('px', '');
+                    if (groupWidth > groupMinWidth && subGroups[i].borderWidth === 0) {
+                        $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
+                                .width(groupWidth);
                     } else if (groupWidth >= (parseInt(groupMinWidth) + 60)) {
-                        $('#task' + icDisplayedTask +
-                                ' .annotationGroup:nth-child(' + childNumber + ')')
+                        $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
                                 .width(parseInt(groupMinWidth) + 60);
                     } else {
-                        $('#task' + icDisplayedTask +
-                                ' .annotationGroup:nth-child(' + childNumber + ')')
+                        $('#task' + icDisplayedTask + ' .annotationSubgroup:nth-child(' + childNumber + ')')
                                 .width(parseInt(groupMinWidth) + 1);
                     }
                 }
             }
-        }
+            for (var i = 0; i < 5; i++) {
+                var childNumber = i + 1;
+                if ($('#task' + icDisplayedTask +
+                        ' .annotationGroup:nth-child(' + childNumber + ')').length !== 0) {
+                    if (!$('#task' + icDisplayedTask +
+                            ' .annotationGroup:nth-child(' + childNumber + ')').hasClass('forceWidth')) {
+                        var groupMinWidth = $('#task' + icDisplayedTask +
+                                ' .annotationGroup:nth-child(' + childNumber + ')')
+                                .css('min-width').replace('px', '');
+                        var borderWidth =
+                                $('#task' + icDisplayedTask +
+                                        ' .annotationGroup:nth-child(' + childNumber + ')')
+                                .css('border-left-width').replace('px', '');
+                        if (groupWidth > groupMinWidth && parseInt(borderWidth) === 0) {
+                            $('#task' + icDisplayedTask +
+                                    ' .annotationGroup:nth-child(' + childNumber + ')').width(groupWidth);
+                        } else if (groupWidth >= (parseInt(groupMinWidth) + 60)) {
+                            $('#task' + icDisplayedTask +
+                                    ' .annotationGroup:nth-child(' + childNumber + ')')
+                                    .width(parseInt(groupMinWidth) + 60);
+                        } else {
+                            $('#task' + icDisplayedTask +
+                                    ' .annotationGroup:nth-child(' + childNumber + ')')
+                                    .width(parseInt(groupMinWidth) + 1);
+                        }
+                    }
+                }
+            }
 
 
-        // Set group header heights to the same across the board
-        $('.groupText, .subGroupText').show();
-        $('.groupWrapper h2, .groupWrapper h3').height("");
-        var subGroups = document.getElementById('task' + icDisplayedTask)
-                .getElementsByClassName('annotationSubgroup');
-        var maxHeaderHeight = 0;
-        for (var i = 0; i < subGroups.length; i++) {
-            var childNumber = i + 2;
-            var headerHeight = $('#task' + icDisplayedTask +
-                    ' .annotationSubgroup:nth-child(' + childNumber + ') h3').height();
-            if (headerHeight > maxHeaderHeight) {
-                maxHeaderHeight = headerHeight;
+            // Set group header heights to the same across the board
+            $('.groupText, .subGroupText').show();
+            $('.groupWrapper h2, .groupWrapper h3').height("");
+            var subGroups = document.getElementById('task' + icDisplayedTask)
+                    .getElementsByClassName('annotationSubgroup');
+            var maxHeaderHeight = 0;
+            for (var i = 0; i < subGroups.length; i++) {
+                var childNumber = i + 2;
+                var headerHeight = $('#task' + icDisplayedTask +
+                        ' .annotationSubgroup:nth-child(' + childNumber + ') h3').height();
+                if (headerHeight > maxHeaderHeight) {
+                    maxHeaderHeight = headerHeight;
+                }
             }
-        }
-        $('#task' + icDisplayedTask + ' h3').height(maxHeaderHeight);
-        var maxHeaderHeight = 0;
-        for (var i = 0; i < 5; i++) {
-            var childNumber = i + 1;
-            var headerHeight = $('#task' + icDisplayedTask +
-                    ' .annotationGroup:nth-child(' + childNumber + ') h2').height();
-            if (headerHeight > maxHeaderHeight) {
-                maxHeaderHeight = headerHeight;
+            $('#task' + icDisplayedTask + ' h3').height(maxHeaderHeight);
+            var maxHeaderHeight = 0;
+            for (var i = 0; i < 5; i++) {
+                var childNumber = i + 1;
+                var headerHeight = $('#task' + icDisplayedTask +
+                        ' .annotationGroup:nth-child(' + childNumber + ') h2').height();
+                if (headerHeight > maxHeaderHeight) {
+                    maxHeaderHeight = headerHeight;
+                }
             }
+            $('#task' + icDisplayedTask + ' h2').height(maxHeaderHeight);
         }
-        $('#task' + icDisplayedTask + ' h2').height(maxHeaderHeight);
 
         // Size Div over map to match push map down level with the images.
-        var headerInnerHeight = $('.imageColumnTitle').height();
-        $('#mapColumnTitle').css('height', headerInnerHeight);
+        var maxHeaderInnerHeight = 0
+        var maxHeaderOuterHeight = 0
+        $('.imageColumnTitle').height('auto');
+        $('.imageColumnTitle').each(function() {
+
+            if ($(this).height() > maxHeaderInnerHeight) {
+                maxHeaderInnerHeight = $(this).height()
+            }
+            if ($(this).outerHeight() > maxHeaderOuterHeight) {
+                maxHeaderOuterHeight = $(this).outerHeight()
+            }
+        });
+        $('.imageColumnTitle').css('height', maxHeaderInnerHeight);
 
 
-        // Determine size the page;
+
+
+
+
+        // Determine size the page and its elements
         $('html').css('overflow', 'hidden');
         var bodyHeight = $('body').height();
         var bodyWidth = $('#classificationWrapper').width();
         $('html').css('overflow', 'auto');
 
-
-        // Calculate and set an image size that stops body exceeding viewport height.
-        var headerHeight = $('.imageColumnTitle').outerHeight();
         var annotationHeight = $('#annotationWrapper').outerHeight();
-        // 25px from header, 15px from imageColumnContent padding, 1 to account for browser pixel rounding
-        var maxImageHeightByY = bodyHeight - 25 - 15 - 1 - headerHeight - annotationHeight
-        console.log('Header:' + headerHeight);
-        console.log('Annotation:' + annotationHeight);
-        console.log('maxImageHeightByY:' + maxImageHeightByY);
-        var maxImageWidth = maxImageHeightByY / 0.652;
-        if (maxImageWidth >= (bodyWidth * 0.43) - 10) {
-            maxImageWidth = (bodyWidth * 0.43) - 15;
-            maxImageHeightByY = maxImageWidth * 0.652;
-        }
-        maxImageWidth = Math.floor(maxImageWidth);
-        maxImageWidth += 'px';
 
-        $('.imageColumnContent').css('max-width', maxImageWidth);
+        // 30px from header, 1 to account for browser pixel rounding, 15 for image div padding top and bottom
+        var maxImageHeightByY = bodyHeight - 30 - 1 - maxHeaderOuterHeight - 15 - annotationHeight;
+        var maxImageWidthByX = (bodyWidth * 0.43) - 10;
 
-        var maxImageHeightByX = (((bodyWidth * 0.43) - 15) * 0.65) - 1;
-        console.log('maxImageHeightByX:' + maxImageHeightByX);
-        if (maxImageHeightByY < maxImageHeightByX) {
-            var mapInsertHeight = maxImageHeightByY;
-            console.log('maxImageHeightByY = mapInsertHeight');
+
+        // Calculate max post image size limits
+        var maxPostImageWidthByY = maxImageHeightByY / postImageAspectRatio;
+        var maxPostImageHeightByX = maxImageWidthByX * postImageAspectRatio;
+
+        if (maxPostImageWidthByY < maxImageWidthByX) {
+            maxPostImageWidth = Math.floor(maxPostImageWidthByY);
+            maxPostImageHeight = Math.floor(maxImageHeightByY);
         } else {
-            var mapInsertHeight = maxImageHeightByX;
-            console.log('maxImageHeightByX = mapInsertHeight');
+            maxPostImageWidth = Math.floor(maxImageWidthByX);
+            maxPostImageHeight = Math.floor(maxPostImageHeightByX);
+        }
+        if (maxPostImageWidth > 800) {
+            maxPostImageWidth = 800;
         }
 
-        if (mapInsertHeight > 521) {
-            mapInsertHeight = 521;
+        // Calculate max pre image size limits
+        var maxPreImageWidthByY = maxImageHeightByY / preImageAspectRatio;
+        var maxPreImageHeightByX = maxImageWidthByX * preImageAspectRatio;
+
+        if (maxPreImageWidthByY < maxImageWidthByX) {
+            maxPreImageWidth = Math.floor(maxPreImageWidthByY);
+            maxPreImageHeight = Math.floor(maxImageHeightByY);
+        } else {
+            maxPreImageWidth = Math.floor(maxImageWidthByX);
+            maxPreImageHeight = Math.floor(maxPreImageHeightByX);
         }
-        mapInsertHeight = Math.floor(mapInsertHeight);
-        console.log('mapInsertHeight: ' + mapInsertHeight);
-        mapInsertHeight += "px";
-        $('#mapInsert').css('height', mapInsertHeight);
+        if (maxPreImageWidth > 800) {
+            maxPreImageWidth = 800;
+        }
+
+        var maxImageHeight;
+        var preImageCenteringMargin = 0;
+        var postImageCenteringMargin = 0;
+        if (maxPostImageHeight > maxPreImageHeight) {
+            maxImageHeight = maxPostImageHeight;
+            preImageCenteringMargin = Math.floor((maxPostImageHeight - maxPreImageHeight) / 2);
+        } else {
+            maxImageHeight = maxPreImageHeight;
+            postImageCenteringMargin = Math.floor((maxPreImageHeight - maxPostImageHeight) / 2);
+        }
+
+        $('#postImageColumnContent').css({
+            'max-width': maxPostImageWidth + 'px',
+            'max-height': maxPostImageHeight + 'px',
+            'margin-top': postImageCenteringMargin + 'px'
+            });
+        $('#preImageColumnContent').css({
+            'max-width': maxPreImageWidth + 'px',
+            'max-height': maxPreImageHeight + 'px',
+            'margin-top': preImageCenteringMargin + 'px'
+            });
+        $('#mapInsert').css('height', maxImageHeight + 'px');
+        map.invalidateSize();
 
         $('.zoomContainer').remove();
         $('#postImage').elevateZoom({
@@ -1078,10 +1096,126 @@ $javaScript = <<<EOL
             }
         }
     }
+
+    function photoFeedbackConfirmation() {
+        window.location.href = 'classification.php?projectId=' + projectId;
+    }
+
+    $(window).bind("load", function() {
+        dynamicSizing(icDisplayedTask);
+    });
 EOL;
 
+$jQueryDocumentDotReadyCode .= <<<EOT
 
-$jQueryDocumentDotReadyCode = "icProjectId = $projectId;\r\n";
+    $('#flagButton').click(function() {
+        $('#popupWrapperParent').css('display', 'table');
+        $('#unsuitable').show();
+    });
+
+    $('#noMatchButton').click(function() {
+        $('#popupWrapperParent').css('display', 'table');
+        $('#noMatch').show();
+    });
+
+
+    $('.cancelPopup').click(function() {
+        $('#popupWrapperParent').css('display', 'none');
+        $('#unsuitable, #noMatch').hide();
+    });
+
+    $('#confirmUnsuitable').click(function() {
+        photoFeedbackData = {
+            'eventType': 4,
+            'eventText': 'Image {$postImageMetadata['image_id']} taken near $postImageLocation has been flagged as UNSUITABE for use in iCoast',
+            'eventSummary': 'User Feedback',
+            'userId': $userId,
+            'url': '$url',
+            'queryString': '$queryString',
+            'postData': '$postData',
+            'clientAgent': '$clientAgent'
+        };
+        $.post('ajax/eventLogger.php', photoFeedbackData, photoFeedbackConfirmation());
+    });
+
+    $('#confirmNoMatch').click(function() {
+        photoFeedbackData = {
+            'eventType': 4,
+            'eventText': 'Image {$postImageMetadata['image_id']} taken near $postImageLocation has been flagged as NOT HAVING A VALID MATCH for use in iCoast',
+            'eventSummary': 'User Feedback',
+            'userId': $userId,
+            'url': '$url',
+            'queryString': '$queryString',
+            'postData': '$postData',
+            'clientAgent': '$clientAgent'
+        };
+        $.post('ajax/eventLogger.php', photoFeedbackData, photoFeedbackConfirmation());
+    });
+
+    $('#startTaggingButton').click(function() {
+        var formData = $('.annotationForm').serialize();
+        
+        formData += '$annotationMetaDataQueryString';
+        console.log(formData);
+        $.post('ajax/annotationLogger.php', formData);
+
+        $('#photoMatchingWrapper').css('display', 'none');
+        $('.imageWrapper').css({
+            'border': 'none',
+            'box-shadow': 'none',
+            'border-radius': '0',
+            'padding': '3px'
+             });
+        $('#preImage, #postImage').css('box-shadow', '#666666 5px 5px 5px');
+        map.removeLayer(thumbnailLayer);
+        map.setView(postImageLatLon, 12);
+
+
+        $('#taskWrapper').css('display', 'block');
+        $('#progressTrackerItem1').addClass('currentProgressTrackerItem');
+        $('#progressTrackerItem1Content').css('display', 'inline');
+        $('#task1Header').css('display', 'block');
+        $('#task1').css('display', 'block');
+        icDisplayedTask = 1;
+        setMinGroupHeaderWidth(icDisplayedTask);
+    });
+
+
+    $('#returnToMatchingButton').click(function() {
+        var formData = $('.annotationForm').serialize();
+        formData += '$annotationMetaDataQueryString';
+        console.log(formData);
+        $.post('ajax/annotationLogger.php', formData);
+
+        $('#taskWrapper').css('display', 'none');
+        $('#task1').css('display', 'none');
+        $('#progressTrackerItem1').removeClass('currentProgressTrackerItem');
+        $('#progressTrackerItem1Content').css('display', 'none');
+        $('#task1Header').css('display', 'none');
+
+        $('#preImage, #postImage').css('box-shadow', 'none');
+        $('#photoMatchingWrapper').css('display', 'block');
+        $('.imageWrapper').css({
+            'box-shadow': '#666666 5px 5px 5px',
+            'border-radius': '8px',
+            'padding': '0'
+             });
+
+        $('#preImageWrapper').css('border', '3px solid #5384ed');
+        $('#postImageWrapper').css('border', '3px solid #e56969');
+        map.addLayer(thumbnailLayer);
+        map.fitBounds(thumbnailLayer.getBounds(), {'padding': [25 ,10]});
+
+
+        icDisplayedTask = 0;
+
+        dynamicSizing(icDisplayedTask);
+
+    });
+
+EOT;
+
+
 
 // Annotation Navigation Buttons
 for ($i = 1; $i <= $taskCount; $i++) {
@@ -1136,7 +1270,7 @@ EOT;
         }
     }
 
-    // Annotation Previous Navigation Button
+// Annotation Previous Navigation Button
     if ($i > 1) {
 
         if ($i == 2) {
@@ -1268,35 +1402,29 @@ $jQueryDocumentDotReadyCode .= <<<EOL
          }
          dynamicSizing(icDisplayedTask);
      }
+
+
     $(window).scroll(function(){
         iCoastTitle();
     });
 
 
-     var script = document.createElement("script");
-     script.type = "text/javascript";
-     script.src = "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places&callback=initializeMaps";
-     document.body.appendChild(script);
-     $('#progressTrackerItem1').addClass('currentProgressTrackerItem');
-     $('#progressTrackerItem1Content').css('display', 'inline');
-     $('#task1Header').css('display', 'block');
-     $('#task1').css('display', 'block');
+     initializeMaps();
      $('#progressTrackerItemWrapper, .thumbnail, .zoomLoadingIndicator')
              .tipTip({defaultPosition: "right"});
      $tagJavaScriptString
-     icDisplayedTask = 1;
-     setMinGroupHeaderWidth(icDisplayedTask);
 
-     var databaseAnnotationInitialization = 'loadEvent=True$annotationMetaDataQueryString';
+     var databaseAnnotationInitialization = 'startClassification=1$annotationMetaDataQueryString';
      console.log(databaseAnnotationInitialization);
      $.post('ajax/annotationLogger.php', databaseAnnotationInitialization);
      $(window).resize(function() {
          dynamicSizing(icDisplayedTask);
-         map.setView(currentImageLatLon);
+         map.setView(postImageLatLon);
          iCoastTitle();
      });
-     dynamicSizing(icDisplayedTask);
+    dynamicSizing(icDisplayedTask);
     $(window).scrollTop($('#navigationBar').position().top);
+    map.fitBounds(thumbnailLayer.getBounds(), {'padding': [25 ,10]});
 
 
 EOL;

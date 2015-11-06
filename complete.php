@@ -8,7 +8,7 @@ $pageBody = <<<EOL
     <div id="contentWrapper">
         <h1>Annotation Complete</h1>
         <h2>Congratulations!</h2>
-        <p style="font-weight: normal"> This is the <span class="userData">$ordinalNumberOfAnnotations</span>
+        <p style="font-weight: normal"> This is the <span class="userData">$ordinalNumberOfAnnotationsInProject</span>
             photo you have tagged in iCoast for the <span class="userData">$projectName Project</span>.<br>
             Statistics of the last photo you tagged are below.</p>
         <div id="annotationDetails">

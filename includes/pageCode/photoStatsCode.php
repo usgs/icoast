@@ -16,11 +16,9 @@ require_once($dbConnectionFile);
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
-ini_set('memory_limit', '96M');
+ini_set('memory_limit', '128M');
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 $photoSelectClearFormHTML = '';
@@ -48,8 +46,7 @@ $projectSelectHTML = '';
 
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-//$projectCount = count($userAdministeredProjects);
+$projectList = find_projects($DBH, TRUE);
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
 
@@ -89,7 +86,7 @@ if (isset($_GET['targetProjectId'])) {
 }
 
 
-foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+foreach ($projectList as $singeUserAdministeredProject) {
     $optionProjectId = $singeUserAdministeredProject['project_id'];
     $optionProjectName = $singeUserAdministeredProject['name'];
     $optionProjectDescription = $singeUserAdministeredProject['description'];
@@ -117,12 +114,15 @@ EOL;
 
     // Determine all image and parent container details
     $detailedImageURL = $photoMetadata['full_url'];
-    $datasetMetadata = retrieve_entity_metadata($DBH, $photoMetadata['dataset_id'], 'dataset');
-    $collectionMetadata = retrieve_entity_metadata($DBH, $datasetMetadata['collection_id'], 'collection');
-    $imageParentProjectQuery = "SELECT project_id, name, description, post_collection_id, pre_collection_id, is_public "
-            . "FROM projects "
-            . "WHERE post_collection_id = {$datasetMetadata['collection_id']} OR pre_collection_id = {$datasetMetadata['collection_id']} "
-            . "ORDER BY project_id";
+    //////$datasetMetadata = retrieve_entity_metadata($DBH, $photoMetadata['dataset_id'], 'dataset');
+    $collectionMetadata = retrieve_entity_metadata($DBH, $photoMetadata['collection_id'], 'collection');
+    $imageParentProjectQuery = <<<EOL
+            SELECT project_id, name, description, post_collection_id, pre_collection_id, is_public
+            FROM projects
+            WHERE post_collection_id = {$photoMetadata['collection_id']}
+                OR pre_collection_id = {$photoMetadata['collection_id']}
+            ORDER BY project_id
+EOL;
 
     // Format image and parent details for display
     // Build list of projects using the specified image for incusion in table cell.
@@ -132,7 +132,7 @@ EOL;
         } else {
             $projectListHTML .= '<span title="' . $parentProject['description'] . ' (Disabled)"><a href="classificationStats.php?targetProjectId=' . $parentProject['project_id'] . '">' . $parentProject['project_id'] . ' - ' . $parentProject['name'] . '</a> <span class="redHighlight">Disabled</span>';
         }
-        if ($parentProject['post_collection_id'] == $datasetMetadata['collection_id']) {
+        if ($parentProject['post_collection_id'] == $photoMetadata['collection_id']) {
             $projectListHTML .= ' (Post-Event Photo)';
         } else {
             $projectListHTML .= ' (Pre-Event Photo)';
@@ -159,15 +159,9 @@ EOL;
 
     // Highlight in red if image is disabled.
     if ($photoMetadata['is_globally_disabled'] == 0) {
-        $imageStatus = "Enabled";
+        $globalImageStatusHTML = "Enabled";
     } else {
-        $imageStatus = '<span class="redHighlight">Disabled</span>';
-    }
-    // Highlight in red if dataset is disabled.
-    if ($datasetMetadata['is_enabled'] == 1) {
-        $parentDatasetHTML = '<td class="userData" title="' . $datasetMetadata['description'] . '">' . $photoMetadata['dataset_id'] . ' - ' . $datasetMetadata['name'] . '</td>';
-    } else {
-        $parentDatasetHTML = '<td class="userData redHighlight" title="' . $datasetMetadata['description'] . ' (Disabled)">' . $photoMetadata['dataset_id'] . ' - ' . $datasetMetadata['name'] . '</td>';
+        $globalImageStatusHTML = '<span class="redHighlight">Disabled</span>';
     }
 
     // Highlight in red if collection is disabled.
@@ -182,7 +176,7 @@ EOL;
             <h2>Details and Statistics For Image $targetPhotoId</h2>
             <div id="photoStatsImageWrapper">
                 <img id="imageZoomLoadingIndicator" class="zoomLoadingIndicator" src="images/system/loading.gif" title="Loading high resolution zoom tool..." alt="An animated spinner to indicate a higher resolution image is loading." />
-                <img id="photoStatsImage" src="images/datasets/{$photoMetadata['dataset_id']}/main/{$photoMetadata['filename']}" width="800" height="521" data-zoom-image="$detailedImageURL">
+                <img id="photoStatsImage" src="images/collections/{$photoMetadata['collection_id']}/main/{$photoMetadata['filename']}" width="800" height="521" data-zoom-image="$detailedImageURL">
             </div>
             <div id="photoStatsMapDetailsWrapper">
                 <div id="photoStatsMapWrapper">
@@ -204,11 +198,7 @@ EOL;
                     </tr>
                     <tr>
                         <td>Status:</td>
-                        <td class="userData">$imageStatus</td>
-                    </tr>
-                    <tr>
-                        <td>Parent Dataset:</td>
-                        $parentDatasetHTML
+                        <td class="userData">$globalImageStatusHTML</td>
                     </tr>
                     <tr>
                         <td>Parent Collection:</td>
@@ -598,7 +588,6 @@ EOL;
                 $computerMatchPhotoMetadata = retrieve_entity_metadata($DBH, $computerMatchMetadata['pre_image_id'], 'image');
 
                 $photoMatchesArray[$computerMatchPhotoMetadata['image_id']] = array(
-                    'computer_match' => '1',
                     'latitude' => $computerMatchPhotoMetadata['latitude'],
                     'longitude' => $computerMatchPhotoMetadata['longitude'],
                     'thumb_url' => $computerMatchPhotoMetadata['thumb_url'],
@@ -620,7 +609,6 @@ EOL;
                     $totalPhotoMatches ++;
                     if (!array_key_exists($userMatch['user_match_id'], $photoMatchesArray)) {
                         $photoMatchesArray[$userMatch['user_match_id']] = array(
-                            'computer_match' => '0',
                             'latitude' => $userMatch['latitude'],
                             'longitude' => $userMatch['longitude'],
                             'thumb_url' => $userMatch['thumb_url'],
@@ -630,13 +618,16 @@ EOL;
                         $photoMatchesArray[$userMatch['user_match_id']]['match_count'] ++;
                     }
                 }
-
+                $userMatchIdListHTML = '';
                 foreach ($photoMatchesArray as $photoKey => $photoMatch) {
                     if ($photoKey != $computerMatchPhotoMetadata['image_id']) {
                         $userMatchIdListHTML .= '<a href="photoStats?targetPhotoId=' . $photoKey . '">' . $photoKey . '</a> was selected ' . $photoMatch['match_count'] . ' time(s).<br>';
                     } else {
                         $computerMatchIdHTML .= '<a href="photoStats?targetPhotoId=' . $photoKey . '">' . $photoKey . '</a> was selected ' . $photoMatch['match_count'] . ' time(s).';
                     }
+                }
+                if (empty($userMatchIdListHTML)) {
+                    $userMatchIdListHTML = 'None.';
                 }
 
 
@@ -659,6 +650,7 @@ EOL;
 
                 $jsPhotoMatchesMapCode = <<<EOL
             var photoMetadata = $jsPhotoMetadata;
+            var computerMatchPhotoId = {$computerMatchPhotoMetadata['image_id']};
             var photoMatchesArray = $jsPhotoMatchesArray;
             var totalPhotoMatches = $totalPhotoMatches;
             var totalPhotoDistinctMatches = $totalPhotoDistinctMatches;
@@ -691,8 +683,7 @@ EOL;
 
             var allMarkers = L.featureGroup();
             var allLines = L.featureGroup();
-            var computerLatLng = null;
-
+            var computerLatLng = L.latLng(photoMatchesArray[computerMatchPhotoId].latitude, photoMatchesArray[computerMatchPhotoId].longitude);
             var photoLatLng = L.latLng(photoMetadata.latitude, photoMetadata.longitude);
             var photoMarker = L.marker(photoLatLng);
             photoMarker.bindPopup('<h2>Image ' + photoMetadata.image_id + '</h2><p>This is the currently selected post-storm image.</p><p><span class="userData">' + totalPhotoMatches + '</span> matches to <span class="userData">' + totalPhotoDistinctMatches + '</span> distinct pre-storm photos have been made for this image.</p><img class="mapMarkerImage" width="167" height="109" src="' + photoMetadata.thumb_url + '">', {offset: [0, -35]});
@@ -700,8 +691,7 @@ EOL;
 
             $.each(photoMatchesArray, function(key, photo) {
 
-                if (photo.computer_match == 1) {
-                    computerLatLng = L.latLng(photo.latitude, photo.longitude);
+                if (key == computerMatchPhotoId) {
                     var computerMarker = L.marker(computerLatLng, {icon: computerPhoto});
                     var distanceFromPostStormPhoto = Math.floor(computerLatLng.distanceTo(photoLatLng) * 3.3);
                     computerMarker.bindPopup('<h2>Computer Match</h2><p>Image <a href="photoStats.php?targetPhotoId=' + key + '">' + key + '</a></p><p>This is the photo chosen by the computer as the best possible pre-storm match based on proximity (<span class="userData">' + distanceFromPostStormPhoto + ' ft.</span>) to the selected post-storm photo.</p><p><span class="userData">' + photo.match_count + ' of ' + totalPhotoMatches + '</span> user match selections from complete annotations chose this as the best match for the post-storm photo.</p><div class="photoMatchMapComparisonWrapper"><div class="photoMatchMapComparisonPostPhotoWrapper"><p>Post-Storm Photo (' + photoMetadata.image_id + ')</p><img class="mapMarkerImage" width="167" height="109" src="' + photoMetadata.thumb_url + '"></div><div class="photoMatchMapComparisonPrePhotoWrapper"><p>Computer\'s Pre-Storm Match (<a href="photoStats.php?targetPhotoId=' + key + '">' + key + '</a>)</p><a href="photoStats.php?targetPhotoId=' + key + '"><img class="mapMarkerImage" width="167" height="109" src="' + photo.thumb_url + '"></a></div></div>', {offset: [0, -35], maxWidth: 344});

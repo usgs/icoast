@@ -72,23 +72,20 @@ function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postColl
             is_Numeric($postCollectionId) && is_Numeric($preCollectionId) && is_Numeric($userId) &&
             is_bool($isFiltered)) {
         $projectData = retrieve_entity_metadata($DBH, $projectId, 'project');
-        if ($projectData) {
-            $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
-        }
         if ($userId !== 0) {
             $userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
             if ($userGroups) {
                 $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
                 if ($imageGroups) {
-                    $imageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, TRUE);
+                    $imageIdPool = retrieve_image_id_pool($imageGroups, TRUE, TRUE);
                 } else {
-                    $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
+                    $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
                 }
             } else {
-                $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
+                $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
             }
         } else {
-            $imageIdPool = retrieve_image_id_pool($DBH, $projectDatasets, FALSE, TRUE);
+            $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
         }
         if (is_array($imageIdPool) && count($imageIdPool) > 0 && !$isFiltered) {
             $imagesCount = count($imageIdPool);
@@ -131,7 +128,6 @@ function random_post_image_id_generator($DBH, $projectId, $isFiltered, $postColl
             return 'poolEmpty';
         }
     }
-    print "RETURNING: FALSE<br>";
     return FALSE;
 }
 
@@ -162,9 +158,6 @@ function post_image_pool_generator($DBH, $projectId, $isFiltered, $postCollectio
             is_Numeric($postCollectionId) && is_Numeric($preCollectionId) && is_Numeric($userId) &&
             is_bool($isFiltered)) {
         $projectData = retrieve_entity_metadata($projectId, 'project');
-        if ($projectData) {
-            $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
-        }
         if ($userId !== 0) {
             $userGroups = find_user_group_membership($userId, $projectId, TRUE);
             if ($userGroups) {
@@ -177,23 +170,23 @@ function post_image_pool_generator($DBH, $projectId, $isFiltered, $postCollectio
                     }
                 } else {
                     if ($isFiltered) {
-                        $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, TRUE);
+                        $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
                     } else {
-                        $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+                        $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, FALSE);
                     }
                 }
             } else {
                 if ($isFiltered) {
-                    $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, TRUE);
+                    $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
                 } else {
-                    $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+                    $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, FALSE);
                 }
             }
         } else {
             if ($isFiltered) {
-                $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, TRUE);
+                $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, TRUE);
             } else {
-                $imageIdPool = retrieve_image_id_pool($projectDatasets, FALSE, FALSE);
+                $imageIdPool = retrieve_image_id_pool($projectData['post_collection_id'], FALSE, FALSE);
             }
         }
         if ($imageIdPool AND $userId == 0) {
@@ -435,6 +428,7 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
     return FALSE;
 }
 
+
 // -------------------------------------------------------------------------------------------------
 /**
  * Finds the details of one image on each side of a supplied image id.
@@ -443,232 +437,222 @@ function find_user_group_membership($DBH, $userId, $projectId = 0, $idOnly = FAL
  * in the photo sequence (as defined in the dataset) and returns an array of metadata for all three
  * images.
  *
- * @param int $imageId iCoast DB row id of the source image.
+ * @param int $photoId iCoast DB row id of the source image.
  * @param int $projectId Optional. Default = NULL. If specified the returned adjacent images will
  * be checked to ensure they contain a valid match in the matches table of the iCoast DB (should
  * only be specified when a post image id is passed as the $imageId argument.
+ * @param int $userId Optional. Default = NULL. If supplied images returned must be part of an image
+ * group to which the user is a member.
+ * @param int $range Optional, Default = 1. Determines the number of images each side of the supplied image
+ * that will be returned. Value of 1 willr eturn a total of 3 images. 1 each side and the supplied image
+ * in the middle.
+ * @param int $searchLimit Optional. Default = 20. The maximum distance from the supplied image (in each
+ * direction) that may be searched in trying to find the number of images requested in $range.
  * @return array|boolean On success returns a 2D array where 1st level values contain an array of
  * metadata for each image and the second level keys/values contain databse column names and row
  * data from the images table of the iCoast DB except where $projectId was passed and no adjacent
  * image was found in which case the 2nd level will contain one key "image_id" with value "0"
  * <b>OR</b><br> On failure returns FALSE.
  */
-function find_adjacent_images($DBH, $imageId, $projectId = NULL, $userId = NULL) {
-    // print "In find_adjacent_images. Image ID = $imageId Project ID = $projectId<br>";
-    $adjacentSearchRange = 20;
-    $adjacentImageArray = Array();
-    if (!is_null($imageId) && is_numeric($imageId)) {
-        // Retrieve image and dataset metadata
-        $imageMetadata = retrieve_entity_metadata($DBH, $imageId, 'image');
-        if (isset($imageMetadata) && $imageMetadata) {
-            $positionInDataset = $imageMetadata['position_in_set'];
-            $datasetId = $imageMetadata['dataset_id'];
-            $datasetMetadata = retrieve_entity_metadata($DBH, $datasetId, 'dataset');
+function find_adjacent_images($DBH, $photoId, $projectId = NULL, $userId = NULL, $range = 1, $searchLimit = 20) {
+
+    $photoMetadata = null;
+    $projectMetadata = null;
+    $userMetadata = null;
+
+    // Check imput validity.
+    if (isset($photoId)) {
+        settype($photoId, 'integer');
+        if (!empty($photoId)) {
+            $photoMetadata = retrieve_entity_metadata($DBH, $photoId, 'image');
         }
-        if (!is_null($projectId) && (is_numeric($projectId))) {
-            // If project id is supplied retrieve project metadata
+    }
+    if (isset($projectId)) {
+        settype($projectId, 'integer');
+        if (!empty($projectId)) {
             $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
         }
+    }
 
-        $hasUserAssignedImages = FALSE;
-        if (!is_null($userId) && is_numeric($userId)) {
-//            print $userId;
-            $userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
-            if ($userGroups) {
-//                print '<pre>';
-//                print_r($userGroups);
-//                print '</pre>';
-                $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
-                if ($imageGroups) {
-//                    print '<pre>';
-//                    print_r($imageGroups);
-//                    print '</pre>';
-                    $userAssignedImageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
-//                    print '<pre>';
-//                    print_r($userAssignedImageIdPool);
-//                    print '</pre>';
-                    if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
-                        for ($i = 0; $i < count($userAssignedImageIdPool); $i++) {
-//                            print "$i: Checking " . $userAssignedImageIdPool[$i] . '<br>';
-                            if (has_user_annotated_image($DBH, $userAssignedImageIdPool[$i], $userId) === 1) {
-//                                print 'Removing ' . $userAssignedImageIdPool[$i] . '<br>';
-                                array_splice($userAssignedImageIdPool, $i, 1);
-                                $i--;
-                            }
-                        }
-                        if (count($userAssignedImageIdPool) > 0) {
-                            $hasUserAssignedImages = TRUE;
-                        }
-                    }
-                }
-            }
+    if (isset($userId)) {
+        settype($userId, 'integer');
+        if (!empty($userId)) {
+            $userMetadata = retrieve_entity_metadata($DBH, $userId, 'user');
         }
-//        if ($hasUserAssignedImages) {
-//            print 'TRUE';
-//        } else {
-//            print 'FALSE';
-//        }
+    }
+    settype($range, 'integer');
+    settype($searchLimit, 'integer');
 
-        if (isset($datasetMetadata) && $datasetMetadata) {
-            $imagesInDataset = $datasetMetadata['rows_in_set'];
+    if (!$photoMetadata ||
+            (!is_null($projectId) && !$projectMetadata) ||
+            (!is_null($userMetadata['user_id']) && !$userMetadata) ||
+            empty($range) ||
+            empty($searchLimit)) {
+        return FALSE;
+    }
 
-            // Ensure the range in the query doesn't exceed the available rows in the dataset.
-            $minPosition = $positionInDataset - $adjacentSearchRange;
-            if ($minPosition <= 0) {
-                $minPosition = 1;
-            }
-            $maxPosition = $positionInDataset + $adjacentSearchRange;
-            if ($maxPosition > $imagesInDataset) {
-                $maxPosition = $imagesInDataset;
-            }
 
-            // Query the iCoast DB for all images with position id's in the defined range.
-            $adjacentImageQuery = "SELECT * FROM images WHERE dataset_id = :datasetId AND
-        position_in_set BETWEEN :minPosition AND :maxPosition";
-            $adjacentImageParams = array(
-                'datasetId' => $datasetId,
-                'minPosition' => $minPosition,
-                'maxPosition' => $maxPosition
-            );
-            $STH = run_prepared_query($DBH, $adjacentImageQuery, $adjacentImageParams);
-            $adjacentImageMetadata = $STH->fetchAll(PDO::FETCH_ASSOC);
-//      $adjacentImageQueryResult = run_database_query($adjacentImageQuery);
-            if (count($adjacentImageMetadata) > 0) {
-//        $adjacentImageMetadata = $adjacentImageQueryResult->fetch_all(MYSQLI_ASSOC);
-                // Loop through the array of adjacent images in range in ascending order searching for
-                // the image with the next ascending position_in_dataset number from the current image.
-                if ($positionInDataset == $maxPosition) {
-                    $adjacentImageArray[] = array('image_id' => 0);
-                } else {
-                    $tempPositionCounter = $positionInDataset + 1;
-                    while (TRUE) {
-                        // Start Loop
-                        foreach ($adjacentImageMetadata as $adjacentImage) {
-                            // Initiate a match check if required.
-                            if (!is_null($projectId)) {
-                                if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                    $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
-                                    if (!$match || $match['is_enabled'] == 0) {
-                                        // Position was found but it didn't pass match check. Break the foreach loop and
-                                        // start again with the next position number.
-                                        break;
-                                    }
-                                } else {
-                                    // Image is not the one we are looking for. Skip the rest of the foreach loop.
-                                    continue;
-                                }
-                            }
-                            // Initiate an image validity check.
-                            if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                if ($hasUserAssignedImages) {
-                                    if ($adjacentImage['has_display_file'] == 1 &&
-                                            $adjacentImage['is_globally_disabled'] == 0 &&
-                                            in_array($adjacentImage['image_id'], $userAssignedImageIdPool)) {
-                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
-                                        $adjacentImageArray[] = $adjacentImage;
-                                        break 2;
-                                    } else {
-                                        // Position was found but it didn't pass validity check. Break the foreach loop
-                                        // and start again with the next position number.
-                                        break;
-                                    }
-                                } else {
-                                    if ($adjacentImage['has_display_file'] == 1 &&
-                                            $adjacentImage['is_globally_disabled'] == 0) {
-                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
-                                        $adjacentImageArray[] = $adjacentImage;
-                                        break 2;
-                                    } else {
-                                        // Position was found but it didn't pass validity check. Break the foreach loop
-                                        // and start again with the next position number.
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        // Increment the tempPositionCounter to look for the next image in the set.
-                        $tempPositionCounter++;
-                        // If we have search all ascending images in the query results and nothing was found
-                        // set the array manually with an identified to show no match found.
-                        if ($tempPositionCounter == $maxPosition) {
-                            $adjacentImageArray[] = array('image_id' => 0);
-                            break;
+    $adjacentImageArray = Array();
+    $imagesInCollectionQuery = <<<EOL
+            SELECT COUNT(*)
+            FROM images
+            WHERE collection_id = :collectionId
+EOL;
+    $imagesInCollectionParams['collectionId'] = $photoMetadata['collection_id'];
+    $imagesInCollectionResult = run_prepared_query($DBH, $imagesInCollectionQuery, $imagesInCollectionParams);
+    $imagesInCollection = $imagesInCollectionResult->fetchColumn();
+
+
+    $hasUserAssignedImages = FALSE;
+    if ($userMetadata) {
+        $userGroups = find_user_group_membership($DBH, $userMetadata['user_id'], $projectMetadata['project_id'], TRUE);
+        if ($userGroups) {
+            $imageGroups = find_assigned_image_groups($DBH, $userGroups, TRUE);
+            if ($imageGroups) {
+                $userAssignedImageIdPool = retrieve_image_id_pool($imageGroups, TRUE, FALSE);
+                if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
+                    for ($i = 0; $i < count($userAssignedImageIdPool); $i++) {
+                        if (has_user_annotated_image($DBH, $userAssignedImageIdPool[$i], $userMetadata['user_id']) === 1) {
+                            array_splice($userAssignedImageIdPool, $i, 1);
+                            $i--;
                         }
                     }
-                }
-
-                // Add the current image to the middle of the $adjacentImageArray.
-                $adjacentImageArray[] = $imageMetadata;
-
-                // Loop through the array of adjacent images in range in ascending order searching for
-                // the image with the next decending position_in_dataset number from the current image.
-                if ($positionInDataset == $minPosition) {
-                    $adjacentImageArray[] = array('image_id' => 0);
-                } else {
-                    $tempPositionCounter = $positionInDataset - 1;
-                    while (TRUE) {
-                        // Start Loop
-                        foreach ($adjacentImageMetadata as $adjacentImage) {
-                            // Initiate a match check if required.
-                            if (!is_null($projectId)) {
-                                if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                    $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImage['image_id']);
-                                    if (!$match || $match['is_enabled'] == 0) {
-                                        // Position was found but it didn't pass match check. Break the foreach loop and
-                                        // start again with the next position number.
-                                        break;
-                                    }
-                                } else {
-                                    // Image is not the one we are looking for. Skip the rest of the foreach loop.
-                                    continue;
-                                }
-                            }
-                            // Initiate an image validity check.
-                            if ($adjacentImage['position_in_set'] == $tempPositionCounter) {
-                                if ($hasUserAssignedImages) {
-                                    if ($adjacentImage['has_display_file'] == 1 &&
-                                            $adjacentImage['is_globally_disabled'] == 0 &&
-                                            in_array($adjacentImage['image_id'], $userAssignedImageIdPool)) {
-                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
-                                        $adjacentImageArray[] = $adjacentImage;
-                                        break 2;
-                                    } else {
-                                        // Position was found but it didn't pass validity check. Break the foreach loop
-                                        // and start again with the next position number.
-                                        break;
-                                    }
-                                } else {
-                                    if ($adjacentImage['has_display_file'] == 1 &&
-                                            $adjacentImage['is_globally_disabled'] == 0) {
-                                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
-                                        $adjacentImageArray[] = $adjacentImage;
-                                        break 2;
-                                    } else {
-                                        // Position was found but it didn't pass validity check. Break the foreach loop
-                                        // and start again with the next position number.
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        // Decrement the tempPositionCounter to look for the previous image in the set.
-                        $tempPositionCounter--;
-                        if ($tempPositionCounter == $minPosition) {
-                            // If we have search all ascending images in the query results and nothing was found
-                            // set the array manually with an identified to show no match found.
-                            $adjacentImageArray[] = array('image_id' => 0);
-                            break;
-                        }
+                    if (count($userAssignedImageIdPool) > 0) {
+                        $hasUserAssignedImages = TRUE;
                     }
                 }
-//                print "RETURNING: adjacentImageArray:<br>";
-//                  print '<pre>';
-//                  print_r($adjacentImageArray);
-//                  print '</pre>';
-                return $adjacentImageArray;
             }
         }
     }
-    //print "RETURNING: FALSE";
-    return FALSE;
+
+
+    // Ensure the range in the query doesn't exceed the available rows in the dataset.
+    $minPosition = $photoMetadata['position_in_collection'] - $searchLimit;
+    if ($minPosition <= 0) {
+        $minPosition = 1;
+    }
+    $maxPosition = $photoMetadata['position_in_collection'] + $searchLimit;
+    if ($maxPosition > $imagesInCollection) {
+        $maxPosition = $imagesInCollection;
+    }
+
+    $adjacentImageMetadata = array();
+    // Query the iCoast DB for all images with position id's in the defined range.
+    $adjacentImageQuery = <<<EOL
+            SELECT *
+                FROM images
+                WHERE collection_id = {$photoMetadata['collection_id']} AND
+                position_in_collection BETWEEN $minPosition AND $maxPosition
+EOL;
+    foreach ($DBH->query($adjacentImageQuery, PDO::FETCH_ASSOC) as $adjacentImage) {
+        $adjacentImageMetadata[$adjacentImage['position_in_collection']] = $adjacentImage;
+    }
+    if (count($adjacentImageMetadata) == 0) {
+        return FALSE;
+    }
+    // Look through the array of adjacent images in searchLimit in ascending order searching for
+    // the specified number of images ($range) using ascending position_in_dataset numbers from the current image.
+    if ($photoMetadata['position_in_collection'] == $maxPosition) {
+        for ($i = 0; $i < $range; $i++) {
+            $adjacentImageArray[$i] = array('image_id' => 0);
+        }
+    } else {
+        $tempPositionCounter = $photoMetadata['position_in_collection'] + 1;
+        $imagesFound = 0;
+        while ($imagesFound < $range) {
+            if (isset($adjacentImageMetadata[$tempPositionCounter])) {
+                // Initiate a match check if required.
+                if ($projectMetadata) {
+                    $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImageMetadata[$tempPositionCounter]['image_id']);
+                    if (!$match || $match['is_enabled'] == 0) {
+                        $tempPositionCounter++;
+                        continue;
+                    }
+                }
+                // Initiate an image validity check.
+                if ($hasUserAssignedImages) {
+                    if ($adjacentImageMetadata[$tempPositionCounter]['is_globally_disabled'] == 0 &&
+                            in_array($adjacentImageMetadata[$tempPositionCounter]['image_id'], $userAssignedImageIdPool)) {
+                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                        $imagesFound++;
+                        $adjacentImageArray[$range - $imagesFound] = $adjacentImageMetadata[$tempPositionCounter];
+                    }
+                } else {
+                    if ($adjacentImageMetadata[$tempPositionCounter]['is_globally_disabled'] == 0) {
+                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                        $imagesFound++;
+                        $adjacentImageArray[$range - $imagesFound] = $adjacentImageMetadata[$tempPositionCounter];
+                    }
+                }
+            }
+
+            // Increment the tempPositionCounter to look for the next image in the set.
+            $tempPositionCounter++;
+            // If we have search all ascending images in the query results and nothing was found
+            // set the array manually with an identified to show no match found.
+            if ($tempPositionCounter > $maxPosition) {
+                for ($imagesFound++; $imagesFound <= $range; $imagesFound++) {
+                    $adjacentImageArray[$range - $imagesFound] = array('image_id' => 0);
+                }
+                break;
+            }
+        }
+    }
+
+    // Add the current image to the middle of the $adjacentImageArray.
+    $adjacentImageArray[$range] = $photoMetadata;
+
+    // Look through the array of adjacent images in searchLimit in decending order searching for
+    // the specified number of images ($range) using decending position_in_dataset numbers from the current image.
+
+
+
+
+    if ($photoMetadata['position_in_collection'] == $minPosition) {
+        for ($i = $range + 1; $i <= $range * 2; $i++) {
+            $adjacentImageArray[$i] = array('image_id' => 0);
+        }
+    } else {
+        $tempPositionCounter = $photoMetadata['position_in_collection'] - 1;
+        $imagesFound = 0;
+        while ($imagesFound < $range) {
+            if (isset($adjacentImageMetadata[$tempPositionCounter])) {
+                // Initiate a match check if required.
+                if ($projectMetadata) {
+                    $match = retrieve_image_match_data($DBH, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $adjacentImageMetadata[$tempPositionCounter]['image_id']);
+                    if (!$match || $match['is_enabled'] == 0) {
+                        $tempPositionCounter--;
+                        continue;
+                    }
+                }
+                // Initiate an image validity check.
+                if ($hasUserAssignedImages) {
+                    if ($adjacentImageMetadata[$tempPositionCounter]['is_globally_disabled'] == 0 &&
+                            in_array($adjacentImageMetadata[$tempPositionCounter]['image_id'], $userAssignedImageIdPool)) {
+                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                        $imagesFound++;
+                        $adjacentImageArray[$range + $imagesFound] = $adjacentImageMetadata[$tempPositionCounter];
+                    }
+                } else {
+                    if ($adjacentImageMetadata[$tempPositionCounter]['is_globally_disabled'] == 0) {
+                        // Passed check. Add image details to $adjacentImageArray, break the while loop.
+                        $imagesFound++;
+                        $adjacentImageArray[$range + $imagesFound] = $adjacentImageMetadata[$tempPositionCounter];
+                    }
+                }
+
+                // Decrement the tempPositionCounter to look for the previous image in the set.
+                $tempPositionCounter--;
+                if ($tempPositionCounter < $minPosition) {
+                    // If we have search all ascending images in the query results and nothing was found
+                    // set the array manually with an identified to show no match found.
+                    for ($imagesFound++; $imagesFound <= $range; $imagesFound++) {
+                        $adjacentImageArray[$range + $imagesFound] = array('image_id' => 0);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    return $adjacentImageArray;
 }

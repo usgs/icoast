@@ -20,11 +20,12 @@ $pageBody = <<<EOL
         </div>
         <div id="logoffTextColumn">
             <h1>Logged Out of USGS iCoast</h1>
-            <p>You have successfully logged out of iCoast</p>
-            <form method="post" action="index.php?login">
+            <p>You have successfully logged out of iCoast but remain logged into Google.
+                To also log out of Google in this browser use the button below.</p>
+            <form method="post" action="https://accounts.google.com/logout">
                 <div class="formFieldRow standAloneFormElement">
-                    <input type="submit" class = "clickableButton formButton" value="Login to iCoast"
-                        title="This button takes you to the iCoast login page." />
+                    <input type="submit" class = "clickableButton formButton" value="Logout of Google"
+                        title="This button will log you out of Google on this browser." />
                 </div>
             </form>
         </div>

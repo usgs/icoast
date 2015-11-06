@@ -1,4 +1,5 @@
 <?php
+
 ob_start();
 $pageModifiedTime = filemtime(__FILE__);
 
@@ -9,28 +10,27 @@ $pageBody = <<<EOL
             $adminNavHTML
             <div id="adminContentWrapper">
                 <div id="adminBanner">
-                    <p>You are logged in as <span class="userData">$maskedEmail</span>. Your admin level is
-                        <span class="userData">$adminLevelText</span></p>
+                    <p>You are logged in as <span class="userData">$maskedEmail</span>.</p>
                 </div>
-                <h1>iCoast Event Log Viewer</h1>
+                <h1>iCoast Feedback and Error Log Viewer</h1>
                 <div id=filterStatusMessage>
                     <h2>Filter Status</h2>
-                    <p>Filters are not applied to the Event Log results show below.</p>
+                    <p>Filters are not applied to the results shown below.</p>
                     <button type="button" id="filterDisplayToggle" class="clickableButton">Show Filter Control Panel</button>
                 </div>
 
                 <div id="eventLogFilterWrapper">
-                    <h2>Event Log Filter Selections</h2>
-                    <p>Use the following options to filter the results loaded into the event log below</p>
+                    <h2>Filter Selections</h2>
+                    <p>Use the following options to filter the results loaded into the summary below</p>
                     <form autocomplete="off" method="get" id="filterForm">
 
                         <div class="eventLogFilterColumn">
-                            <h3>Event Data</h3>
+                            <h3>Entry Data</h3>
 
 EOL;
 
-                            if ($projectCount > 1) {
-                                $pageBody .= <<<EOL
+if ($projectCount > 1) {
+    $pageBody .= <<<EOL
                                 <div id="projectFilterWrapper" class="individualFilterWrapper">
                                     <p>+</p><p>Project:</p>
                                     <div class="individualFilterControlWrapper">
@@ -40,15 +40,8 @@ EOL;
                                         <input class="clickableButton disabledClickableButton clearIndividualFilterButton" id="clearProjectFilter" type="button" value="Clear" />
                                     </div>
                                 </div>
-
-EOL;
-                            }
-
-
-                            if ($adminLevel == 4) {
-$pageBody .= <<<EOL
                                 <div id="typeFilterWrapper" class="individualFilterWrapper">
-                                    <p>+</p><p>Event Type:</p>
+                                    <p>+</p><p>Entry Type:</p>
                                     <div class="individualFilterControlWrapper">
                                         <select id="eventTypeFilterSelect" class="clickableButton filterSelectBox" name="event_type">
                                             $eventTypeSelectHTML
@@ -59,8 +52,6 @@ $pageBody .= <<<EOL
                                 </div>
 
 EOL;
-} else {
-    $pageBody .= '<input type="hidden" name="eventType" value="3" />';
 }
 $pageBody .= <<<EOL
 
@@ -78,7 +69,7 @@ $pageBody .= <<<EOL
 
 
                             <div id="urlFilterWrapper" class="individualFilterWrapper">
-                                <p>+</p><p>Event Source Page:</p>
+                                <p>+</p><p>Entry Source Page:</p>
                                 <div class="individualFilterControlWrapper">
                                     <select id="sourcePageFilterSelect" class="clickableButton filterSelectBox" name="source_url">
                                         $sourcePageSelectHTML
@@ -92,7 +83,7 @@ EOL;
 if ($scriptCount > 0) {
     $pageBody .= <<<EOL
                                 <div id="scriptFilterWrapper" class="individualFilterWrapper">
-                                    <p>+</p><p>Event Source Script:</p>
+                                    <p>+</p><p>Entry Source Script:</p>
                                     <div class="individualFilterControlWrapper">
                                         <select id="sourceScriptFilterSelect" class="clickableButton filterSelectBox" name="source_script">
                                             $sourceScriptSelectHTML
@@ -108,7 +99,7 @@ EOL;
 if ($functionCount > 0) {
     $pageBody .= <<<EOL
                                 <div id="functionFilterWrapper" class="individualFilterWrapper">
-                                    <p>+</p><p>Event Source Function:</p>
+                                    <p>+</p><p>Entry Source Function:</p>
                                     <div class="individualFilterControlWrapper">
                                         <select id="sourceScriptFilterSelect" class="clickableButton filterSelectBox" name="source_function">
                                             $sourceFunctionSelectHTML
@@ -125,7 +116,7 @@ $pageBody .= <<<EOL
 
 
                         <div class="eventLogFilterColumn">
-                            <h3>Event Status</h3>
+                            <h3>Entry Status</h3>
 
 
                             <div id="readFilterWrapper" class="individualFilterWrapper">
@@ -180,21 +171,21 @@ $pageBody .= <<<EOL
 
                 <div id="eventLogWrapper">
                     <div id="eventSummaryWrapper">
-                        <h2>Events Summary</h2>
+                        <h2>Feedback and Error Summary</h2>
                         <div id="eventTableWrapper">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th class="eventIdColumn" id="eventIdHeader" title="The ID of this event in the iCoast system."><div class="headContent">ID</div></th>
-                                <th id="eventTimeHeader" title="The time at which the event was logged."><div class="headContent">Event Time</div></th>
-                                <th id="eventTypeHeader" title="The type of event that was logged. Error, System Feedback, or Project Feedback">
-                                <div class="headContent">Event Type</div></th>
-                                <th id="eventUserHeader" title="The user logged in when the event was recorded."><div class="headContent">User</div></th>
+                                        <th class="eventIdColumn" id="eventIdHeader" title="The ID of this entry in the iCoast system."><div class="headContent">ID</div></th>
+                                <th id="eventTimeHeader" title="The time at which the entry was logged."><div class="headContent">Entry Time</div></th>
+                                <th id="eventTypeHeader" title="The type of entry that was logged. Error, System Feedback, or Project Feedback">
+                                <div class="headContent">Entry Type</div></th>
+                                <th id="eventUserHeader" title="The user logged in when the entry was recorded."><div class="headContent">User</div></th>
                                 <th id="eventUrlHeader" title="The page displayed when the feedback was logged.">
                                 <div class="headContent">Source Page</div></th>
-                                <th id="eventSummaryHeader" title="A summary of the event contents.">
+                                <th id="eventSummaryHeader" title="A summary of the entry contents.">
                                 <div class="headContent">Summary</div></th>
-                                <th id="eventCodeHeader" title="The error code or project name relating to the event."><div class="headContent">Project or Error</div></th>
+                                <th id="eventCodeHeader" title="The error code or project name relating to the entry."><div class="headContent">Project or Error</div></th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -220,36 +211,36 @@ $pageBody .= <<<EOL
                     </div>
 
                     <div id="eventDetailsWrapper">
-                        <h2>Event Details</h2>
-                        <p id="noEventSelectedText">You must select an event from the table on the left to see its details here.</p>
+                        <h2>Feedback and Error Details</h2>
+                        <p id="noEventSelectedText">You must select an entry from the table on the left to see its details here.</p>
                         <div id="eventDetailsContent">
                             <div id="eventDetailsText">
                                 <p id="eventStatusText"></p>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Status:</p>
+                                        <p>Entry Status:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventStatus"></div>
                                 </div>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event ID:</p>
+                                        <p>Entry ID:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventId"></div>
                                 </div>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Time:</p>
+                                        <p>Entry Time:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventTimeValue"></div>
                                 </div>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Type:</p>
+                                        <p>Entry Type:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventTypeValue"></div>
                                 </div>
@@ -307,21 +298,21 @@ $pageBody .= <<<EOL
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Summary:</p>
+                                        <p>Entry Summary:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventSummaryValue"></div>
                                 </div>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Code or Project:</p>
+                                        <p>Entry Code or Project:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventCodeValue"></div>
                                 </div>
 
                                 <div class="eventDetailRow">
                                     <div class="eventRowName">
-                                        <p>Event Details:</p>
+                                        <p>Entry Details:</p>
                                     </div>
                                     <div class="eventRowValue" id="eventDetailsValue"></div>
                                 </div>
@@ -330,9 +321,9 @@ $pageBody .= <<<EOL
 
                             <div id="eventDetailsControls">
                                 <input type="button" id="toggleReadButton" class="clickableButton"
-                                       value="Mark as Unread" title="Use this button to toggle the event between read and unread status.">
+                                       value="Mark as Unread" title="Use this button to toggle the entry between read and unread status.">
                                 <input type="button" id="toggleClosedButton" class="clickableButton"
-                                       value="Mark as Closed" title="Use this button to toggle the event bewtween closed or open status.">
+                                       value="Mark as Closed" title="Use this button to toggle the entry between closed or open status.">
                             </div>
                         </div>
 

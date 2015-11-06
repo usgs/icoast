@@ -7,14 +7,10 @@ require_once($dbConnectionFile);
 $eventDataError = array();
 $eventData = array();
 
-print '<pre>';
-print_r($_POST);
-print '</pre>';
-
 if (isset($_POST['eventType'])) {
     $setTypeResult = setType($_POST['eventType'], "integer");
     if ($setTypeResult &&
-            ($_POST['eventType'] === 1 || $_POST['eventType'] === 2 || $_POST['eventType'] === 3)) {
+            ($_POST['eventType'] === 1 || $_POST['eventType'] === 2 || $_POST['eventType'] === 3 || $_POST['eventType'] === 4)) {
         $eventData['event_type'] = $_POST['eventType'];
     } else {
         $eventDataError[] = "Invalid Event Type in supplied Event Logger data: {$_POST['eventType']}";
@@ -55,43 +51,39 @@ if (isset($_POST['userId'])) {
 }
 
 if (isset($_POST['url'])) {
-    $eventData['source_url'] = $_POST['url'];
+    $eventData['source_url'] = htmlspecialchars($_POST['url']);
 }
 
 if (isset($_POST['queryString'])) {
-    $eventData['query_string'] = $_POST['queryString'];
+    $eventData['query_string'] = htmlspecialchars($_POST['queryString']);
 }
 
 if (isset($_POST['postData'])) {
-    $eventData['post_data'] = $_POST['postData'];
+    $eventData['post_data'] = htmlspecialchars($_POST['postData']);
 }
 
 if (isset($_POST['sourceScript'])) {
-    $eventData['source_script'] = $_POST['sourceScript'];
+    $eventData['source_script'] = htmlspecialchars($_POST['sourceScript']);
 }
 
 if (isset($_POST['sourceFunction'])) {
-    $eventData['source_function'] = $_POST['sourceFunction'];
+    $eventData['source_function'] = htmlspecialchars($_POST['sourceFunction']);
 }
 
 if (isset($_POST['clientAgent'])) {
-    $eventData['client_agent'] = $_POST['clientAgent'];
+    $eventData['client_agent'] = htmlspecialchars($_POST['clientAgent']);
 }
 
 if (isset($_POST['eventCode'])) {
     $setTypeResult = setType($_POST['eventCode'], "integer");
     if ($setTypeResult && $_POST['eventCode'] > 0) {
-        $eventData['event_code'] = $_POST['eventCode'];
+        $eventData['event_code'] = htmlspecialchars($_POST['eventCode']);
     } else {
         $eventDataError[] = "Invalid Event Code field in supplied Event Logger data: {$_POST['eventCode']}";
     }
 }
 
-print '<pre>';
-print_r($eventData);
-print '</pre>';
-
-if (count($eventDataError = 0)) {
+if (count($eventDataError = 0) && count($eventData) > 0) {
     $columnString = '';
     $valueString = '';
     $eventLogParams = array();
@@ -99,8 +91,7 @@ if (count($eventDataError = 0)) {
         $columnString .= ', ' . $column;
         $valueString .= ', :' . $column;
     }
-    $eventLogQuery = "INSERT into event_log (event_time$columnString) VALUES (NOW()$valueString)";
-    print $eventLogQuery;
+    $eventLogQuery = "INSERT into event_log (event_time$columnString) VALUES (NOW()$valueString)";;
     run_prepared_query($DBH, $eventLogQuery, $eventData);
 } else {
     //Call to self required to log error with error logging!

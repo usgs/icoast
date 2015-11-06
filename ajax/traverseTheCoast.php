@@ -13,7 +13,7 @@ if (isset($_GET['projectId'])) {
     $projectId = null;
 }
 
-$adjacentImageArray = find_adjacent_images($DBH, $imageId, $projectId, $userId);
+$adjacentImageArray = find_adjacent_images($DBH, $imageId, $projectId, $userId, 1, 20);
 $previousImageId = $adjacentImageArray[0]['image_id'];
 if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
     //  Placeholder for error management
@@ -24,7 +24,7 @@ if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata(
     $returnData['left']['newRandomImageId'] = $previousImageMetadata['image_id'];
     $returnData['left']['newRandomImageLatitude'] = $previousImageMetadata['latitude'];
     $returnData['left']['newRandomImageLongitude'] = $previousImageMetadata['longitude'];
-    $returnData['left']['newRandomImageDisplayURL'] = "images/datasets/{$previousImageMetadata['dataset_id']}/main/{$previousImageMetadata['filename']}";
+    $returnData['left']['newRandomImageDisplayURL'] = "images/collections/{$previousImageMetadata['collection_id']}/main/{$previousImageMetadata['filename']}";
     $returnData['left']['newRandomImageLocation'] = build_image_location_string($previousImageMetadata);
 }
 
@@ -38,7 +38,7 @@ if ($nextImageId != 0 && !$nextImageMetadata = retrieve_entity_metadata($DBH, $n
     $returnData['right']['newRandomImageId'] = $nextImageMetadata['image_id'];
     $returnData['right']['newRandomImageLatitude'] = $nextImageMetadata['latitude'];
     $returnData['right']['newRandomImageLongitude'] = $nextImageMetadata['longitude'];
-    $returnData['right']['newRandomImageDisplayURL'] = "images/datasets/{$nextImageMetadata['dataset_id']}/main/{$nextImageMetadata['filename']}";
+    $returnData['right']['newRandomImageDisplayURL'] = "images/collections/{$nextImageMetadata['collection_id']}/main/{$nextImageMetadata['filename']}";
     $returnData['right']['newRandomImageLocation'] = build_image_location_string($nextImageMetadata);
 }
 echo json_encode($returnData);

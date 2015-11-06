@@ -11,7 +11,7 @@ $pageBody = <<<EOL
                 <h1>About “USGS iCoast - Did the Coast Change?”</h1>
                 <h2>Purpose of USGS iCoast</h2>
 
-                 <img src="images/system/indexImages/classify.jpg"
+                 <img src="images/system/indexSlideshowImages/classify.jpg"
                      alt="A screenshot of the iCoast application\'s classification page where users can
                      compare images and log what they see." width="350" height="227" style="border: 1px solid #666666" />
 
@@ -29,7 +29,7 @@ $pageBody = <<<EOL
 
                 <h2>USGS Oblique Aerial Photographs</h2>
 
-                <img src="images/system/indexImages/karen.jpg"
+                <img src="images/system/indexSlideshowImages/karen.jpg"
                      alt="An image showing a USGS field worker photographing the coastline from the cabin of
                      a light aircraft." width="350" height="227" />
 
@@ -40,12 +40,14 @@ $pageBody = <<<EOL
                     from extreme storms that may not be easily recognizable in the quantitative topographic
                     data. The photography can be uploaded quickly to the web to help provide damage
                     assessments in the immediate aftermath of a storm. These digital photographs are also
-                    geocoded with the location of the aircraft to easily plot them on a map. Learn more at the
-                    USGS <a href="http://coastal.er.usgs.gov/hurricanes/oblique.php">Aerial Photography</a> web page.</p>
+                    geocoded with the location of the aircraft to easily plot them on a map. Explore other oblique
+                    aerial photography collections at the USGS <a href="http://coastal.er.usgs.gov/hurricanes/data/photos.php">
+                    Aerial Photography</a> web page. Learn more about other storms the USGS has studied at the
+                    <a href="http://coastal.er.usgs.gov/hurricanes/assessments/storms.php">Storm Response</a> page.</p>
 
                 <h2>USGS Predictive Models of Storm-Induced Coastal Changes</h2>
 
-                <img src="images/system/indexImages/predictions.jpg"
+                <img src="images/system/indexSlideshowImages/predictions.jpg"
                      alt="An image showing a graphical representation of the USGS coastal erosion prediction
                      models for the north east United States coastline." width="350" height="227" />
 
@@ -94,6 +96,14 @@ $pageBody = <<<EOL
                 <h2>The USGS iCoast Team</h2>
                 <div class="teamColumn">
                     <div>
+                        <img src="images/system/aboutImages/kmorgan.jpg" height="100" width="100" alt="Image of Karen Morgan"
+                            title="Karen Morgan" />
+                        <h3>Karen Morgan</h3>
+                        <p><span class="teamPosition">Coastal Scientist</span><br>
+                            USGS Geologist and Aerial Photographer</p>
+                    </div>
+        
+                    <div>
                         <img src="images/system/aboutImages/sbliu.jpg" height="100" width="100" alt="Image of Sophia Liu"
                             title="Sophia B. Liu" />
                         <h3>Sophia B. Liu</h3>
@@ -109,6 +119,9 @@ $pageBody = <<<EOL
                             USGS Research Geographer</p>
                     </div>
 
+                </div>
+                <div class="teamColumn">
+        
                     <div>
                         <img src="images/system/aboutImages/rsnell.jpg" height="100" width="100" alt="Image of Richard Snell"
                             title="Richard Snell" />
@@ -116,8 +129,6 @@ $pageBody = <<<EOL
                         <p><span class="teamPosition">Application Developer</span><br>
                             USGS Web Application Developer</p>
                     </div>
-                </div>
-                <div class="teamColumn">
 
                     <div>
                         <img src="images/system/aboutImages/nplant.jpg" height="100" width="100" alt="Image of Nathaniel Plant"
@@ -135,13 +146,6 @@ $pageBody = <<<EOL
                             USGS Research Oceanographer</p>
                     </div>
 
-                    <div>
-                        <img src="images/system/aboutImages/kmorgan.jpg" height="100" width="100" alt="Image of Karen Morgan"
-                            title="Karen Morgan" />
-                        <h3>Karen Morgan</h3>
-                        <p><span class="teamPosition">Coastal Scientist</span><br>
-                            USGS Geologist and Aerial Photographer</p>
-                    </div>
                 </div>
                 <p class="aboutAttributions">The USGS iCoast project is funded by the Coastal and Marine
                     Geology Program (<a href="http://marine.usgs.gov/">CMGP</a>) and the National Geospatial
@@ -156,12 +160,11 @@ $pageBody = <<<EOL
                     products does not constitute an endorsement by the DOI.</p>
                 <p class="aboutAttributions">
                     <span class="captionTitle">Geocoding:</span> Location names derived using the <a href="http://www.geonames.org/">GeoNames</a> Gazetteer. <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a><br>
-                    <span class="captionTitle">ToolTips:</span> <a href="http://code.drewwilson.com/entry/tiptip-jquery-plugin">TipTip</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> Licenses<br>
+                    <span class="captionTitle">ToolTips:</span> <a href="https://github.com/drewwilson/TipTip">TipTip</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> Licenses<br>
                     <span class="captionTitle">Zoom Tool:</span> <a href="http://www.elevateweb.co.uk/image-zoom">Elevate Zoom</a>. Dual licensed: <a href="http://opensource.org/licenses/mit-license.php">MIT</a> and <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> Licenses<br>
                     <span class="captionTitle">Map Marker Clustering:</span> <a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet.markercluster</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a><br>
                     <span class="captionTitle">Map Search:</span> <a href="https://github.com/smeijer/L.GeoSearch">Leaflet.GeoSearch</a>. <a href="https://github.com/smeijer/L.GeoSearch/blob/master/LICENSE">License</a><br>
                     <span class="captionTitle">Form Validation:</span> <a href="http://jqueryvalidation.org">jQuery Validation Plugin</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a><br>
-                    <span class="captionTitle">OpenId Validation:</span> <a href="https://code.google.com/p/lightopenid">lightopenid</a>. <a href="http://opensource.org/licenses/mit-license.php">MIT License</a> <br>
                     <span class="captionTitle">Map Markers:</span> <a href="http://mapicons.nicolasmollet.com">Map Icons Collection</a>. <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>
                 </p>
             </div>

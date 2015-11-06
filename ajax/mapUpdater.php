@@ -18,12 +18,7 @@ $imagesToDisplay = Array();
 
 
 $projectData = retrieve_entity_metadata($DBH, $projectId, 'project');
-if ($projectData) {
-    $projectDatasets = find_datasets_in_collection($DBH, $projectData['post_collection_id']);
-}
-if ($projectDatasets) {
-    $idsToQuery = where_in_string_builder($projectDatasets);
-}
+
 //print $idsToQuery;
 //$query = "SELECT dataset_id FROM datasets WHERE dataset_id IN $idsToQuery" .
 //    "ORDER BY region_id, position_in_region";
@@ -32,11 +27,13 @@ if ($projectDatasets) {
 //  $displayOrder = $queryResult->fetch_all(MYSQL_ASSOC);
 //}
 
-$imagesInBoundsQuery = "SELECT image_id, filename, latitude, longitude, feature, city, state, position_in_set, dataset_id" .
-        " FROM images WHERE (latitude BETWEEN :southernLimit AND :northernLimit) AND " .
-        "(longitude BETWEEN :westernLimit AND :easternLimit) AND " .
-        "has_display_file = 1 AND is_globally_disabled = 0 AND " .
-        "dataset_id IN ($idsToQuery) ORDER BY dataset_id, position_in_set";
+$imagesInBoundsQuery = <<<EOL
+        SELECT image_id, filename, latitude, longitude, feature, city, state, collection_id, position_in_collection
+        FROM images WHERE (latitude BETWEEN :southernLimit AND :northernLimit) AND
+        (longitude BETWEEN :westernLimit AND :easternLimit) AND
+        is_globally_disabled = 0 AND collection_id = {$projectData['post_collection_id']}
+        ORDER BY position_in_collection ASC
+EOL;
 $imagesInBoundsParams = array(
     'southernLimit' => $southernLimit,
     'northernLimit' => $northernLimit,
@@ -56,8 +53,6 @@ $imagesToDisplay = $STH->fetchAll(PDO::FETCH_ASSOC);
 //        $count++;
 //    }
 //}
-
-
 
 
 
@@ -104,6 +99,7 @@ $STH = run_prepared_query($DBH, $noImageMatchQuery, $noImageMatchParams);
 $noMatchImageResults = $STH->fetchAll(PDO::FETCH_ASSOC);
 //$queryResult = run_database_query($query);
 //print '$noMatchImageResults =' . count($noMatchImageResults);
+$noMatchImageList = array();
 if (count($noMatchImageResults) > 0) {
     foreach ($noMatchImageResults as $imageMatchData) {
         $noMatchImageList[] = $imageMatchData['post_image_id'];
@@ -117,7 +113,7 @@ if (count($noMatchImageResults) > 0) {
 //print_r($imagesToDisplay[0]);
 //echo '</pre>';
 
-
+$userAssignedImageIdPool = null;
 $userGroups = find_user_group_membership($DBH, $userId, $projectId, TRUE);
 if ($userGroups) {
 //    print '<pre>';
@@ -128,7 +124,7 @@ if ($userGroups) {
 //        print '<pre>';
 //        print_r($imageGroups);
 //        print '</pre>';
-        $userAssignedImageIdPool = retrieve_image_id_pool($DBH, $imageGroups, TRUE, FALSE);
+        $userAssignedImageIdPool = retrieve_image_id_pool($imageGroups, TRUE, FALSE);
 //                print '<pre>';
 //        print_r($userAssignedImageIdPool);
 //        print '</pre>';
@@ -230,7 +226,7 @@ if (is_array($userAssignedImageIdPool) && count($userAssignedImageIdPool) > 0) {
 //}
 
 for ($i = 0; $i < count($imagesToDisplay); $i++) {
-    $imagesToDisplay[$i]['image_url'] = "images/datasets/{$imagesToDisplay[$i]['dataset_id']}/main/{$imagesToDisplay[$i]['filename']}";
+    $imagesToDisplay[$i]['image_url'] = "images/collections/{$imagesToDisplay[$i]['collection_id']}/main/{$imagesToDisplay[$i]['filename']}";
     $imagesToDisplay[$i]['location_string'] = build_image_location_string($imagesToDisplay[$i]);
 //  $imagesToDisplay[$i]['collation_number'] = $imagesPerMarker;
     array_splice($imagesToDisplay[$i], 4, 5);

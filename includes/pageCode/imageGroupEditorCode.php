@@ -16,8 +16,6 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 $userGroupProgressHTML = '';
@@ -44,8 +42,8 @@ if (!$projectMetadata) {
 
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
-$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+$projectList = find_projects($DBH, TRUE);
+foreach ($projectList as $singeUserAdministeredProject) {
     $optionProjectId = $singeUserAdministeredProject['project_id'];
     $optionProjectName = $singeUserAdministeredProject['name'];
     $optionProjectDescription = $singeUserAdministeredProject['description'];
@@ -69,7 +67,7 @@ if ($projectMetadata) {
             <input type="button" id="igButtonAllGroupsAllUsers"class="formInputStyle" value="Download Classifications For All Image Groups By All iCoast Users"><br>
             <input type="button" id="igButtonAllProjectClassificationsLessAllGroupsTargeted"class="formInputStyle" value="Download All $projectTitle Classifications Excluding Those From Image Groups By All Targeted Users"><br>
             <hr>
-                
+
 EOL;
 
         $jsButtonFunctions .= <<<EOL

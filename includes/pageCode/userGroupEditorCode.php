@@ -17,8 +17,6 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 $successMessage = '';

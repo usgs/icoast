@@ -18,8 +18,6 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 function userEmailSort($array1, $array2) {
@@ -77,12 +75,12 @@ if (!empty($targetProjectName)) {
 }
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-$projectCount = count($userAdministeredProjects);
+$projectList = find_projects($DBH, TRUE);
+$projectCount = count($projectList);
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
 $projectSelectHTML = "<option title=\"All Projects in the iCoast system.\" value=\"0\">All iCoast Projects</option>";
-foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+foreach ($projectList as $singeUserAdministeredProject) {
     $optionProjectId = $singeUserAdministeredProject['project_id'];
     $optionProjectName = $singeUserAdministeredProject['name'];
     $optionProjectDescription = $singeUserAdministeredProject['description'];
@@ -276,7 +274,7 @@ else {
     $statsTitle = "Details and Statistics for $targetUserAccount $queryTargetText";
 
     // SHOW DETAILS TABLE
-    $userAccountMetadata = retrieve_entity_metadata($DBH, $targetUserId, 'users');
+    $userAccountMetadata = retrieve_entity_metadata($DBH, $targetUserId, 'user');
     $lastClassificationQuery = "SELECT initial_session_end_time "
             . "FROM annotations WHERE user_id = :userId AND annotation_completed = 1 "
             . "ORDER BY initial_session_end_time DESC LIMIT 1";
@@ -334,7 +332,7 @@ EOL;
     $classificationCount = $allUserClassificationResult->fetchColumn();
 
     if ($classificationCount > 0) {
-                $completeClassificationsQuery = "SELECT COUNT(*)"
+        $completeClassificationsQuery = "SELECT COUNT(*)"
                 . "FROM annotations a "
                 . "WHERE user_id = :targetUserId AND annotation_completed = 1 $queryProjectAndClause";
         $completeClassificationResult = run_prepared_query($DBH, $completeClassificationsQuery, $userStatsParams);
@@ -758,50 +756,114 @@ EOL;
         }
 
         if ($timeDelta > 3600) {
-            $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'users');
-            $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
-            $over60MinuteClassificationArray[] = array(
-                'userId' => $classification['user_id'],
-                'email' => $unencryptedEmail,
-                'annotationId' => $classification['annotation_id'],
-                'photoId' => $classification['image_id'],
-                'timeInSecs' => $timeDelta
-            );
+
+            if (isset($targetUserId)) {
+                $over60MinuteClassificationArray[] = array(
+                    'annotationId' => $classification['annotation_id'],
+                    'photoId' => $classification['image_id'],
+                    'timeInSecs' => $timeDelta
+                );
+            } else {
+                if (!array_key_exists($classification['user_id'], $over60MinuteClassificationArray)) {
+                    $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'user');
+                    $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
+
+                    if (array_key_exists($classification['user_id'], $under30SecondClassificationArray)) {
+                        $completeClassificationCount = $under30SecondClassificationArray[$classification['user_id']]['completeClassificationCount'];
+                    } else {
+                        $completeClassificationsQuery = <<<EOL
+                            SELECT COUNT(*)
+                            FROM annotations a
+                            WHERE user_id = {$classification['user_id']} AND annotation_completed = 1
+EOL;
+                        $completeClassificationCount = $DBH->query($completeClassificationsQuery)->fetchColumn();
+                    }
+
+
+                    $over60MinuteClassificationArray[$classification['user_id']] = array(
+                        'email' => $unencryptedEmail,
+                        'completeClassificationCount' => $completeClassificationCount,
+                        'count' => 1,
+                        'timeInSecs' => $timeDelta
+                    );
+                } else {
+                    $over60MinuteClassificationArray[$classification['user_id']]['count'] ++;
+                    if ($timeDelta > $over60MinuteClassificationArray[$classification['user_id']]['timeInSecs']) {
+                        $over60MinuteClassificationArray[$classification['user_id']]['timeInSecs'] = $timeDelta;
+                    }
+                }
+            }
         }
+
         if ($timeDelta < 30) {
-            $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'users');
-            $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
-            $under30SecondClassificationArray[] = array(
-                'userId' => $classification['user_id'],
-                'email' => $unencryptedEmail,
-                'annotationId' => $classification['annotation_id'],
-                'photoId' => $classification['image_id'],
-                'timeInSecs' => $timeDelta
-            );
+
+            if (isset($targetUserId)) {
+                $under30SecondClassificationArray[] = array(
+                    'annotationId' => $classification['annotation_id'],
+                    'photoId' => $classification['image_id'],
+                    'timeInSecs' => $timeDelta
+                );
+            } else {
+                if (!array_key_exists($classification['user_id'], $under30SecondClassificationArray)) {
+                    $userMetadata = retrieve_entity_metadata($DBH, $classification['user_id'], 'user');
+                    $unencryptedEmail = mysql_aes_decrypt($userMetadata['encrypted_email'], $userMetadata['encryption_data']);
+
+
+                    if (array_key_exists($classification['user_id'], $over60MinuteClassificationArray)) {
+                        $completeClassificationCount = $over60MinuteClassificationArray[$classification['user_id']]['completeClassificationCount'];
+                    } else {
+                        $completeClassificationsQuery = <<<EOL
+                            SELECT COUNT(*)
+                            FROM annotations a
+                            WHERE user_id = {$classification['user_id']} AND annotation_completed = 1
+EOL;
+                        $completeClassificationCount = $DBH->query($completeClassificationsQuery)->fetchColumn();
+                    }
+
+
+
+                    $under30SecondClassificationArray[$classification['user_id']] = array(
+                        'email' => $unencryptedEmail,
+                        'completeClassificationCount' => $completeClassificationCount,
+                        'count' => 1,
+                        'timeInSecs' => $timeDelta
+                    );
+                } else {
+                    $under30SecondClassificationArray[$classification['user_id']]['count'] ++;
+                    if ($timeDelta < $under30SecondClassificationArray[$classification['user_id']]['timeInSecs']) {
+                        $under30SecondClassificationArray[$classification['user_id']]['timeInSecs'] = $timeDelta;
+                    }
+                }
+            }
         }
     }
+
+    function count_sort($a, $b) {
+
+        if ($a['count'] == $b['count']) {
+            return 0;
+        }
+        return ($a['count'] < $b['count']) ? 1 : -1;
+    }
+
     if ($over60MinuteClassificationArray) {
 
-        function time_sort_desc($a, $b) {
-            if ($a['timeInSecs'] == $b['timeInSecs']) {
-                return 0;
-            }
-            return ($a['timeInSecs'] < $b['timeInSecs']) ? 1 : -1;
-        }
 
-        usort($over60MinuteClassificationArray, 'time_sort_desc');
+
+        uasort($over60MinuteClassificationArray, 'count_sort');
+
+
+
+
+
+
+
         if (isset($targetUserId)) {
-            $over60MinuteClassificationHTML = "<h3>Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>";
-            $userHead = '';
-        } else {
-            $over60MinuteClassificationHTML = "<h3>Users With Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>";
-            $userHead = '<th>User</th>';
-        }
-        $over60MinuteClassificationHTML .= <<<EOL
+            $over60MinuteClassificationHTML .= <<<EOL
+            <h3>Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>
             <table class="adminStatisticsTable">
                 <thead>
                     <tr>
-                        $userHead
                         <th>Classification ID</th>
                         <th>Photo ID</th>
                         <th>Time</th>
@@ -809,51 +871,80 @@ EOL;
                 </thead>
                 <tbody>
 EOL;
-        foreach ($over60MinuteClassificationArray as $annotation) {
-            if (isset($targetUserId)) {
-                $userEmail = '';
-            } else {
-                $userEmail = '<td><a href="userStats.php?targetUserId=' . $annotation['userId'] . '">' . $annotation['email'] . '</a></td>';
-            }
-            $classificationTime = convertSeconds($annotation['timeInSecs']);
-            $over60MinuteClassificationHTML.= <<<EOL
+            foreach ($over60MinuteClassificationArray as $annotation) {
+                $classificationTime = convertSeconds($annotation['timeInSecs']);
+                $over60MinuteClassificationHTML.= <<<EOL
                     <tr>
-                        $userEmail
                         <td>{$annotation['annotationId']}</td>
                         <td><a href="photoStats.php?targetPhotoId={$annotation['photoId']}">{$annotation['photoId']}</a></td>
                         <td>$classificationTime</td>
                     </tr>
 EOL;
-        }
-        $over60MinuteClassificationHTML .= <<<EOL
+            }
+            $over60MinuteClassificationHTML .= <<<EOL
                 </tbody>
             </table>
 EOL;
+        } else {
+            $over60MinuteClassificationHTML .= <<<EOL
+            <h3>Users With Classifications Exceeding 60 Minutes $queryTargetTitleText</h3>
+            <table class="adminStatisticsTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Number of Classifications<br>Over 60 Minutes</th>
+                        <th>Percentage of<br>Complete Classifications</th>
+                        <th>Maximum<br>Classification Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+EOL;
+
+            foreach ($over60MinuteClassificationArray as $key => $user) {
+                $userEmail = '<a href="userStats.php?targetUserId=' . $key . '">' . $user['email'] . '</a>';
+                $classificationTime = convertSeconds($user['timeInSecs']);
+                $percentageOfClassifications = number_format(ceil(($user['count'] / $user['completeClassificationCount']) * 100));
+                $over60MinuteClassificationHTML.= <<<EOL
+                    <tr>
+                        <td>$userEmail</td>
+                        <td class="numberColumn">{$user['count']}</td>
+                        <td class="numberColumn">$percentageOfClassifications</td>
+                        <td>$classificationTime</td>
+                    </tr>
+EOL;
+            }
+            $over60MinuteClassificationHTML .= <<<EOL
+                </tbody>
+            </table>
+EOL;
+        }
     }
+
+
+
 
 
     if ($under30SecondClassificationArray) {
 
-        function time_sort_asc($a, $b) {
-            if ($a['timeInSecs'] == $b['timeInSecs']) {
-                return 0;
-            }
-            return ($a['timeInSecs'] > $b['timeInSecs']) ? 1 : -1;
-        }
+//        function time_sort_asc($a, $b) {
+//            if ($a ['count'] == $b['count']) {
+//                return 0;
+//            }
+//            return ($a ['count'] > $b['count']) ? 1 : -1;
+//        }
 
-        usort($under30SecondClassificationArray, 'time_sort_asc');
+        uasort($under30SecondClassificationArray, 'count_sort');
+
+
+
+
+
         if (isset($targetUserId)) {
-            $under30SecondClassificationHTML = "<h3>Classifications Of Less Than 30 Seconds $queryTargetTitleText</h3>";
-            $userHead = '';
-        } else {
-            $under30SecondClassificationHTML = "<h3>Users With Classifications Less Than 30 Seconds $queryTargetTitleText</h3>";
-            $userHead = '<th>User</th>';
-        }
-        $under30SecondClassificationHTML .= <<<EOL
+            $under30SecondClassificationHTML .= <<<EOL
+            <h3>Classifications Of Less Than 30 Seconds $queryTargetTitleText</h3>
             <table class="adminStatisticsTable">
                 <thead>
                     <tr>
-                        $userHead
                         <th>Classification ID</th>
                         <th>Photo ID</th>
                         <th>Time</th>
@@ -861,26 +952,54 @@ EOL;
                 </thead>
                 <tbody>
 EOL;
-        foreach ($under30SecondClassificationArray as $annotation) {
-            if (isset($targetUserId)) {
-                $userEmail = '';
-            } else {
-                $userEmail = '<td><a href="userStats.php?targetUserId=' . $annotation['userId'] . '">' . $annotation['email'] . '</a></td>';
-            }
-            $classificationTime = convertSeconds($annotation['timeInSecs']);
-            $under30SecondClassificationHTML.= <<<EOL
+            foreach ($under30SecondClassificationArray as $annotation) {
+                $classificationTime = convertSeconds($annotation['timeInSecs']);
+                $under30SecondClassificationHTML.= <<<EOL
                     <tr>
-                        $userEmail
                         <td>{$annotation['annotationId']}</td>
                         <td><a href="photoStats.php?targetPhotoId={$annotation['photoId']}">{$annotation['photoId']}</a></td>
                         <td>$classificationTime</td>
                     </tr>
 EOL;
-        }
-        $under30SecondClassificationHTML .= <<<EOL
+            }
+            $under30SecondClassificationHTML .= <<<EOL
                 </tbody>
             </table>
 EOL;
+        } else {
+            $under30SecondClassificationHTML .= <<<EOL
+            <h3>Users With Classifications Less Than 30 Seconds $queryTargetTitleText</h3>
+            <table class="adminStatisticsTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Number of Classifications<br>Under 30 Seconds</th>
+                        <th>Percentage of<br>Complete Classifications</th>
+                        <th>Minimum<br>Classification Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+EOL;
+
+            foreach ($under30SecondClassificationArray as $key => $user) {
+                $userEmail = '<a href="userStats.php?targetUserId=' . $key . '">' . $user ['email'] . '</a>';
+                $classificationTime = convertSeconds($user['timeInSecs']);
+                $percentageOfClassifications = number_format(ceil(($user['count'] / $user['completeClassificationCount']) * 100));
+
+                $under30SecondClassificationHTML.= <<<EOL
+                    <tr>
+                        <td>$userEmail</td>
+                        <td class="numberColumn">{$user['count']}</td>
+                        <td class="numberColumn">$percentageOfClassifications</td>
+                        <td>$classificationTime</td>
+                    </tr>
+EOL;
+            }
+            $under30SecondClassificationHTML .= <<<EOL
+                </tbody>
+            </table>
+EOL;
+        }
     }
 
 
@@ -993,12 +1112,10 @@ EOL;
         $yScaleHTML = '';
         $yScaleTitleSuffix = '';
         $yScaleTitleStyling = '';
-
-
         for ($i = 1; $i <= $maxX; $i++) {
             $iMinus1 = $i - 1;
-            if ($durationFrequencyCount[$i] > 0) {
-                $barHeightInPx = floor($durationFrequencyCount[$i] * $pixelsPerFrequencyCount);
+            if ($durationFrequencyCount [$i] > 0) {
+                $barHeightInPx = floor($durationFrequencyCount [$i] * $pixelsPerFrequencyCount);
                 $overflowColor = '';
                 if ($barHeightInPx > 250) {
                     $overflowColor = ' timeGraphBarOverflow';
@@ -1008,7 +1125,7 @@ EOL;
                 $classificationTimeGraphContentHTML .= ''
                         . '<div class="timeGraphBarWrapper" '
                         . 'style="width: ' . $pixelsPerBarWrapperWidth . 'px" '
-                        . 'title="' . $durationFrequencyCount[$i] . ' classification(s) between ' . $iMinus1 . ' and ' . $i . ' minute(s)">'
+                        . 'title="' . $durationFrequencyCount [$i] . ' classification(s) between ' . $iMinus1 . ' and ' . $i . ' minute(s)">'
                         . ' <div class="timeGraphBar' . $overflowColor . '" '
                         . '     style="width: ' . $pixelsPerBarWidth . 'px; height: ' . $barHeightInPx . 'px">'
                         . ' </div>'
@@ -1017,7 +1134,7 @@ EOL;
                 $classificationTimeGraphContentHTML .= ''
                         . '<div class="timeGraphBarWrapper" '
                         . 'style="width: ' . $pixelsPerBarWrapperWidth . 'px"'
-                        . 'title="' . $durationFrequencyCount[$i] . ' classification(s) between ' . $iMinus1 . ' and ' . $i . ' minute(s)">'
+                        . 'title="' . $durationFrequencyCount [$i] . ' classification(s) between ' . $iMinus1 . ' and ' . $i . ' minute(s)">'
                         . '</div>';
             }
             if ($i % $rangeOfXScaleMarks == 0) {
@@ -1030,9 +1147,7 @@ EOL;
                         . ' </div>'
                         . '</div>';
             }
-        }
-
-        for ($i = 1; $i <= 5; $i++) {
+        } for ($i = 1; $i <= 5; $i++) {
             $yScaleValue = $i * $rangeOfYScaleMarks;
             if ($i == 1 && $yScaleValue > 200) {
                 $yRangeX1000 = TRUE;

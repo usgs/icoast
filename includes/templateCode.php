@@ -1,4 +1,20 @@
 <?php
+
+$projectKeywordArray = array();
+$projectKeywordQuery = '
+    SELECT
+        name
+    FROM
+        projects
+    WHERE
+        is_complete = 1 AND
+        is_public = 1';
+$projectKeywordResults = run_prepared_query($DBH, $projectKeywordQuery);
+while ($projectKeywordResult = $projectKeywordResults->fetchColumn()) {
+    $projectKeywordArray[] =  $projectKeywordResult;
+}
+$projectKeywords = implode(', ', $projectKeywordArray);
+
 if (!isset($pageName)) {
     $pageName = detect_pageName();
 }
@@ -7,11 +23,11 @@ $fileModifiedDateTime = file_modified_date_time($pageModifiedTime, $pageCodeModi
 
 $mainNav = '<ul>';
 
-if ($userData && ($userData['account_type'] >= 2 && $userData['account_type'] <= 4)) {
+if ($userData && ($userData['is_admin'])) {
     if (isset($adminNavigationActive)) {
         $mainNav .= '<li id="adminHomeLink" class="activePageLink">Administration</li>';
     } else {
-        $mainNav .= '<li id="adminHomeLink"><a href="adminHome.php">Administration</a></li>';
+        $mainNav .= '<li id="adminHomeLink"><a href="eventViewer.php">Administration</a></li>';
     }
 }
 
@@ -78,11 +94,11 @@ if ($pageName == 'about') {
 
 if ($pageName == 'logout') {
     $pageTitle = "USGS iCoast - User Logout";
-    $mainNav .= '<li><a href="index.php?login">Login</a></li>';
+    $mainNav .= '<li><a href="login.php">Login</a></li>';
 } else if ($userData) {
     $mainNav .= '<li class="accountControlLink"><a href="logout.php">Logout</a></li>';
 } else {
-    $mainNav .= '<li><a href="index.php?login">Login</a></li>';
+    $mainNav .= '<li><a href="login.php">Login</a></li>';
 }
 
 $mainNav .= '</ul>';
@@ -127,7 +143,7 @@ $jQueryDocumentDotReadyCode .= <<<EOL
             $('#alertBoxWrapper').hide();
         });
 
-        $('img, .clickableButton, .formInputStyle').tipTip();
+        $('img, .clickableButton, .formInputStyle, label').tipTip();
 
         $(window).resize(function () {
             moveFooter();

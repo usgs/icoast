@@ -7,7 +7,6 @@ $javaScriptLinkArray = array();
 $javaScript = '';
 $jQueryDocumentDotReadyCode = '';
 
-
 function sortByOrderInProject($a, $b) {
     return $a['order_in_project'] - $b['order_in_project'];
 }
@@ -118,10 +117,10 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 $actionSummaryHTML = '';
+$actionControlsHTML = '';
+$actionSelectionHTML = '';
 $projectUpdateErrorHTML = '';
 //
 //
@@ -134,10 +133,10 @@ $projectUpdateErrorHTML = '';
 if (isset($_POST['editSubmitted'])) {
     // MUST HAVE PROJECT ID AND UPDATE PROPERTY TO PROCEED WITH THE UPDATE
     if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate'])) {
-        $userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId);
+        $projectList = find_projects($DBH);
         // CHECK USER HAS THE RIGHTS TO UPDATE THE SPECIFIED PROJECT
-        if (in_array($_POST['projectId'], $userAdministeredProjects)) {
-
+        if (in_array($_POST['projectId'], $projectList)) {
+            $projectMetadata = retrieve_entity_metadata($DBH, $_POST['projectId'], 'project');
 
             // CUSTOMIZE THE UPDATE PROCESS BASED ON THE PROPERTY BEING UPDATED
             switch ($_POST['projectPropertyToUpdate']) {
@@ -161,6 +160,10 @@ if (isset($_POST['editSubmitted'])) {
                         settype($_POST['projectId'], 'integer');
                         if (!empty($_POST['projectId'])) {
                             $projectId = $_POST['projectId'];
+                            $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+                            if (!$projectMetadata) {
+                                $invalidRequiredField['projectId'] = $_POST['projectId'];
+                            }
                         } else {
                             $invalidRequiredField['projectId'] = $_POST['projectId'];
                         }
@@ -186,9 +189,19 @@ if (isset($_POST['editSubmitted'])) {
                         }
 
                         if ($_POST['newProjectStatus'] == 0 || $_POST['newProjectStatus'] == 1) {
-                            $newProjectStatus = $_POST['newProjectStatus'];
+                            $currentSystemFocusQuery = '
+                                    SELECT home_page_project
+                                    FROM system
+                                    LIMIT 1';
+                            $currentSystemFocusQuery = run_prepared_query($DBH, $currentSystemFocusQuery);
+                            $currentSystemFocus = $currentSystemFocusQuery->fetchColumn();
+                            if ($currentSystemFocus == $projectMetadata['project_id'] && $_POST['newProjectStatus'] == 0) {
+                                $invalidRequiredField['newProjectStatus'] = $_POST['newProjectStatus']  . ' Project is currently in focus';
+                            } else {
+                                $newProjectStatus = $_POST['newProjectStatus'];
+                            }
                         } else {
-                            $invalidRequiredField['newProjectStatus'] = $_POST['newProjectStatus'];
+                            $invalidRequiredField['newProjectStatus'] = $_POST['newProjectStatus'] . ' Invalid Argument';
                         }
 
                         if (!$invalidRequiredField) {
@@ -262,6 +275,7 @@ if (isset($_POST['editSubmitted'])) {
                     }
 
                     if ($invalidRequiredField) {
+                        // printArray($invalidRequiredField);
                         $actionSummaryHTML = <<<EOL
                                 <h2>Errors Detected in Input Data</h2>
                                 <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
@@ -375,6 +389,10 @@ EOL;
                         settype($_POST['projectId'], 'integer');
                         if (!empty($_POST['projectId'])) {
                             $projectId = $_POST['projectId'];
+                            $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+                            if (!$projectMetadata) {
+                                $invalidRequiredField['projectId'] = $_POST['projectId'];
+                            }
                         } else {
                             $invalidRequiredField['projectId'] = $_POST['projectId'];
                         }
@@ -540,6 +558,7 @@ EOL;
                                         $affectedRows = $updateTaskResult->rowCount();
 
                                         if (isset($affectedRows) && $affectedRows == 1) {
+
                                         } else {
                                             $databaseUpdateFailure['TaskMetadataUpdateQuery'] = '$updateTaskQuery';
                                         }
@@ -565,6 +584,7 @@ EOL;
                                                 $affectedRows = $updateTaskOrderResult->rowCount();
 
                                                 if (isset($affectedRows) && $affectedRows == 1) {
+
                                                 } else {
                                                     $databaseUpdateFailure['TaskOrderUpdate'] = '$updateTaskOrderQuery';
                                                 }
@@ -657,7 +677,6 @@ EOL;
                                 </div>
 
 EOL;
-
                     } else if (!$dataChanges) {
                         $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
@@ -675,7 +694,6 @@ EOL;
                                 </div>
 
 EOL;
-
                     } else {
                         $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
@@ -728,10 +746,22 @@ EOL;
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="updateFormSubmissionControls">
+                                    <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                        title="This button allows you to preview your work so far using a simulated classification page.">
+                                        Preview The Question Set
+                                    </button>
+                                </div>
                                 <div class="updateFormSubmissionControls"><hr>
                                     <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
+
+EOL;
+                        $jQueryDocumentDotReadyCode .= <<<EOL
+                            $('#previewQuestionSetButton').click(function () {
+                                window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                            });
 
 EOL;
                     }
@@ -791,6 +821,7 @@ EOL;
                         $newGroupDescription = htmlspecialchars($_POST['newGroupDescription']);
 
                         if (!empty($_POST['newDisplayText'])) {
+                            $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
                             $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
                         } else {
                             $invalidRequiredField['newDisplayText'] = $_POST['newDisplayText'];
@@ -883,7 +914,7 @@ EOL;
                                 $invalidRequiredField['oldGroupOrderInParent'] = $_POST['oldGroupOrderInParent'];
                             }
 
-                            $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'groups');
+                            $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'group');
 
                             $oldGroupStatus = $groupMetadata['is_enabled'];
                             $oldGroupContainsGroupsStatus = $groupMetadata['contains_groups'];
@@ -954,6 +985,7 @@ EOL;
                                     $groupUpdateFieldsQuery .= " WHERE tag_group_id = $groupId LIMIT 1";
                                     $groupUpdateResult = run_prepared_query($DBH, $groupUpdateFieldsQuery, $groupUpdateFieldsParams);
                                     if ($groupUpdateResult->rowCount() == 1) {
+
                                     } else {
                                         $databaseUpdateFailure['Column Updates'] = 'Failed';
                                     }
@@ -992,6 +1024,7 @@ EOL;
 
                                     foreach ($newParentContainerOrder as &$individualGroup) {
                                         if ($individualGroup['order_number'] >= $newGroupOrderInParent) {
+
                                         }
                                     }
 
@@ -1209,10 +1242,12 @@ EOL;
                                         $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
                                         $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
                                         if ($parentContainerOrderResult) {
+
                                         } else {
                                             $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] = '$parentContainerUpdateQuery';
                                         }
                                     } else {
+
                                     }
                                 }
                             } // End !InvalidRequiredField
@@ -1225,6 +1260,10 @@ EOL;
                             settype($_POST['projectId'], 'integer');
                             if (!empty($_POST['projectId'])) {
                                 $projectId = $_POST['projectId'];
+                                $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+                                if (!$projectMetadata) {
+                                    $invalidRequiredField['projectId'] = $_POST['projectId'];
+                                }
                             } else {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
@@ -1344,7 +1383,6 @@ EOL;
                                 <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
 
 EOL;
-
                     } else if (!$dataChanges) {
                         $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
@@ -1362,7 +1400,6 @@ EOL;
                                 </div>
 
 EOL;
-
                     } else {
                         $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
@@ -1488,10 +1525,22 @@ EOL;
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="updateFormSubmissionControls">
+                                    <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                        title="This button allows you to preview your work so far using a simulated classification page.">
+                                        Preview The Question Set
+                                    </button>
+                                </div>
                                 <div class = "updateFormSubmissionControls"><hr>
                                     <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
                                     <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
                                 </div>
+
+EOL;
+                        $jQueryDocumentDotReadyCode .= <<<EOL
+                            $('#previewQuestionSetButton').click(function () {
+                                window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                            });
 
 EOL;
                     }
@@ -1624,7 +1673,7 @@ EOL;
                             }
 
                             if (!$invalidRequiredField) {
-                                $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tags');
+                                $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tag');
 
                                 $oldTagStatus = $tagMetadata['is_enabled'];
                                 $oldCommentBoxFlag = $tagMetadata['is_comment_box'];
@@ -1713,10 +1762,12 @@ EOL;
 
                                         $tagUpdateResult = run_prepared_query($DBH, $tagUpdateFieldsQuery, $tagUpdateFieldsParams);
                                         if ($tagUpdateResult->rowCount() == 1) {
+
                                         } else {
                                             $databaseUpdateFailure['Column Updates'] = 'Failed';
                                         }
                                     } else {
+
                                     }
 
 
@@ -1798,8 +1849,8 @@ EOL;
                                         $newParentContainerUpdateQuery .= "END WHERE id IN ($newWhereInIdsToUpdate) LIMIT $newLimitAmount";
                                         $newParentContainerOrderResult = $DBH->query($newParentContainerUpdateQuery);
                                         if ($newParentContainerOrderResult) {
-                                        //////////////////////////////////////////////////////////////////////////////
-                                        // Update the database. Old Container
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // Update the database. Old Container
 
                                             $oldParentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
                                             foreach ($oldParentContainerOrder as $tag) {
@@ -1827,6 +1878,7 @@ EOL;
                                                 $affectedRows = $tagUpdateResults->rowCount();
 
                                                 if (isset($affectedRows) && $affectedRows == 1) {
+
                                                 } else {
                                                     $databaseUpdateFailure['TagGroupMembershipAndOrder'] = '$tagUpdateQuery';
                                                 }
@@ -1838,9 +1890,9 @@ EOL;
                                         }
 
 
-                                    ////////////////////////////////////////////////////////////////////////////////////////////////
-                                    ////////////////////////////////////////////////////////////////////////////////////////////////
-                                    // Staying in the old container
+                                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                                        // Staying in the old container
                                     } else {
                                         $newContainer = false;
                                         $resequencing = FALSE;
@@ -1914,13 +1966,13 @@ EOL;
                                                 $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] = '$parentContainerUpdateQuery';
                                             }
                                         } else {
+
                                         }
                                     }
                                 } // End !InvalidRequiredField
                             } // End !InvalidRequiredField
                             if ($invalidRequiredField) {
                                 $updateError = "One or more of the required fields necessary to update the group contained invalid or non-existant data.";
-
                             } // End invalidRequiredField IF
                             //////////////////////////////////////////////////////////////////////////////////
                             //////////////////////////////////////////////////////////////////////////////////
@@ -1934,6 +1986,10 @@ EOL;
                             settype($_POST['projectId'], 'integer');
                             if (!empty($_POST['projectId'])) {
                                 $projectId = $_POST['projectId'];
+                                $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+                                if (!$projectMetadata) {
+                                    $invalidRequiredField['projectId'] = $_POST['projectId'];
+                                }
                             } else {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
@@ -1989,7 +2045,7 @@ EOL;
 
                                     $resequenced = false;
 
-                                // Find the current contents of the parent container.
+                                    // Find the current contents of the parent container.
 
                                     $parentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
                                             . "FROM tag_group_contents "
@@ -2042,6 +2098,7 @@ EOL;
                                         $tagInsertResult = run_prepared_query($DBH, $tagInsertQuery, $tagInsertParams);
 
                                         if ($tagInsertResult->rowCount() == 1) {
+
                                         } else {
                                             $databaseUpdateFailure['NewTagParentGroupOrderTagInsertion'] = $tagInsertQuery;
                                         }
@@ -2180,10 +2237,22 @@ EOL;
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="updateFormSubmissionControls">
+                                    <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                        title="This button allows you to preview your work so far using a simulated classification page.">
+                                        Preview The Question Set
+                                    </button>
+                                </div>
                                 <div class = "updateFormSubmissionControls"><hr>
                                     <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Tag Screen">
                                     <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
                                 </div>
+
+EOL;
+                        $jQueryDocumentDotReadyCode .= <<<EOL
+                            $('#previewQuestionSetButton').click(function () {
+                                window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                            });
 
 EOL;
                     }
@@ -2197,7 +2266,7 @@ EOL;
             To update this project please seek Project Editor access from the project owner.</p>
 
 EOL;
-        // ERROR LOGGING
+            // ERROR LOGGING
         } // END FAILED USER PERMISSION CHECK - if (in_array($_POST['projectId'], $userAdministeredProjects)) ELSE
     } else { // END SUCCESSFUL CHECK OF PROJECT ID AND PROPERTY TO UPDATE CHECK - if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate']))
         $projectUpdateErrorHTML = <<<EOL
@@ -2221,21 +2290,24 @@ EOL;
 //
 // CHECK OF A PROJECT TO UPDATE HAS ALREADY BEEN SPECIFIED OR PROVIDE A CHOICE OF PROJECTS TO UPDATE
 if (isset($_POST['projectId'])) {
-// IF A PROJECT HAS ALREADY BEEN SELECTED CHECH THE USER PERMISSIONS AND IF SUCCESSFUL DETERMINE THE PROJECT
+// IF A PROJECT HAS ALREADY BEEN SELECTED CHECK THE USER PERMISSIONS AND IF SUCCESSFUL DETERMINE THE PROJECT
 // METADATA AND COPY TO LOCAL VARIABLES
     $invalidRequiredField = FALSE;
     settype($_POST['projectId'], 'integer');
     if (!empty($_POST['projectId'])) {
         $projectId = $_POST['projectId'];
+        $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+        if (!$projectMetadata) {
+            $invalidRequiredField['projectId'] = $_POST['projectId'];
+        }
     } else {
         $invalidRequiredField['projectId'] = $_POST['projectId'];
     }
     // CHECK USER HAS THE PERMISSION TO EDIT THE SELECTED PROJECT
-    $userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId);
+    $projectList = find_projects($DBH);
     $hasProjectPermission = FALSE;
-    if (!$invalidRequiredField && in_array($_POST['projectId'], $userAdministeredProjects)) {
+    if (!$invalidRequiredField && in_array($_POST['projectId'], $projectList)) {
         $hasProjectPermission = TRUE;
-        $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
         $projectName = $projectMetadata['name'];
         $projectSelectHTML = <<<EOL
             <div id=chosenProjectNotificationWrapper>
@@ -2260,12 +2332,13 @@ EOL;
     } // END FAILED CHECK OF USER PERMISSION TO EDIT PROJECT - if (in_array($_POST['projectId'], $userAdministeredProjects)) ELSE
 } else {
     // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-    $userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
-    $projectCount = count($userAdministeredProjects);
+    $projectList = find_projects($DBH, TRUE);
+    $projectCount = count($projectList);
     // IF ONLY 1 PROJECT EXISTS AUTO SELECT IT FOR THE USER
     if ($projectCount == 1) {
-        $projectId = $userAdministeredProjects[0]['project_id'];
-        $projectName = $userAdministeredProjects[0]['name'];
+        $projectId = $projectList[0]['project_id'];
+        $projectName = $projectList[0]['name'];
+        $hasProjectPermission = TRUE;
         $projectSelectHTML = <<<EOL
             <div id=chosenProjectNotificationWrapper>
                 <p>Your are editing the <span class="userData">$projectName</span> project.</p>
@@ -2275,7 +2348,7 @@ EOL;
         // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
         // PROJECT SELECT
         $projectSelectHTML = "";
-        foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+        foreach ($projectList as $singeUserAdministeredProject) {
             $optionProjectId = $singeUserAdministeredProject['project_id'];
             $optionProjectName = $singeUserAdministeredProject['name'];
             $optionProjectDescription = $singeUserAdministeredProject['description'];
@@ -2310,8 +2383,8 @@ EOL;
 // FROM THIS POINT ON THE PROJECT ID AND NAME HAS BEEN COPIED FROM $_POST TO VARIABLES
 // BEGIN SELECTION OF THE PROJECT PROPERTY TO UPDATE IF IT HAS NOT BEEN SPECIFIED.
 if (isset($projectId) && $hasProjectPermission && !isset($_POST['projectPropertyToUpdate'])) {
-    $actionSelctionHTML = <<<EOL
-            <h2>Select an Action to Perform on this Project</h2>
+    $actionSelectionHTML = <<<EOL
+            <h3>Select an Action to Perform on this Project</h3>
             <p>What would you like to edit in this project?</p>
             <form id="editActionForm" method="post" autocomplete="off">
                 <input type="radio" name="projectPropertyToUpdate" value="details" id="editProjectDetails" />
@@ -2392,7 +2465,7 @@ EOL;
                         </div>
 
                         <div class="formFieldRow">
-                            <label for="editDescription" title="This text is for admin reference only to help explain detasils of the project. The content of this field is not shared with standard users. 500 character limit.">Project Description:</label>
+                            <label for="editDescription" title="This text is for admin reference only to help explain details of the project. The content of this field is not shared with standard users. 500 character limit.">Project Description:</label>
                             <textarea id="editDescription" class="clickableButton" name="newProjectDescription" maxlength="500">$currentProjectDescription</textarea>
                         </div>
 
@@ -2468,9 +2541,21 @@ EOL;
                                     </form>
                                 </div>
                             </div>
+                            <div class="updateFormSubmissionControls">
+                                <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                    title="This button allows you to preview your work so far using a simulated classification page.">
+                                    Preview The Question Set
+                                </button>
+                            </div>
                             <div class="updateFormSubmissionControls"><hr>
                                 <input type="button" class="clickableButton" id="returnToActionSelection" title="This will exit the task selection screen and return you to the Action Selection screen for you to choose another project editing activity. No changes will be made to the database." value="Return to Action Selection Screen">
                             </div>
+
+EOL;
+                $jQueryDocumentDotReadyCode .= <<<EOL
+                    $('#previewQuestionSetButton').click(function () {
+                        window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                    });
 
 EOL;
             } // END THE CREATION OF THE TASK SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
@@ -2712,7 +2797,6 @@ EOL;
                           <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
 
 EOL;
-
                 }
             }
 
@@ -2778,9 +2862,21 @@ EOL;
                                     </form>
                                 </div>
                             </div>
+                            <div class="updateFormSubmissionControls">
+                                <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                    title="This button allows you to preview your work so far using a simulated classification page.">
+                                    Preview The Question Set
+                                </button>
+                            </div>
                             <div class="updateFormSubmissionControls"><hr>
                                 <input type="button" class="clickableButton" id="returnToActionSelection" title="This will exit the tag group selection screen and return you to the Action Selection screen for you to choose another project editing activity. No changes will be made to the database." value="Return to Action Selection Screen">
                             </div>
+
+EOL;
+                $jQueryDocumentDotReadyCode .= <<<EOL
+                    $('#previewQuestionSetButton').click(function () {
+                        window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                    });
 
 EOL;
             } // END THE CREATION OF THE GROUP SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
@@ -2803,7 +2899,7 @@ EOL;
 
                     if (!$invalidRequiredField) {
 
-                        $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'groups');
+                        $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'group');
                         $currentGroupName = $groupMetadata['name'];
                         $currentGroupDescription = $groupMetadata['description'];
                         $currentGroupDisplayText = $groupMetadata['display_text'];
@@ -3177,7 +3273,6 @@ EOL;
 EOL;
                     }
                 } // END FORM CREATION FOR UPDATING OF AN EXISTING TASK - if (isset($_POST["taskId"]))
-
                 // IF REQUEST IS TO BUILD A NEW TASK THEN BUILD THE FORM TO CREATE THE TASK
                 else if (isset($projectEditSubAction) && $projectEditSubAction == 'createNewGroup') {
 
@@ -3488,9 +3583,21 @@ EOL;
                                     </form>
                                 </div>
                             </div>
+                            <div class="updateFormSubmissionControls">
+                                <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
+                                    title="This button allows you to preview your work so far using a simulated classification page.">
+                                    Preview The Question Set
+                                </button>
+                            </div>
                             <div class="updateFormSubmissionControls"><hr>
                                 <input type="button" class="clickableButton" id="returnToActionSelection" title="This will exit the tag selection screen and return you to the Action Selection screen for you to choose another project editing activity. No changes will be made to the database." value="Return to Action Selection Screen">
                             </div>
+
+EOL;
+                $jQueryDocumentDotReadyCode .= <<<EOL
+                    $('#previewQuestionSetButton').click(function () {
+                        window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
+                    });
 
 EOL;
             } // END THE CREATION OF THE GROUP SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
@@ -3511,7 +3618,7 @@ EOL;
                         $invalidRequiredField['tagId'] = $_POST['tagId'];
                     }
                     if (!$invalidRequiredField) {
-                        $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tags');
+                        $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tag');
                         $currentTagName = $tagMetadata['name'];
                         $currentTagDescription = $tagMetadata['description'];
                         $currentTagDisplayText = $tagMetadata['display_text'];
@@ -3742,7 +3849,6 @@ EOL;
 EOL;
                     }
                 } // END FORM CREATION FOR UPDATING OF AN EXISTING TASK - if (isset($_POST["taskId"]))
-
                 // IF REQUEST IS TO BUILD A NEW TASK THEN BUILD THE FORM TO CREATE THE TASK
                 else if ($projectEditSubAction == 'createNewTag') {
 
@@ -3904,7 +4010,6 @@ EOL;
             break;
     } // END switch ($projectPropertyToUpdate)
 } // END if (isset($projectId) && ... !isset($_POST['editSubmitted']))
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build variable javascript code.
 if (isset($_POST['projectId'])) {

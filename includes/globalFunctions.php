@@ -3,6 +3,77 @@
 //error_reporting(0);
 date_default_timezone_set('UTC');
 
+function restoreSafeHTMLTags($escapedString, $balanceTags = true, $breaks = true, $bold = true, $italic = true) {
+
+    $searchStrings = array();
+    $replaceStrings = array();
+
+    if ($breaks) {
+        array_push($searchStrings, '&lt;br&gt;', '&lt;br /&gt;', '&lt;br/&gt;');
+        array_push($replaceStrings, '<br>', '<br>', '<br>');
+    }
+    if ($bold) {
+        array_push($searchStrings, '&lt;b&gt;', '&lt;/b&gt;');
+        array_push($replaceStrings, '<b>', '</b>');
+    }
+    if ($italic) {
+        array_push($searchStrings, '&lt;i&gt;', '&lt;/i&gt;');
+        array_push($replaceStrings, '<i>', '</i>');
+    }
+    $restoredString = str_ireplace($searchStrings, $replaceStrings, $escapedString);
+    
+    if ($balanceTags) {
+        $openingBoldTags = substr_count($restoredString, '<b>');
+        $closingBoldTags = substr_count($restoredString, '</b>');
+        if ($openingBoldTags < $closingBoldTags) {
+            $tagDiscrepancyCount = $closingBoldTags - $openingBoldTags;
+            $prefixText = '';
+            for ($i = 1; $i <= $tagDiscrepancyCount; $i++) {
+                $lastTagPosition = strrpos($restoredString, '</b>');
+                $restoredString = substr_replace($restoredString, '', $lastTagPosition, 4);
+            }
+        }
+
+        if ($openingBoldTags > $closingBoldTags) {
+            $tagDiscrepancyCount = $openingBoldTags - $closingBoldTags;
+            $suffixText = '';
+            for ($i = 1; $i <= $tagDiscrepancyCount; $i++) {
+                $suffixText .= '</b>';
+            }
+            $restoredString = $restoredString . $suffixText;
+        }
+
+
+
+        $openingItalicTags = substr_count($restoredString, '<i>');
+        $closingItalicTags = substr_count($restoredString, '</i>');
+        if ($openingItalicTags < $closingItalicTags) {
+            $tagDiscrepancyCount = $closingItalicTags - $openingItalicTags;
+            $prefixText = '';
+            for ($i = 1; $i <= $tagDiscrepancyCount; $i++) {
+                $lastTagPosition = strrpos($restoredString, '</i>');
+                $restoredString = substr_replace($restoredString, '', $lastTagPosition, 4);
+            }
+        }
+
+        if ($openingItalicTags > $closingItalicTags) {
+            $tagDiscrepancyCount = $openingItalicTags - $closingItalicTags;
+            $suffixText = '';
+            for ($i = 1; $i <= $tagDiscrepancyCount; $i++) {
+                $suffixText .= '</i>';
+            }
+            $restoredString = $restoredString . $suffixText;
+        }
+    }
+    return $restoredString;
+}
+
+function printArray($array) {
+    print '<pre>';
+    print_r($array);
+    print '</pre>';
+}
+
 function convertSeconds($s, $verbose = true) {
     $hrs = floor($s / 3600);
     $mins = floor(($s % 3600) / 60);
@@ -24,7 +95,7 @@ function convertSeconds($s, $verbose = true) {
             $secString = 'seconds';
         }
     } else {
-                if ($hrs == 1) {
+        if ($hrs == 1) {
             $hrString = 'hr';
         } else {
             $hrString = 'hrs';
@@ -91,28 +162,20 @@ function timeZoneIdToTextConverter($timeZoneId) {
     switch ($timeZoneId) {
         case 1:
             return "Eastern";
-            break;
         case 2:
             return "Central";
-            break;
         case 3:
             return "Mountain";
-            break;
         case 4:
             return "Mountain (Arizona)";
-            break;
         case 5:
             return "Pacific";
-            break;
         case 6:
             return "Alaskan";
-            break;
         case 7:
             return "Hawaiian";
-            break;
         case 8:
             return "UTC";
-            break;
     }
 }
 
@@ -147,43 +210,14 @@ function crowdTypeConverter($DBH, $crowdTypeId = null, $otherCrowdType = null) {
         }
         return $returnArray;
     }
-
-//    switch ($crowdTypeId) {
-//        case 1:
-//            return "Coastal & Marine Scientist";
-//            break;
-//        case 2:
-//            return "Coastal Manager or Planner";
-//            break;
-//        case 3:
-//            return "Coastal Resident";
-//            break;
-//        case 4:
-//            return "Watersport Enthusiast";
-//            break;
-//        case 5:
-//            return "Marine Science Student";
-//            break;
-//        case 6:
-//            return "Emergency Responder";
-//            break;
-//        case 7:
-//            return "Policy Maker";
-//            break;
-//        case 8:
-//            return "Digital Crisis Volunteer (VTC)";
-//            break;
-//        case 9:
-//            return "Interested Public";
-//            break;
-//        case 10:
-//            return "Other: " . $otherCrowdType;
-//            break;
-//    }
 }
 
-function detect_pageName() {
-    $filePath = rtrim($_SERVER['PHP_SELF'], '/');
+function detect_pageName($url = false) {
+    if (!$url) {
+        $url = $_SERVER['PHP_SELF'];
+        //$url = filter_input(INPUT_SERVER, 'PHP_SELF', FILTER_SANITIZE_URL);
+    }
+    $filePath = rtrim($url, '/');
     $substrStart = strrpos($filePath, '/') + 1;
     $substrLength = strrpos($filePath, '.') - $substrStart;
     return substr($filePath, $substrStart, $substrLength);
@@ -207,36 +241,6 @@ function file_modified_date_time($pageModifiedTime, $pageCodeModifiedTime) {
     return date('F jS, Y H:i', $adjustedFileDateTime) . " EDT";
 }
 
-function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE, $logout = FALSE) {
-    if ($securePage) {
-        if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
-            header('Location: index.php?error=cookies');
-            exit;
-        }
-        $userId = $_COOKIE['userId'];
-        $authCheckCode = $_COOKIE['authCheckCode'];
-
-        $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect, $adminCheck, $enabledCheck);
-        if ($userData) {
-            $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
-        }
-    } else {
-        if (isset($_COOKIE['userId']) || isset($_COOKIE['authCheckCode'])) {
-            $userId = $_COOKIE['userId'];
-            $authCheckCode = $_COOKIE['authCheckCode'];
-
-            $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE, $adminCheck, $enabledCheck);
-            if ($userData) {
-                $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
-            }
-        } else {
-            $userData = FALSE;
-        }
-    }
-
-    return $userData;
-}
-
 // -------------------------------------------------------------------------------------------------
 /**
  * Creates a formatted string showing a time converted from UTC to a users recorded time zone
@@ -247,7 +251,7 @@ function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminChe
  * @return string A formatted string with the supplied time converted to correct time zone
  *         (example: March 3, 2014 at 7:50 AM)
  */
-function formattedTime($time, $userTimeZone, $verbose = TRUE, $fileOutput = FALSE) {
+function formattedTime($time, $userTimeZone, $verbose = TRUE, $seconds = FALSE, $fileOutput = FALSE) {
     switch ($userTimeZone) {
         case 1:
             $timeZoneString = ('America/New_York');
@@ -278,16 +282,60 @@ function formattedTime($time, $userTimeZone, $verbose = TRUE, $fileOutput = FALS
             exit('Invalid user time zone specified. Should be 1 - 8 (Eastern to Hawaii or UTC');
             break;
     }
-    $timeToFormat = new DateTime($time, new DateTimeZone('UTC'));
+    if (is_numeric($time)) {
+        $timeToFormat = new DateTime('@' . $time);
+    } else {
+        $timeToFormat = new DateTime($time, new DateTimeZone('UTC'));
+    }
     $timeToFormat->setTimezone(new DateTimeZone($timeZoneString));
     if ($fileOutput) {
         return $timeToFormat->format('Ymd Hi');
     }
     if ($verbose) {
-        return $timeToFormat->format('F j\, Y \a\t g:i A');
+        if ($seconds) {
+            $formatString = 'F j\, Y \a\t g:i:s A';
+        } else {
+            $formatString = 'F j\, Y \a\t g:i A';
+        }
+        return $timeToFormat->format($formatString);
     } else {
-        return $timeToFormat->format('m/d/y h:iA');
+        if ($seconds) {
+            $formatString = 'm/d/y h:i:sA';
+        } else {
+            $formatString = 'm/d/y h:iA';
+        }
+        return $timeToFormat->format($formatString);
     }
+}
+
+function authenticate_user($DBH, $securePage = TRUE, $redirect = TRUE, $adminCheck = FALSE, $enabledCheck = TRUE, $logout = FALSE, $newCredentials = TRUE) {
+    if ($securePage) {
+        if (!isset($_COOKIE['userId']) || !isset($_COOKIE['authCheckCode'])) {
+            header('Location: index.php?error=cookies');
+            exit;
+        }
+        $userId = $_COOKIE['userId'];
+        $authCheckCode = $_COOKIE['authCheckCode'];
+
+        $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirect, $adminCheck, $enabledCheck);
+        if ($userData && $newCredentials) {
+            $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+        }
+    } else {
+        if (isset($_COOKIE['userId']) && isset($_COOKIE['authCheckCode'])) {
+            $userId = $_COOKIE['userId'];
+            $authCheckCode = $_COOKIE['authCheckCode'];
+
+            $userData = authenticate_cookie_credentials($DBH, $userId, $authCheckCode, FALSE, $adminCheck, $enabledCheck);
+            if ($userData && $newCredentials) {
+                $userData['auth_check_code'] = generate_cookie_credentials($DBH, $userId, $logout);
+            }
+        } else {
+            $userData = FALSE;
+        }
+    }
+
+    return $userData;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -313,12 +361,13 @@ function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirec
             header('Location: index.php?error=auth');
             exit;
         } else {
+            generate_cookie_credentials($DBH, $userId, TRUE);
             return FALSE;
         }
     } else {
         $userData = $userData[0];
         if ($adminCheck) {
-            if ($userData['account_type'] <= 1 || $userData['account_type'] >= 5) {
+            if ($userData['is_admin'] != 1) {
                 if ($redirect) {
                     header('Location: index.php?error=admin');
                     exit;
@@ -334,6 +383,7 @@ function authenticate_cookie_credentials($DBH, $userId, $authCheckCode, $redirec
                     header('Location: index.php?error=disabled');
                     exit;
                 } else {
+                    generate_cookie_credentials($DBH, $userId, TRUE);
                     return FALSE;
                 }
             }
@@ -368,9 +418,7 @@ function generate_cookie_credentials($DBH, $userId, $logout = FALSE) {
         }
         return $authCheckCode;
     } else {
-        //  Placeholder for error management
-        print 'User Cookie Generation Error: User Id Not found';
-        exit;
+        return false;
     }
 }
 
@@ -460,15 +508,17 @@ function mask_email($email, $maskCharacter = "*", $maskPercentage = 50) {
  * @return object $STH PDO statement object for the executed query.
  * @todo Error managament entries.
  */
-function run_prepared_query($DBH, $query, $params) {
+function run_prepared_query($DBH, $query, $params = array(), $returnInsertId = FALSE) {
 
     $STH = $DBH->prepare($query);
     if (!$STH) {
         //  Placeholder for error management
         print 'PDO Prepare Error: <br>';
         print_r($DBH->errorInfo());
+        print "$query<br>";
         exit;
     }
+
     if (!$STH->execute($params)) {
         //  Placeholder for error management
         print 'PDO Statement Execution Error: <br>';
@@ -478,8 +528,13 @@ function run_prepared_query($DBH, $query, $params) {
         print '</pre>';
         print_r($STH->errorInfo());
         exit;
+//        return false;
     } else {
-        return $STH;
+        if ($returnInsertId) {
+            return $DBH->lastInsertId();
+        } else {
+            return $STH;
+        }
     }
 }
 
@@ -557,7 +612,8 @@ function where_in_string_builder($values) {
       print "<br>$values</p>";
       } */
 // Check validity of input.
-    if (is_array($values) OR is_string($values) OR is_numeric($values)) {
+    if ((is_array($values) && count($values) > 0) OR ( is_string($values) && !empty($values)) OR
+            is_numeric($values)) {
 // Builds a formatted string from an array of string or numeric values.
         if (is_array($values)) {
             $whereString = "";
@@ -601,135 +657,150 @@ function where_in_string_builder($values) {
  * image group. Results can filtered to ensure included id's are not globally disabled and
  * have a display image file.
  *
- * @param array|int $searchIds A 1D indexed array where each element value is an id of a dataset or
- * image group, or an integer holding the id of a single dataset or image group.
+ * @param array|int $searchCriteria A integer holding the id of a single collection or image group or a 1D indexed
+ * array where each element value is an id of an image group.
  * @param bool $imageGroupSearch Optional. Default = FALSE. True applies search id's to image
- * groups. False applies search id's to datasets.
+ * groups. False applies search id's to projects.
  * @param bool $filtered Optional. Default = FALSE. True ensures a returned image_id is not
  * globally disabled and has display file. False ignores this check.
  * @return array|boolean On success returns a 1D indexed array where element values contain
  * image_ids.  <b>OR</b><br>On failure returns boolean FALSE.
  */
-function retrieve_image_id_pool($DBH, $searchIds, $imageGroupSearch = FALSE, $filtered = FALSE) {
+function retrieve_image_id_pool($searchCriteria, $imageGroupSearch = FALSE, $filtered = FALSE) {
     /* print "<p><b>In retrieve_image_ids function.</b><br>Arguments:<br><pre>";
-      print_r($searchIds);
+      print_r($searchCriteria);
       print "</pre>$imageGroupSearch<br>$filtered</p>"; */
 // Define PHP settings and Variables
     $imageIdsReturn = array();
 
+    // Ensure database connection is present.
+    if (isset($GLOBALS['DBH'])) {
+        global $DBH;
+    } else {
+        return FALSE;
+    }
+
 // Build the search query
-    $whereString = where_in_string_builder($searchIds);
     switch ($imageGroupSearch) {
-        case FALSE: // $searchIds represent datasets to be queried in images table
-            $imageIdQuery = "SELECT image_id FROM images WHERE dataset_id IN ($whereString)";
+        case FALSE: // $searchCriteria represent datasets to be queried in images table
+            if (!is_numeric($searchCriteria)) {
+                return false;
+            }
+            $imageIdQuery = <<<EOL
+                        SELECT image_id
+                        FROM images
+                        WHERE collection_id = :searchCriteria
+EOL;
             if ($filtered == TRUE) {
                 // Pool results should exclude disabled images or those without display images
-                $imageIdQuery .= " AND is_globally_disabled = 0 AND has_display_file = 1";
+                $imageIdQuery .= " AND is_globally_disabled = 0";
             }
-            //  $imageIdParams['whereString'] = $whereString;
-            $imageIdParams = array();
+            $imageIdQuery .= " ORDER BY position_in_collection";
+            $imageIdParams['searchCriteria'] = $searchCriteria;
             $STH = run_prepared_query($DBH, $imageIdQuery, $imageIdParams);
-            $imageIdResult = $STH->fetchAll(PDO::FETCH_ASSOC);
-            //  $imageIdResult = run_database_query($imageIdQuery);
             // Build the array to return.
-            if (count($imageIdResult) > 0) {
-                foreach ($imageIdResult as $imageId) {
-                    $imageIdsReturn[] = $imageId['image_id'];
-                }
+            while ($image = $STH->fetch(PDO::FETCH_ASSOC)) {
+                $imageIdsReturn[] = $image['image_id'];
             }
             return $imageIdsReturn;
-            break;
 
 
-        case TRUE: // $searchIds represent image_group ids to be queried in image_groups table
+        case TRUE: // $searchCriteria represent image_group ids to be queried in image_groups table
+            $whereString = where_in_string_builder($searchCriteria);
             $imageGroupQuery = "SELECT image_id, group_range, show_every_nth_image "
                     . "FROM image_groups "
                     . "WHERE image_group_id IN ($whereString)";
-            $imageGroupParams = array();
-            $STH = run_prepared_query($DBH, $imageGroupQuery, $imageGroupParams);
-            $imageGroupResult = $STH->fetchAll(PDO::FETCH_ASSOC);
-            if (count($imageGroupResult) > 0) {
-                foreach ($imageGroupResult as $imageGroup) {
-                    $imageId = $imageGroup['image_id'];
-                    $groupRange = $imageGroup['group_range'];
-                    $showEveryNthImage = $imageGroup['show_every_nth_image'];
-                    if ($groupRange == 1) {
-                        $imageIdsReturn[] = $imageId;
-                    } else if ($groupRange > 1) {
-                        for ($i = $imageId; $i < $imageId + $groupRange; $i = $i + $showEveryNthImage) {
-                            $imageIdsReturn[] = $i;
-                        }
+            $STH = run_prepared_query($DBH, $imageGroupQuery);
+            while ($imageGroup = $STH->fetch(PDO::FETCH_ASSOC)) {
+                $imageId = $imageGroup['image_id'];
+                $groupRange = $imageGroup['group_range'];
+                $showEveryNthImage = $imageGroup['show_every_nth_image'];
+                if ($groupRange == 1) {
+                    $imageIdsReturn[] = $imageId;
+                } else if ($groupRange > 1) {
+                    $startingImage = retrieve_entity_metadata($DBH, $imageId, 'image');
+                    if (!is_array($startingImage) || (is_array($startingImage) && count($startingImage) === 0)) {
+                        return false;
                     }
-                }
-                if ($filtered === TRUE) {
-                    $whereString = where_in_string_builder($imageIdsReturn);
-                    $imageFilterQuery = "SELECT image_id FROM images WHERE image_id IN ($whereString) "
-                            . "AND is_globally_disabled = 0 AND has_display_file = 1";
-                    $imageFilterParams = array();
-                    $imageFilterResult = run_prepared_query($DBH, $imageFilterQuery, $imageFilterParams);
-                    $imageIdsReturn = array();
-                    while ($filteredImage = $imageFilterResult->fetch(PDO::FETCH_ASSOC)) {
-                        $imageIdsReturn[] = $filteredImage['image_id'];
+                    $startingPosition = $startingImage['position_in_collection'];
+                    $positionArray = array();
+                    for ($i = $startingPosition; $i < $startingPosition + $groupRange; $i += $showEveryNthImage) {
+                        $positionArray[] = $i;
+                    }
+                    $whereString = where_in_string_builder($positionArray);
+                    if ($whereString === FALSE) {
+                        return false;
+                    }
+                    $imagesInGroupQuery = <<<EOL
+                                SELECT image_id
+                                FROM images
+                                WHERE collection_id = :collectionId AND
+                                    position_in_collection IN ($whereString)
+EOL;
+                    if ($filtered === TRUE) {
+                        $imagesInGroupQuery .= ' AND is_globally_disabled = 0';
+                    }
+                    $imagesInGroupQuery .= ' ORDER BY position_in_collection';
+                    $imagesInGroupParams['collectionId'] = $startingImage['collection_id'];
+                    $imagesInGroupResult = run_prepared_query($DBH, $imagesInGroupQuery, $imagesInGroupParams);
+                    while ($image = $imagesInGroupResult->fetch(PDO::FETCH_ASSOC)) {
+                        $imageIdsReturn[] = $image['image_id'];
                     }
                 }
             }
             return $imageIdsReturn;
-            break;
     }
-    //print "RETURNING: FALSE<br>";
-    return FALSE;
 }
 
-// -------------------------------------------------------------------------------------------------
-/**
- * Returns image metadata based on a supplied imageId(s).
- *
- * Accepts a single image id or an array of ids and returns the metadata for the image.
- *
- * @param int|array $imageIds A single image id or an array of image ids in a 1D array where
- * element values contain image_ids.
- * @return array|boolean On success returns either a 2D array (where 1st dimension element values
- * hold an array for each image and 2nd dimension element values hold the image metadata) if
- * $imageIds value was an array, or a 1D array (where each element value holds image metadata) if
- * $imageIds was an integer.<b>OR</b><br>On failure returns FALSE.
- */
-function retrieve_image_metadata($imageIds) {
-    /* print "<p><b>In retreive_image_metadata function.</b><br>Arguments:";
-      if (is_array($imageIds)) {
-      print "<br>An array of values.</p>";
-      print "<pre>";
-      print_r($imageIds);
-      print "</pre></p>";
-      } else {
-      print "<br>$imageIds</p>";
-      } */
-// Define PHP settings and Variables
-    $imageDataReturn = array();
-
-// Check validity of input data
-    if (is_numeric($imageIds) OR is_array($imageIds)) {
-// Build and run the query
-        $imagesToQuery = where_in_string_builder($imageIds);
-        $imageDataQuery = "SELECT * FROM images WHERE image_id IN $imagesToQuery";
-        $imageDataResults = run_database_query($imageDataQuery);
-        if ($imageDataResults) {
-            if (is_numeric($imageIds)) {
-                $imageDataReturn = $imageDataResults->fetch_assoc();
-            } else {
-                while ($result = $imageDataResults->fetch_assoc()) {
-                    $imageDataReturn[] = $result;
-                }
-            }
-            /* print "RETURNING: <pre>";
-              print_r($imageDataReturn);
-              print '</pre>'; */
-            return $imageDataReturn;
-        }
-    }
-// print "RETURNING: FALSE<br>";
-    return FALSE;
-}
-
+//// -------------------------------------------------------------------------------------------------
+///**
+// * Returns image metadata based on a supplied imageId(s).
+// *
+// * Accepts a single image id or an array of ids and returns the metadata for the image.
+// *
+// * @param int|array $imageIds A single image id or an array of image ids in a 1D array where
+// * element values contain image_ids.
+// * @return array|boolean On success returns either a 2D array (where 1st dimension element values
+// * hold an array for each image and 2nd dimension element values hold the image metadata) if
+// * $imageIds value was an array, or a 1D array (where each element value holds image metadata) if
+// * $imageIds was an integer.<b>OR</b><br>On failure returns FALSE.
+// */
+//function retrieve_image_metadata($imageIds) {
+//    /* print "<p><b>In retreive_image_metadata function.</b><br>Arguments:";
+//      if (is_array($imageIds)) {
+//      print "<br>An array of values.</p>";
+//      print "<pre>";
+//      print_r($imageIds);
+//      print "</pre></p>";
+//      } else {
+//      print "<br>$imageIds</p>";
+//      } */
+//// Define PHP settings and Variables
+//    $imageDataReturn = array();
+//
+//// Check validity of input data
+//    if (is_numeric($imageIds) OR is_array($imageIds)) {
+//// Build and run the query
+//        $imagesToQuery = where_in_string_builder($imageIds);
+//        $imageDataQuery = "SELECT * FROM images WHERE image_id IN $imagesToQuery";
+//        $imageDataResults = run_database_query($imageDataQuery);
+//        if ($imageDataResults) {
+//            if (is_numeric($imageIds)) {
+//                $imageDataReturn = $imageDataResults->fetch_assoc();
+//            } else {
+//                while ($result = $imageDataResults->fetch_assoc()) {
+//                    $imageDataReturn[] = $result;
+//                }
+//            }
+//            /* print "RETURNING: <pre>";
+//              print_r($imageDataReturn);
+//              print '</pre>'; */
+//            return $imageDataReturn;
+//        }
+//    }
+//// print "RETURNING: FALSE<br>";
+//    return FALSE;
+//}
 // -------------------------------------------------------------------------------------------------
 /**
  * Builds an image location string.
@@ -764,38 +835,37 @@ function build_image_location_string($imageMetadata, $shortResult = FALSE) {
     return FALSE;
 }
 
-// -------------------------------------------------------------------------------------------------
-/**
- * Function to find the dataset id's that comprise a given collection.
- *
- * Takes the database id of a specified collection and retrieves and returns a list of database
- * row id's for each dataset that makes up that collection.
- *
- * @param integer $collectionId The database id of the collection to be queried.
- * @return array|boolean If successful returns a 1D indexed array where each element value contains
- * a datset id. Returns FALSE on failure.
- */
-function find_datasets_in_collection($DBH, $collectionId) {
-// print "<p><b>In find_datasets_in_collection function</b>.<br>Arguments:<br>$collectionId</p>";
-    $datasets = array();
-    if (is_numeric($collectionId)) {
-        $datasetsQuery = "SELECT dataset_id FROM datasets WHERE collection_id = $collectionId";
-        $datasetsParams['collectionId'] = $collectionId;
-        $STH = run_prepared_query($DBH, $datasetsQuery, $datasetsParams);
-
-//    $datasetsResult = run_database_query($datasetsQuery);
-        while ($singleDataset = $STH->fetch(PDO::FETCH_ASSOC)) {
-            $datasets[] = $singleDataset['dataset_id'];
-        }
-//       print "RETURNING: <pre>";
-//        print_r($datasets);
-//        print '</pre>';
-        return $datasets;
-    }
-// print "RETURNING: FALSE<br>";
-    return FALSE;
-}
-
+//// -------------------------------------------------------------------------------------------------
+///**
+// * Function to find the dataset id's that comprise a given collection.
+// *
+// * Takes the database id of a specified collection and retrieves and returns a list of database
+// * row id's for each dataset that makes up that collection.
+// *
+// * @param integer $collectionId The database id of the collection to be queried.
+// * @return array|boolean If successful returns a 1D indexed array where each element value contains
+// * a datset id. Returns FALSE on failure.
+// */
+//function find_datasets_in_collection($DBH, $collectionId) {
+//// print "<p><b>In find_datasets_in_collection function</b>.<br>Arguments:<br>$collectionId</p>";
+//    $datasets = array();
+//    if (is_numeric($collectionId)) {
+//        $datasetsQuery = "SELECT dataset_id FROM datasets WHERE collection_id = $collectionId";
+//        $datasetsParams['collectionId'] = $collectionId;
+//        $STH = run_prepared_query($DBH, $datasetsQuery, $datasetsParams);
+//
+////    $datasetsResult = run_database_query($datasetsQuery);
+//        while ($singleDataset = $STH->fetch(PDO::FETCH_ASSOC)) {
+//            $datasets[] = $singleDataset['dataset_id'];
+//        }
+////       print "RETURNING: <pre>";
+////        print_r($datasets);
+////        print '</pre>';
+//        return $datasets;
+//    }
+//// print "RETURNING: FALSE<br>";
+//    return FALSE;
+//}
 // -------------------------------------------------------------------------------------------------
 /**
  * Returns a formatted time string adjusted for timezone and daylight savings time.
@@ -881,42 +951,46 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
 // Define PHP settings and Variables
     $returnData = array();
 // Check validity of input data
-    if (!is_null($ids) && (is_numeric($ids) || is_array($ids)) && !is_null($entity) &&
-            is_string($entity)) {
+    if ($ids && (is_numeric($ids) || is_array($ids)) &&
+            $entity && is_string($entity)) {
         switch ($entity) {
-            case 'dataset':
-                $table = 'datasets';
-                $column = 'dataset_id';
-                break;
             case 'image':
                 $table = 'images';
                 $column = 'image_id';
                 break;
-            case 'collection';
+            case 'collection':
                 $table = 'collections';
                 $column = 'collection_id';
+                break;
+            case 'importCollection':
+                $table = 'import_collections';
+                $column = 'import_collection_id';
+                break;
+            case 'importImage':
+                $table = 'import_images';
+                $column = 'import_image_id';
                 break;
             case 'project':
                 $table = 'projects';
                 $column = 'project_id';
                 break;
-            case 'tasks':
+            case 'task':
                 $table = 'task_metadata';
                 $column = 'project_id';
                 break;
-            case 'groups':
+            case 'group':
                 $table = 'tag_group_metadata';
                 $column = 'tag_group_id';
                 break;
-            case 'tags':
+            case 'tag':
                 $table = 'tags';
                 $column = 'tag_id';
                 break;
-            case 'users':
+            case 'user':
                 $table = 'users';
                 $column = 'user_id';
                 break;
-            case 'imageGroups':
+            case 'imageGroup':
                 $table = 'image_group_metadata';
                 $column = 'image_group_id';
                 break;

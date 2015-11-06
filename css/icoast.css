@@ -69,6 +69,14 @@ body {
 /*Remove halo effect from some form elements in webkit browsers*/
 *:focus { outline: none; }
 
+b {
+    font-weight: bold;
+}
+
+i {
+    font-style: italic;
+}
+
 h1 {
     font-size: 2em;
     margin: 25px 10px 10px 10px;
@@ -210,6 +218,10 @@ a:hover {
     -ms-user-select: none;
 }
 
+.clearBoth {
+    clear: both;
+}
+
 .formInputStyle:hover, .formInputStyle:active,
 .clickableButton:hover, .clickableButton:active {
     margin: 7px;
@@ -276,7 +288,11 @@ input::-moz-focus-inner {
 .adminMap img,
 #photoStatsMapWrapper img,
 #welcomePageMapWrapper img,
-#photoEditorMap img {
+#photoEditorMap img,
+#refineImportMap img,
+#sequencingMap img,
+#importExistingCollectionMap img,
+#reviewMap img {
     border-radius: 0;
 }
 
@@ -295,7 +311,8 @@ input::-moz-focus-inner {
 }
 
 #contentWrapper p,
-#adminPageWrapper p {
+#adminPageWrapper p,
+#refreshWrapper p {
     margin: 10px 20px;
     line-height: 1.2;
 }
@@ -558,7 +575,8 @@ label.error {
     margin: 0 0 10px 0;
 }
 
-#navOptionDivider p {
+#navOptionDivider p,
+#photoEditorSeperator {
     font-size: 1.2em;
     font-weight: bold;
 }
@@ -583,11 +601,15 @@ label.error {
 .stackedNavButtonWrapper,
 .stackedNavSelectWrapper {
     border-top: 1px solid black;
+    border-bottom: 1px solid black;
     height: 94px;
 }
 
-.stackedNavSelectWrapper:last-of-type {
-    border-bottom: 1px solid black;
+.stackedNavButtonWrapper + .stackedNavButtonWrapper,
+.stackedNavButtonWrapper + .stackedNavSelectWrapper,
+.stackedNavSelectWrapper + .stackedNavButtonWrapper,
+.stackedNavSelectWrapper + .stackedNavSelectWrapper{
+    border-top: none;
 }
 
 .stackedNavButtonWrapper label {
@@ -1104,9 +1126,9 @@ label.error {
 }
 
 .slideshowJumpButton:first-of-type {
-        margin-left: 0;
-        border: 2px solid white;
-        background-color: black;
+    margin-left: 0;
+    border: 2px solid white;
+    background-color: black;
 }
 
 #imageCaptionWrapper {
@@ -1265,6 +1287,19 @@ label.error {
     border-right: 1px solid black;
 }
 
+.completeProgressBarFill {
+    height: 1.2em;
+    border-radius: 5px;
+    background: #69e569;
+    background: -moz-linear-gradient(top, #69e569 0%, #d3e2d3 30%, #69e569 72%, #69e569 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#69e569), color-stop(30%,#d3e2d3), color-stop(72%,#69e569), color-stop(100%,#69e569));
+    background: -webkit-linear-gradient(top, #69e569 0%,#d3e2d3 30%,#69e569 72%,#69e569 100%);
+    background: -o-linear-gradient(top, #69e569 0%,#d3e2d3 30%,#69e569 72%,#69e569 100%);
+    background: -ms-linear-gradient(top, #69e569 0%,#d3e2d3 30%,#69e569 72%,#69e569 100%);
+    background: linear-gradient(to bottom, #69e569 0%,#d3e2d3 30%,#69e569 72%,#69e569 100%);
+    border-right: 1px solid black;
+}
+
 .progressBarText {
     position:absolute;
     left: 25%;
@@ -1283,7 +1318,9 @@ label.error {
 }
 
 #welcomePageMapWrapper,
-#photoEditorMap {
+#photoEditorMap,
+#refineImportMap,
+#sequencingMap {
     width: 800px;
     height: 600px;
     margin: auto;
@@ -1507,6 +1544,96 @@ label.error {
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 /*Classification Page*/
 
+#popupWrapperParent {
+    display: none;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: 1000000;
+    background: rgba(0, 0, 0, .6);
+
+
+}
+
+#popupWrapperChild {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.popupContent {
+    display: inline-block;
+    width: 1000px;
+    background: #D3E2F0;
+    border-radius: 8px;
+    border: 4px solid #666666;
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+
+.popupContent img {
+    float:left;
+    margin: 0 20px 20px;
+}
+
+.popupContent p,
+.popupContent ul {
+    text-align: left;
+    margin: 10px 20px 5px;
+}
+
+.popupContent ul {
+    list-style-position: outside;
+    list-style-type: disc;
+    font-weight: bold;
+    padding-left: 450px;
+}
+
+.popupContent li {
+    margin: 3px;
+}
+
+.popupContent h2 {
+    margin: 20px 10px 15px;
+}
+
+.popupContent h3 {
+    clear: both;
+    margin: 10px;
+}
+
+.photoPopupThumbnailCenteringWrapper {
+    width: 100%;
+}
+
+.photoPopupThumbnailWrapper {
+    display: inline-block;
+    max-width: 900px;
+    margin: auto;
+    font-size: 0;
+}
+
+.examplePhotoWrapper,
+.matchPhotoWrapper {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.examplePhotoWrapper img,
+.matchPhotoWrapper img {
+    display: block;
+    margin: auto;
+}
+
+.examplePhotoWrapper img {
+    border: 2px solid #E56969;
+}
+
+
 #classificationWrapper {
     font-family: Arial,Helvetica,Vardana,sans-serif;
     min-width: 1233px;
@@ -1539,15 +1666,32 @@ label.error {
 
 .imageColumnContent {
     position: relative;
-    clear:both;
     padding: 5px 5px 10px 5px;
     margin: auto;
+}
+
+#classificationMapWrapper {
+    margin: auto;
+    padding: 8px 5px 10px 5px;
 }
 
 #preImage, #postImage {
     display:block;
     margin:auto;
+}
+
+.imageWrapper {
+
+    border-radius: 8px;
     box-shadow: #666666 5px 5px 5px;
+}
+
+#preImageWrapper {
+    border: 3px solid #5384ed;
+}
+
+#postImageWrapper {
+    border: 3px solid #e56969;
 }
 
 .zoomLoadingIndicator {
@@ -1567,7 +1711,6 @@ label.error {
 }
 
 #mapInsert {
-    width: 98%;
     border-radius: 5px;
     box-shadow: 5px 5px 5px #666666;
 }
@@ -1586,58 +1729,109 @@ label.error {
 /*Pre-image navigation*/
 #preNavigationCenteringWrapper {
     position: absolute;
-    top: 90px;
+    top: 150px;
     width: 100%;
 }
 
 #preNavigationWrapper {
     margin: 0 auto;
-    width: 700px;
+    width: 1100px;
     overflow: hidden;
 }
 
-#preNavigationWrapper p {
-    font-weight: bold;
+#preNavigationWrapper .clickableButton {
+    float: left;
+    margin: 29px 7px;
+}
+
+#preNavigationWrapper .clickableButton:hover {
+    margin: 28px 6px;
+}
+
+#preNavigationWrapper .disabledClickableButton {
+    background-color: #ffffff;
+}
+
+#preNavigationWrapper .disabledClickableButton:hover {
+    margin: 29px 7px;
 }
 
 .navThumbnailWrapper {
+    height: 123px;
     float: left;
-    width: 19%;
+    width: 14%;
+    position: relative;
 }
 
-.currentThumbnailWrapper {
-    width: 24%;
+.navThumbnailWrapper:nth-child(2),
+.navThumbnailWrapper:nth-last-child(2) {
+    width: 11%;
+}
+
+.navThumbnailWrapper:nth-child(3),
+.navThumbnailWrapper:nth-last-child(3) {
+    width: 12%;
+}
+
+.navThumbnailWrapper:nth-child(4),
+.navThumbnailWrapper:nth-last-child(4) {
+    width: 13%;
 }
 
 .navThumbnailWrapper img {
     height: auto;
     max-width: 90%;
-    margin: auto;
-    padding: 3px;
+    max-height: 93px;
+    margin: 3px 7px;
     border-radius: 10px;
+    position: absolute;
+    bottom: 26px;
+    border: 2px solid #F0B812;
+    margin: 1px 5px;
 }
 
-.navThumbnailWrapper img:hover {
-    border: 3px solid #5384ed;
-    padding: 0px;
+.navThumbnailWrapper img:hover:not(.selectedMatch) {
+    border: 2px solid #000000 !important;
 }
 
-#computerMatch {
-    padding: 0;
-    border: 3px solid #e56969;
+.computerMatch {
+    border: 2px solid #26C100 !important;
+}
+
+.selectedMatch {
+    border: 2px solid #5384ed !important;
+}
+
+#preNavigationWrapper p {
+    height: 26px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 }
 
 
 /*Tasks*/
-.task {
+.task,
+#taskWrapper {
     display: none;
 }
 
 .task h1 {
     display: none;
+}
+
+.task h1,
+#photoMatchingWrapper h1 {
     padding: 5px 10px 0px 30px;
     margin: 0;
     font-size: 1.5em;
+}
+
+#photoMatchingWrapper > p {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 10px;
 }
 
 /* Task Text is currently removed from functionality. Possible removal of this CSS.
@@ -1716,7 +1910,8 @@ input[type="checkbox"], input[type="radio"] {
 }
 
 input[type="checkbox"]:checked + .clickableButton,
-input[type="radio"]:checked + .clickableButton {
+input[type="radio"]:checked + .clickableButton,
+.selectedClickableButton {
     background: #e56969;
     background: -webkit-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
     background: -o-radial-gradient(center, ellipse cover, #eeeeee 0%,#ffa3a3 70%,#e56969 100%);
@@ -1755,7 +1950,7 @@ input[type="radio"]:checked + .clickableButton {
     border-radius: 20px;
 }
 
-.annotationControls input:first-of-type,
+.annotationControls input,
 #firstPageButton,
 .firstPageButton,
 #previousPageButton,
@@ -1769,6 +1964,11 @@ input[type="radio"]:checked + .clickableButton {
 #nextPageButton,
 .nextPageButton {
     float:right;
+}
+
+#flagButton,
+#noMatchButton {
+    background-color: #E56969;
 }
 
 #progressTrackerCenteringWrapper {

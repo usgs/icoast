@@ -1,11 +1,13 @@
 <?php
 require("includes/feedback.php");
 require("includes/templateCode.php");
+
 ?>
 <!DOCTYPE html>
 <html>
     <head>
         <title><?php print $pageTitle ?></title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
         <meta name="description" content=" “USGS iCoast - Did the Coast Change?” is a USGS research project to
@@ -13,11 +15,11 @@ require("includes/templateCode.php");
               post-storm aerial photographs and identify coastal changes using predefined tags. This
               crowdsourced data will help USGS improve predictive models of coastal change and educate the
               public about coastal vulnerability to extreme storms.">
-        <meta name="author" content="Snell, Poore, Liu">
+        <meta name="author" content="Snell, Poore, Liu, Morgan">
         <meta name="keywords" content="USGS iCoast, iCoast, Department of the Interior, USGS, hurricane, , hurricanes,
               extreme weather, coastal flooding, coast, beach, flood, floods, erosion, inundation, overwash,
               marine science, dune, photographs, aerial photographs, prediction, predictions, coastal change,
-              coastal change hazards, hurricane sandy, beaches">
+              coastal change hazards, beaches, <?php print $projectKeywords ?>">
         <meta name="publisher" content="U.S. Geological Survey">
         <meta name="created" content="20140328">
         <meta name="review" content="20140328">
@@ -48,6 +50,7 @@ print $embeddedCSS;
 
         </script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
         <script src="scripts/tipTip.js"></script>
         <?php print $javaScriptLinks; ?>
         <script>

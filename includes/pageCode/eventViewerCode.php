@@ -12,10 +12,7 @@ require_once($dbConnectionFile);
 
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
-
 $userId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
-$adminLevelText = admin_level_to_text($adminLevel);
 $maskedEmail = $userData['masked_email'];
 
 // BUILD JAVASCRIPT OBJECT LITERAL CODE FOR POST INCLUSION IN SCRIPT
@@ -30,12 +27,12 @@ foreach ($_GET as $key => $value) {
 rtrim($jsPostSettings, ",");
 
 // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-$userAdministeredProjects = find_administered_projects($DBH, $adminLevel, $userId, TRUE);
+$projectList = find_projects($DBH, TRUE);
 
 // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
 // PROJECT SELECT
 $projectSelectHTML = "";
-foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
+foreach ($projectList as $singeUserAdministeredProject) {
     $projectId = $singeUserAdministeredProject['project_id'];
     $projectName = $singeUserAdministeredProject['name'];
     if (isset($_GET['project_id']) && $_GET['project_id'] == $projectId) {
@@ -44,13 +41,14 @@ foreach ($userAdministeredProjects as $singeUserAdministeredProject) {
         $projectSelectHTML .= "<option value=\"$projectId\">$projectName</option>";
     }
 }
-$projectCount = count($userAdministeredProjects);
+$projectCount = count($projectList);
 
 // EVENT TYPE SELECT
 $eventTypeSelectHTML = <<<EOL
         <option value="1">System Error</option>
         <option value="2">System Feedback</option>
         <option value="3">Project Feedback</option>
+        <option value="4">Photo Feedback</option>
 EOL;
 if (isset($_GET['event_type'])) {
     switch ($_GET['event_type']) {
@@ -62,6 +60,9 @@ if (isset($_GET['event_type'])) {
             break;
         case 3:
             $eventTypeSelectHTML = str_replace('3">', '3" selected>', $eventTypeSelectHTML);
+            break;
+        case 4:
+            $eventTypeSelectHTML = str_replace('4">', '4" selected>', $eventTypeSelectHTML);
             break;
     }
 }

@@ -16,28 +16,13 @@ function database_where_query_builder($query) {
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 $interactiveUserId = $userData['user_id'];
-$adminLevel = $userData['account_type'];
 $userTimeZone = $userData['time_zone'];
-$userAdministeredProjects = find_administered_projects($DBH, $interactiveUserId, FALSE);
+$projectList = find_projects($DBH, FALSE);
 
 
 
 
 if (isset($_POST['action']) && isset($_POST['event_id'])) {
-    $updatePermission = FALSE;
-    if ($adminLevel == 2 || $adminLevel == 3) {
-        $updatePermissionCheckQuery = 'SELECT event_type, event_code FROM event_log WHERE eventId = :eventId';
-        $updatePermissionCheckParams['eventId'] = $_POST['event_id'];
-        $updatePermissionCheckResult = run_prepared_query($DBH, $updatePermissionCheckQuery, $updatePermissionCheckParams);
-        $eventPermissionData = $updatePermissionCheckResult->fetch(PDO::FETCH_ASSOC);
-        if ($eventPermissionData['event_code'] == 3 && in_array($eventPermissionData['event_code'], $userAdministeredProjects)) {
-            $updatePermission = TRUE;
-        }
-    } else {
-        $updatePermission = TRUE;
-    }
-
-    if ($updatePermission) {
         switch ($_POST['action']) {
             case 'markRead':
                 $updateQuery = "UPDATE event_log SET event_ack=1 WHERE id=:eventId LIMIT 1";
@@ -62,11 +47,7 @@ if (isset($_POST['action']) && isset($_POST['event_id'])) {
             print 0;
             exit;
         }
-    } else {
-        // Error
-        print 0;
-        exit;
-    }
+
 }
 
 
@@ -87,29 +68,11 @@ $errors = array();
 if (isset($_POST['project_id']) && settype($_POST['project_id'], 'integer')) {
 //    print "In Project";
     $project = $_POST ['project_id'];
-    if ($adminLevel == 4 || (( $adminLevel == 3 || $adminLevel == 2) && in_array($project, $userAdministeredProjects))) {
-        $eventLogQuery .= database_where_query_builder($eventLogQuery);
-        $eventLogQuery .= " event_type = 3 AND event_code = :project";
-        $eventLogParams['project'] = $project;
-    } else {
-        $errors[] = "Query Failed. You requested to see data for a project that either you do not have "
-                . "permission to access or does not exist.";
-        $project = null;
-    }
 }
 
 if (isset($_POST ['event_type']) && settype($_POST['event_type'], 'integer') && is_null($project)) {
 //    print "In Event";
     $eventType = $_POST ['event_type'];
-    if ($adminLevel == 4 && ($eventType >= 1 && $eventType <= 3)) {
-        $eventLogQuery .= database_where_query_builder($eventLogQuery);
-        $eventLogQuery .= " event_type = :eventType";
-        $eventLogParams['eventType'] = $eventType;
-    } else {
-        $errors[] = "Query Failed. You requested to see data for a type of event that either you do not have "
-                . "permission to access or does not exist.";
-        $eventType = null;
-    }
 }
 
 
@@ -139,15 +102,6 @@ if (isset($_POST['source_function'])) {
     $eventLogQuery .= database_where_query_builder($eventLogQuery);
     $eventLogQuery .= " source_function = :sourceFunction";
     $eventLogParams['sourceFunction'] = "$sourceFunction";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// RESTRICT NON-SYSTEM ADMINS TO PROJECT RESULTS ONLY
-//
-if (is_null($project) && is_null($eventType) && ($adminLevel == 3 || $adminLevel == 2)) {
-    $projectString = where_in_string_builder($userAdministeredProjects);
-    $eventLogQuery .= database_where_query_builder($eventLogQuery);
-    $eventLogQuery .= " event_type = 3 AND event_code IN ($projectString)";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -287,6 +241,9 @@ if (count($errors) === 0) {
                 break;
             case 3:
                 $events[$i]['event_type'] = "Project Feedback";
+                break;
+            case 4:
+                $events[$i]['event_type'] = "Photo Feedback";
                 break;
         }
 

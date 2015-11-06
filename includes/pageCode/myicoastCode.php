@@ -25,7 +25,12 @@ $projectSelectControlHTML = '';
 $userAnnotationStatisticsHTML = '';
 $userPositionHTML = '';
 $advancementHTML = '';
-// ??
+$projectMetadata = false;
+$celebrationMessage = '';
+$formattedAverageClassificationTime = '';
+$formattedLongestClassificationTime  = '';
+$formattedShortestClassificationTime  = '';
+$projectId = 0;
 $jsHistoryPanelAction = '';
 
 
@@ -43,6 +48,7 @@ if ($projectMetadata) {
     $queryParams['projectId'] = $projectMetadata['project_id'];
     $statisticTargetText = "in the {$projectMetadata['name']} project";
     $statisticTargetTitle = $projectMetadata['name'];
+    $projectId = $projectMetadata['project_id'];
 }
 
 // CREATE AND PREPARE OUTPUT FOR USER ACCOUNT STATISTICS
@@ -139,7 +145,7 @@ EOL;
             . "WHERE annotation_id IN ("
             . "SELECT annotation_id "
             . "FROM annotations a "
-            . "WHERE user_id = {$userData[user_id]} AND annotation_completed = 1 $queryProjectAndClause"
+            . "WHERE user_id = {$userData['user_id']} AND annotation_completed = 1 $queryProjectAndClause"
             . ")";
     $numberOfTags = $DBH->query($numberOfTagsSelectedQuery)->fetchColumn();
     $formattedNumberOfTags = number_format($numberOfTags);
@@ -345,7 +351,7 @@ EOL;
                         . '<div class="timeGraphBarWrapper" '
                         . 'style="width: ' . $pixelsPerBarWrapperWidth . 'px" '
                         . 'title="' . $durationFrequencyCount[$i] . ' classification(s) between ' . $iMinus1 . ' and ' . $i . ' minute(s)">'
-                        . ' <div class="timeGraphBar' . $overflowColor . '" '
+                        . ' <div class="timeGraphBar" '
                         . '     style="width: ' . $pixelsPerBarWidth . 'px; height: ' . $barHeightInPx . 'px">'
                         . ' </div>'
                         . '</div>';
@@ -488,7 +494,7 @@ EOL;
 $javaScript = <<<EOT
     var userId = {$userData['user_id']};
     var timeZone = {$userData['time_zone']};
-    var searchedProject = 0;
+    var searchedProject = $projectId;
     var startingRow = 0;
     var rowsPerPage = 10;
     var displayedRows;

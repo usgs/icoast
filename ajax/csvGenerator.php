@@ -12,7 +12,7 @@ $userEmail = mysql_aes_decrypt($userData['encrypted_email'], $userData['encrypti
 $emailAtLocation = strpos($userEmail, '@');
 $userEmail = substr($userEmail, 0, $emailAtLocation);
 $userTimeZone = $userData['time_zone'];
-$formattedTime = formattedTime('@' . time() . '', $userTimeZone, FALSE, TRUE);
+$formattedTime = formattedTime(time() . '', $userTimeZone, FALSE, FALSE, TRUE);
 
 if (!$userData || !isset($_GET['dataSource'])) {
     exit();
@@ -172,7 +172,7 @@ if (isset($_GET['targetUserId'])) {
     settype($_GET['targetUserId'], 'integer');
     if (!empty($_GET['targetUserId'])) {
         $targetUserId = $_GET['targetUserId'];
-        $targetUserMetadata = retrieve_entity_metadata($DBH, $targetUserId, 'users');
+        $targetUserMetadata = retrieve_entity_metadata($DBH, $targetUserId, 'user');
         if ($targetUserMetadata) {
             $targetUserEMail = mysql_aes_decrypt($targetUserMetadata['encrypted_email'], $targetUserMetadata['encryption_data']);
             $emailAtLocation = strpos($targetUserEMail, '@');
@@ -225,7 +225,6 @@ switch ($_GET['dataSource']) {
         $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' All Classifications For GIS Users In ' . $targetProjectName . '.csv';
 
         $gisUserEmailArray = array(
-
         );
         for ($i = 0; $i < count($gisUserEmailArray); $i++) {
             $gisUserEmailArray[$i] = strtolower($gisUserEmailArray[$i]);
@@ -378,6 +377,144 @@ switch ($_GET['dataSource']) {
 
         outputClassificationDataToCSV($DBH, $annotationsArray, $targetProjectId, $clientCSVFileName);
         break;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    case 'photoStatistics':
+        //If no project supplied then exit.
+        if (!$targetProjectMetadata) {
+            break;
+        }
+        ini_set('memory_limit', '128M');
+
+        $photoArray = array();
+
+
+        $clientCSVFileName = $userEmail . ' ' . $formattedTime . ' Photo Grouped Classification Statistics In ' . $targetProjectName . '.csv';
+
+
+        foreach ($DBH->query("SELECT tag_id FROM tags WHERE project_id = {$targetProjectMetadata['project_id']}") as $tag) {
+            $projectTagArray[] = $tag['tag_id'];
+        }
+        $tagIdWhereInString = where_in_string_builder($projectTagArray);
+
+
+        $dataExportQuery = "SELECT a.image_id, a.annotation_id, i.latitude, i.longitude, i.full_url  "
+                . "FROM annotations a "
+                . "LEFT JOIN images i ON a.image_id = i.image_id "
+                . "WHERE a.annotation_completed = 1 AND a.project_id = $targetProjectId";
+
+        foreach ($DBH->query($dataExportQuery, PDO::FETCH_ASSOC) as $row) {
+            if (!isset($photoArray[$row['image_id']])) {
+                $photoArray[$row['image_id']] = $row;
+                $photoArray[$row['image_id']]['count'] = 1;
+                $photoArray[$row['image_id']]['tags'] = array();
+            } else {
+                $photoArray[$row['image_id']]['count'] ++;
+            }
+        }
+
+        $tagSelectionQuery = "SELECT a.image_id, ans.tag_id "
+                . "FROM annotation_selections ans "
+                . "LEFT JOIN annotations a ON ans.annotation_id = a.annotation_id "
+                . "WHERE ans.tag_id IN ($tagIdWhereInString)";
+        foreach ($DBH->query($tagSelectionQuery) as $row) {
+            if (array_key_exists($row['image_id'], $photoArray)) {
+                if (array_key_exists($row['tag_id'], $photoArray[$row['image_id']]['tags'])) {
+                    $photoArray[$row['image_id']]['tags'][$row['tag_id']] ++;
+                } else {
+                    $photoArray[$row['image_id']]['tags'][$row['tag_id']] = 1;
+                }
+            }
+        }
+
+
+        $tasksQuery = "SELECT task_id "
+                . "FROM task_metadata "
+                . "WHERE project_id = $targetProjectId "
+                . "ORDER BY order_in_project";
+        $tasksResult = $DBH->query($tasksQuery);
+        $tasks = $tasksResult->fetchAll(PDO::FETCH_ASSOC);
+
+        $groupsQuery = "SELECT tgm.tag_group_id, tgm.contains_groups, tgm.is_enabled, tc.task_id, tc.order_in_task "
+                . "FROM tag_group_metadata tgm "
+                . "RIGHT JOIN task_contents tc ON tc.tag_group_id = tgm.tag_group_id "
+                . "WHERE tgm.project_id = $targetProjectId AND tgm.is_enabled = 1 "
+                . "ORDER BY tc.task_id, tc.order_in_task";
+        $groupsResult = $DBH->query($groupsQuery);
+        $groups = $groupsResult->fetchAll(PDO::FETCH_ASSOC);
+
+        $csvArray[0] = array(
+            'Image ID',
+            'Latitude',
+            'Longitude',
+            'File Name',
+            'Classification Count'
+        );
+        $tagIdMap = array();
+        foreach ($tasks as $task) {
+            $taskId = $task['task_id'];
+            foreach ($groups as $group) {
+                if ($group['task_id'] == $taskId) {
+                    $groupId = $group['tag_group_id'];
+                    if ($group['contains_groups'] == 0) {
+                        $tagQuery = "SELECT t.tag_id, t.name, t.is_comment_box "
+                                . "FROM tag_group_contents tgc "
+                                . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
+                                . "WHERE tgc.tag_group_id = $groupId AND t.is_enabled = 1 "
+                                . "ORDER BY tgc.order_in_group";
+                        foreach ($DBH->query($tagQuery) as $tag) {
+                            if ($tag['is_comment_box'] == "0") {
+                                $csvArray[0][] = $tag['name'];
+                                $tagIdMap[] = $tag['tag_id'];
+                            }
+                        }
+                    } else {
+                        $nestedGroupQuery = "SELECT tag_id "
+                                . "FROM tag_group_contents "
+                                . "WHERE tag_group_id = $groupId "
+                                . "ORDER BY order_in_group";
+                        foreach ($DBH->query($nestedGroupQuery) as $nestedGroup) {
+                            $nestedGroupId = $nestedGroup['tag_id'];
+                            $nestedTagQuery = "SELECT t.tag_id, t.name, t.is_comment_box FROM tag_group_contents tgc "
+                                    . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
+                                    . "WHERE tgc.tag_group_id = $nestedGroupId AND t.is_enabled = 1 "
+                                    . "ORDER BY tgc.order_in_group";
+                            foreach ($DBH->query($nestedTagQuery) as $tag) {
+                                if ($tag['is_comment_box'] == "0") {
+                                    $csvArray[0][] = $tag['name'];
+                                    $tagIdMap[] = $tag['tag_id'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $csvIndex = 0;
+        foreach ($photoArray as $photo) {
+            $csvIndex ++;
+            $csvArray[$csvIndex] = array(
+                $photo['image_id'],
+                $photo['latitude'],
+                $photo['longitude'],
+                $photo['full_url'],
+                $photo['count']);
+
+            foreach ($tagIdMap as $targetTag) {
+
+                if (isset($photo['tags'][$targetTag])) {
+                    $csvArray[$csvIndex][] = $photo['tags'][$targetTag];
+                } else {
+                    $csvArray[$csvIndex][] = '0';
+                }
+            }
+        }
+
+
+        break;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -409,7 +546,7 @@ switch ($_GET['dataSource']) {
             settype($_GET['targetImageGroupId'], 'integer');
             if (!empty($_GET['targetImageGroupId'])) {
                 $targetImageGroupId = $_GET['targetImageGroupId'];
-                $targetImageGroupMetadata = retrieve_entity_metadata($DBH, $targetImageGroupId, 'imageGroups');
+                $targetImageGroupMetadata = retrieve_entity_metadata($DBH, $targetImageGroupId, 'imageGroup');
                 if ($targetImageGroupMetadata) {
                     $imageGroupIdArray[] = $targetImageGroupId;
                     $targetImageGroupName = $targetImageGroupMetadata['name'];

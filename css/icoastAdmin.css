@@ -32,7 +32,8 @@
     border-top: 3px solid #ffffff;
 }
 
-#adminContentWrapper {
+#adminContentWrapper,
+#refreshWrapper {
     font-family: Arial,Helvetica,Vardana,sans-serif;
     background-color: #D3E2F0;
     font-size: 18px;
@@ -205,7 +206,11 @@ h4 {
 
 
 
-
+.enlargedClickableButton {
+    height: 50px;
+    line-height: 50px;
+    padding: 10px 20px;
+}
 
 
 #chosenProjectNotificationWrapper p,
@@ -240,20 +245,29 @@ hr {
 #editProjectDetailsForm label,
 #editTaskDetailsForm label,
 #editGroupDetailsForm label,
-#editTagDetailsForm label {
+#editTagDetailsForm label,
+#newProjectDetailsForm label,
+#newCollectionForm label,
+#modifyCollectionForm label{
     width: 40%;
 }
 #editProjectDetailsForm .formFieldRow input,
 #editTaskDetailsForm .formFieldRow input,
 #editGroupDetailsForm .formFieldRow input,
-#editTagDetailsForm .formFieldRow input {
+#editTagDetailsForm .formFieldRow input,
+#newProjectDetailsForm .formFieldRow input,
+#newCollectionForm .formFieldRow input,
+#modifyCollectionForm .formFieldRow input{
     width: 400px;
 }
 
 #editProjectDetailsForm textarea,
 #editTaskDetailsForm textarea,
 #editGroupDetailsForm textarea,
-#editTagDetailsForm textarea {
+#editTagDetailsForm textarea,
+#newProjectDetailsForm textarea,
+#newCollectionForm textarea,
+#modifyCollectionForm textarea {
     width: 400px;
     height: 150px;
 }
@@ -284,16 +298,27 @@ hr {
 #actionSummary h3,
 #actionControls h3 {
     font-size: 1.1em;
+    margin: 20px;
 }
 
 #actionControls input[type="textbox"],
 #actionControls textarea,
 #actionControls .color,
-#photoSelectionForm input[type="textbox"] {
+#photoSelectionForm input[type="textbox"],
+#newCollectionForm input[type="textbox"],
+#newCollectionForm textarea,
+#modifyCollectionForm input[type="textbox"],
+#modifyCollectionForm textarea {
     -webkit-touch-callout: default;
     -webkit-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
+}
+
+#actionControls #currentTagToolTipImage {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 #updateSummaryTable {
@@ -319,8 +344,18 @@ hr {
 }
 
 #taskSelectBox,
-#createNewTaskButton {
+#groupSelectBox,
+#tagSelectBox,
+#createNewTaskButton,
+#createNewTagButton,
+#tagParentGroupSelectBox {
     width: 275px;
+}
+
+#editTaskOrder,
+#editGroupOrder,
+#editTagOrder {
+    width: 65px;
 }
 
 .twoColumnSplit>div {
@@ -344,8 +379,12 @@ hr {
     border-bottom: 2px solid black;
 }
 
+.adminStatisticsTable thead {
+    text-align: center;
+}
+
 .adminStatisticsTable td:first-of-type,
-.adminStatisticsTable th:first-of-type {
+.numberColumn {
     text-align: right;
 }
 
@@ -376,7 +415,8 @@ hr {
     background-color: lightgrey;
 }
 
-.updateFormSubmissionControls {
+.updateFormSubmissionControls,
+.createFormSubmissionControls {
     margin-top: 15px;
 }
 
@@ -405,10 +445,6 @@ hr {
 .twoColumnSplit+div,
 .threeColumnOrSplit+div {
     clear: both;
-}
-
-#groupSelectBox {
-    width: 297px;
 }
 
 #analyticsUserSelection {
@@ -515,7 +551,9 @@ hr {
     font-size: 10px;
 }
 
-#photoEditorMap .leaflet-popup-content p {
+#photoEditorMap .leaflet-popup-content p,
+#refineImportMap .leaflet-popup-content p,
+#sequencingMap .leaflet-popup-content p {
     text-align: left;
     margin: 5px 0;
 }
@@ -604,4 +642,9 @@ hr {
     display: inline-block;
     margin-top: 17px !important;
     font-weight: bold;
+}
+
+#enableImageProjectSelection,
+#disableImageProjectSelection {
+    width: 220px;
 }

@@ -6,8 +6,6 @@ $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 // SET DEFAULT VARIABLE VALUES
-$queryParams = array();
-$queryProjectAndClause = '';
 $startRow = 0;
 $rowsPerPage = 0;
 
@@ -15,7 +13,7 @@ $rowsPerPage = 0;
 if (isset($_POST['userId'])) {
     settype($_POST['userId'], 'integer');
     if (!empty($_POST['userId'])) {
-        $userMetadata = retrieve_entity_metadata($DBH, $_POST['userId'], 'users');
+        $userMetadata = retrieve_entity_metadata($DBH, $_POST['userId'], 'user');
     }
 }
 if (!$userMetadata) {
@@ -27,10 +25,6 @@ if (isset($_POST['projectId'])) {
     if (!empty($_POST['projectId'])) {
         $projectMetadata = retrieve_entity_metadata($DBH, $_POST['projectId'], 'project');
     }
-}
-if ($projectMetadata) {
-    $queryProjectAndClause .= "AND a.project_id = {$projectMetadata['project_id']}";
-    $queryParams['projectId'] = $projectMetadata['project_id'];
 }
 
 if (isset($_POST['startingRow'])) {

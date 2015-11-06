@@ -22,7 +22,7 @@ foreach ($_POST as $postField => $postValue) {
     $firstValue = FALSE;
 }
 
-$clientAgent = $_SERVER['HTTP_USER_AGENT'];
+$clientAgent = htmlentities($_SERVER['HTTP_USER_AGENT']);
 
 $feedbackPanel1 = '';
 $feedbackPanel2 = '';
@@ -241,6 +241,7 @@ $feedbackJavascript = <<<EOL
     }
 
     function positionFeedbackDiv() {
+        console.log('positionFeedback');
         moveFooter();
 
         var windowWidth = $(window).width();

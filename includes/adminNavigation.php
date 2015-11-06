@@ -12,10 +12,10 @@ if ($pageName == 'adminHome') {
 }
 
 if ($pageName =='eventViewer') {
-    $adminNavHTML .= '<li class="activePageLink">Event Viewer</li>';
-    $pageTitle = "USGS iCoast - Event Log Viewer";
+    $adminNavHTML .= '<li class="activePageLink">Feedback Viewer</li>';
+    $pageTitle = "USGS iCoast - Feedback and Error Log Viewer";
 } else {
-    $adminNavHTML .= '<li><a href="eventViewer.php">Event Viewer</a></li>';
+    $adminNavHTML .= '<li><a href="eventViewer.php">Feedback Viewer</a></li>';
 }
 
 $adminNavHTML .= '<li class="adminNavHeader">Statistics</li>';
@@ -51,18 +51,23 @@ if ($pageName == 'systemEditor') {
     $adminNavHTML .= '<li><a href="systemEditor.php">System</a></li>';
 }
 
-if ($pageName == 'projectEditor') {
-    $adminNavHTML .= ' <li class="activePageLink"><a href="projectEditor.php">Project</a></li>';
-    $pageTitle = "USGS iCoast - Project Editor";
+if ($pageName == 'projectCreator' || $pageName == 'collectionImportController' ||
+        $pageName == 'questionBuilder' || $pageName == 'importProgress' ||
+        $pageName == 'taskPreview' || $pageName == 'refineImport' ||
+        $pageName == 'sequenceImport' || $pageName == 'matchCollections' ||
+        $pageName == 'finalizeProject' || $pageName == 'reviewProject' ||
+        $pageName == 'modifyCollection' || $pageName == 'modifyProject') {
+    $adminNavHTML .= ' <li class="activePageLink"><a href="projectCreator.php">Project Creator</a></li>';
+    $pageTitle = "USGS iCoast - Project Creator";
 } else {
-    $adminNavHTML .= '<li><a href="projectEditor.php">Project</a></li>';
+    $adminNavHTML .= '<li><a href="projectCreator.php">Project Creator</a></li>';
 }
 
-if ($pageName == 'userEditor') {
-    $adminNavHTML .= ' <li class="activePageLink"><a href="userEditor.php">User</a></li>';
-    $pageTitle = "USGS iCoast - User Editor";
+if ($pageName == 'projectEditor') {
+    $adminNavHTML .= ' <li class="activePageLink"><a href="projectEditor.php">Project Editor</a></li>';
+    $pageTitle = "USGS iCoast - Project Editor";
 } else {
-    $adminNavHTML .= '<li><a href="userEditor.php">User</a></li>';
+    $adminNavHTML .= '<li><a href="projectEditor.php">Project Editor</a></li>';
 }
 
 if ($pageName == 'userGroupEditor') {
@@ -86,6 +91,14 @@ if ($pageName == 'photoEditor') {
     $adminNavHTML .= '<li><a href="photoEditor.php">Photos</a></li>';
 }
 
+$adminNavHTML .= '<li class="adminNavHeader">Admin Tasks</li>';
+
+if ($pageName == 'emailTool') {
+    $adminNavHTML .= ' <li class="activePageLink"><a href="emailTool.php">Bulk Email</a></li>';
+    $pageTitle = "USGS iCoast - Bulk Email Tool";
+} else {
+    $adminNavHTML .= '<li><a href="emailTool.php">Bulk Email</a></li>';
+}
 
 $adminNavHTML .= <<<EOL
     </ul>
