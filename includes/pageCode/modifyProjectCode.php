@@ -19,6 +19,7 @@ $maskedEmail = $userData['masked_email'];
 
 $projectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
 $commitChanges = filter_input(INPUT_POST, 'commitChanges');
+$cancelChanges = filter_input(INPUT_POST, 'cancelChanges');
 $newProjectName = filter_input(INPUT_POST, 'newProjectName');
 $newProjectDescription = filter_input(INPUT_POST, 'newProjectDescription');
 $newPostStormHeader = filter_input(INPUT_POST, 'newPostStormHeader');

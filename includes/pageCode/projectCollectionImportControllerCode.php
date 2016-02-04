@@ -28,11 +28,60 @@ $error = '';
 $importFailureDetails = '';
 $pageContentHTML = '';
 
+$collectionType = filter_input(INPUT_GET, 'collectionType');
+$getProjectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
+$postProjectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
 
-$existingCollectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
+
+switch ($collectionType) {
+    case 'pre';
+        $prePostTitleText = 'Pre';
+        $expectedImportStatus = 1;
+        break;
+    case 'post':
+        $prePostTitleText = 'Post';
+        $expectedImportStatus = 2;
+        break;
+    default:
+        $prePostTitleText = null;
+        $expectedImportStatus = null;
+}
+
+
+$projectId = null;
+if ($getProjectId) {
+    $projectId = $getProjectId;
+} else if ($postProjectId) {
+    $projectId = $postProjectId;
+}
+$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+
+if ($projectMetadata &&
+    $projectMetadata['creator'] != $userId ||
+    $projectMetadata['is_complete'] == 1
+) {
+    header('Location: projectCreator.php?error=InvalidProject');
+    exit;
+}
+
+if (isset($projectMetadata) && is_null($prePostTitleText)) {
+    header('Location: projectCreator.php?error=InvalidCollectionType');
+    exit;
+} else if (isset($prePostTitleText) && is_null($projectMetadata)) {
+    header('Location: projectCreator.php?error=MissingProjectId');
+    exit;
+} else if (isset($projectMetadata) && isset($prePostTitleText)) {
+    $importStatus = project_creation_stage($projectMetadata['project_id']);
+    if ($importStatus != $expectedImportStatus) {
+        header('Location: projectCreator.php?error=InvalidProject');
+    }
+}
+
+
 $collectionName = filter_input(INPUT_POST, 'collectionName');
 $collectionDescription = filter_input(INPUT_POST, 'collectionDescription');
 $continueImport = filter_input(INPUT_POST, 'continueImport', FILTER_VALIDATE_BOOLEAN);
+$collectionId = filter_input(INPUT_POST, 'existingCollectionId', FILTER_VALIDATE_INT);
 
 if (isset($collectionName) ||
     isset($collectionDescription) ||
@@ -56,29 +105,32 @@ if (isset($collectionName) ||
     }
 }
 
-if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
+if ((!$errorArray &&
+        !is_null($collectionDescription)) ||
+    ($continueImport && isset($_SESSION['projectId']))
+) {
 
     if (is_null($continueImport)) {
 
-        // => Custom sort function to sort multidimensional array by latitude (ascending)
+        // => Custom sort function to sort miltidimensional array by latitude (ascending)
         function latitude_sort_ascending($x, $y)
         {
             return $x['latitude'] > $y['latitude'];
         }
 
-        // => Custom sort function to sort multidimensional array by latitude (descending)
+        // => Custom sort function to sort miltidimensional array by latitude (descending)
         function latitude_sort_descending($x, $y)
         {
             return $x['latitude'] < $y['latitude'];
         }
 
-        // => Custom sort function to sort multidimensional array by longitude (ascending)
+        // => Custom sort function to sort miltidimensional array by longitude (ascending)
         function longitude_sort_ascending($x, $y)
         {
             return $x['longitude'] > $y['longitude'];
         }
 
-        // => Custom sort function to sort multidimensional array by longitude (descending)
+        // => Custom sort function to sort miltidimensional array by longitude (descending)
         function longitude_sort_descending($x, $y)
         {
             return $x['longitude'] < $y['longitude'];
@@ -209,34 +261,34 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
 
                 $badData = array();
                 if (!is_numeric($csvRow[0]) || ($csvRow[0] < -125 || $csvRow[0] > -66.94)) {
-                    $badData[] = 'longitude';
+                    $badData[] = 1;
                 }
 
                 if (!is_numeric($csvRow[1]) || ($csvRow[1] > 48.5 || $csvRow[1] < 24.5)) {
-                    $badData[] = 'latitude';
+                    $badData[] = 2;
                 }
 
                 if (preg_match('/^[0-2][0-9]h[0-5][0-9]m[0-5][0-9]s$/', $csvRow[2]) == FALSE &&
                     preg_match('/^[0-2][0-9]_[0-5][0-9]_[0-5][0-9]$/', $csvRow[2]) == FALSE
                 ) {
-                    $badData[] = 'time';
+                    $badData[] = 3;
                 }
 
                 if (preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z]{3,4}$/', $csvRow[3]) == FALSE) {
-                    $badData[] = 'filename';
+                    $badData[] = 4;
                 }
 
                 if (preg_match('#^http://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[4]) == FALSE) {
-                    $badData[] = 'fullUrl';
+                    $badData[] = 5;
                 }
 
                 if (preg_match('#^http://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[5]) == FALSE) {
-                    $badData[] = 'thumbUrl';
+                    $badData[] = 6;
                 }
 
                 settype($csvRow[6], 'integer');
                 if (empty($csvRow[6]) || ($csvRow[6] < 1970 || $csvRow[6] > date('Y'))) {
-                    $badData[] = 'year';
+                    $badData[] = 7;
                 }
 
                 if (is_numeric($csvRow[7])) {
@@ -245,44 +297,43 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
                     $csvRow[7] = array_search(strtolower($csvRow[7]), $monthArray);
                 }
                 if (empty($csvRow[7]) || ($csvRow[7] < 1 || $csvRow[7] > 12)) {
-                    $badData[] = 'month';
+                    $badData[] = 8;
                 }
 
                 settype($csvRow[8], 'integer');
                 if (empty($csvRow[8]) || ($csvRow[8] < 0 || $csvRow[8] > 31)) {
-                    $badData[] = 'day';
+                    $badData[] = 9;
                 }
 
                 if (count($badData) > 0) {
                     $errorText = '';
                     foreach ($badData as $column) {
                         switch ($column) {
-                            case 'longitude':
+                            case 1:
                                 $errorText .= "Supplied column 1 (longitude) value was either non-numeric or was out of acceptable range (-125 to -66.94).<br>";
                                 break;
-                            case 'latitude':
+                            case 2:
                                 $errorText .= "Supplied column 2 (latitude) value was either non-numeric or was out of acceptable range (24.5 to 48.5).<br>";
                                 break;
-                            case 'time':
+                            case 3:
                                 $errorText .= "Supplied column 3 (time) value was incorrectly formatted (expected HH_MM_SS or HHhMMmSSs).<br>";
                                 break;
-                            case 'filename':
+                            case 4:
                                 $errorText .= "Supplied column 4 (filename) value is incorrectly formatted or contains invalid characters.<br>";
                                 break;
-                            case 'fulUrl':
+                            case 5:
                                 $errorText .= "Supplied column 5 (Full Image URL address) value was either incorrectly formatted or contains invalid characters.<br>";
                                 break;
-                            case 'thumbUrl':
+                            case 6:
                                 $errorText .= "Supplied column 6 (Thumbnail Image URL address) value was either incorrectly formatted or contains invalid characters.<br>";
                                 break;
-                            case 'year':
-                                $currentYear = date('Y');
-                                $errorText .= "Supplied column 7 (Year) value was either non-numeric or was out of acceptable range (1970 to $currentYear).<br>";
+                            case 7:
+                                $errorText .= "Supplied column 7 (Year) value was either non-numeric or was out of acceptable range (1970 to " . date('Y') . ").<br>";
                                 break;
-                            case 'month':
+                            case 8:
                                 $errorText .= "Supplied column 8 (Month) value does not contain a valid numeric or textual month (numeric: 1 to 12, textual: January to December(not abbreviated)).<br>";
                                 break;
-                            case 'day':
+                            case 9:
                                 $errorText .= "Supplied column 9 (Day) value was either non-numeric or was out of acceptable range (1 - 31).<br>";
                                 break;
                         }
@@ -292,6 +343,7 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
                         'error' => 'Invalid field values detected.<br>' . $errorText
                     );
                     $importErrorCount++;
+                    continue;
                 }
 
                 // Process UTC time/date columns into timestamp.
@@ -356,7 +408,7 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
                     } else if (($image['latitude'] >= 41.717 && $image['latitude'] < 41.8076) &&
                         ($image['longitude'] >= -70.4938 && $image['longitude'] < -69.99)
                     ) {
-                        // image in New England from Sandwich MA to Orleans MA (Cape Cod Bay).
+                        // image in New England from Sandwich MA to Orelans MA (Cape Cod Bay).
                         $image['region'] = 4;
                         $region4Array[] = $image;
                     } else if (($image['latitude'] >= 41.8076 && $image['latitude'] < 41.938) &&
@@ -683,10 +735,12 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
         }
         $totalImages = count($imageArray);
 
+        $_SESSION['projectId'] = $projectId;
         $_SESSION['imageArray'] = $imageArray;
         $_SESSION['totalImages'] = $totalImages;
         $_SESSION['collectionName'] = $collectionName;
         $_SESSION['collectionDescription'] = $collectionDescription;
+        $_SESSION['collectionType'] = $collectionType;
 
         if ($importErrorCount > 0) {
             $importFailureDetailsTable = '';
@@ -726,8 +780,8 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
                 session_unset();
                 session_destroy();
             } else {
-                $pageContentHTML = <<<HTML
-                        <h1> iCoast {$collectionMetadata['name']} Collection Creator</h1>
+                $pageContentHTML = <<<EOL
+                        <h1> iCoast {$projectMetadata['name']} Project Creator</h1>
                         <h2>Step 2 - $prePostTitleText-Event Collection Import</h2>
                         <p class="error">Errors were detected during the import process.
                                 Details are provided below.</p>
@@ -738,7 +792,7 @@ if ((!$errorArray && !is_null($collectionDescription)) || $continueImport) {
                             <button type="submit" class="clickableButton enlargedClickableButton" name="abortImport" value="1">Abort Import</button>
                         </form>
                         $importFailureDetailsTable
-HTML;
+EOL;
             }
         }
     }
@@ -750,8 +804,33 @@ HTML;
         // => Create the collection
         $importKey = md5(rand());
 
+        $checkForExistingCollectionQuery = '
+            SELECT import_collection_id
+            FROM import_collections
+            WHERE parent_project_id = :parentProjectId
+                AND collection_type = :collectionType
+        ';
+        $checkForExistingCollectionParams = array(
+            'parentProjectId' => $projectMetadata['project_id'],
+            'collectionType' => $collectionType
+        );
+        $checkForExistingCollectionResult = run_prepared_query($DBH, $checkForExistingCollectionQuery, $checkForExistingCollectionParams);
+        $existingCollectionId = $checkForExistingCollectionResult->fetchColumn();
+        if ($existingCollectionId) {
+
+            $existingCollectionDeleteQuery = '
+            DELETE FROM import_collections
+            WHERE import_collection_id = ' . $existingCollectionId . '
+            LIMIT 1
+            ';
+            $existingCollectionDeleteParams['existingCollectionId'] = $existingCollectionId;
+            $existingCollectionDeleteResult = run_prepared_query($DBH, $existingCollectionDeleteQuery);
+        }
+
         $createCollectionQuery = '
             INSERT INTO import_collections (
+                parent_project_id,
+                collection_type,
                 creator,
                 name,
                 description,
@@ -761,6 +840,8 @@ HTML;
                 import_start_timestamp
             )
             VALUES (
+                :parentProjectId,
+                :collectionType,
                 :userId,
                 :collectionName,
                 :collectionDescription,
@@ -770,6 +851,8 @@ HTML;
                 :timestamp)
         ';
         $createCollectionParams = array(
+            'parentProjectId' => $projectMetadata['project_id'],
+            'collectionType' => $collectionType,
             'userId' => $userId,
             'collectionName' => $_SESSION['collectionName'],
             'collectionDescription' => $_SESSION['collectionDescription'],
@@ -779,7 +862,7 @@ HTML;
             'timestamp' => time()
         );
         $importCollectionId = run_prepared_query($DBH, $createCollectionQuery, $createCollectionParams, true);
-        if ($importCollectionId) {
+        if (!empty($importCollectionId)) {
             unset($_SESSION['collectionName']);
             unset($_SESSION['collectionDescription']);
             unset($_SESSION['totalImages']);
@@ -789,10 +872,10 @@ HTML;
             } else if (strcasecmp($_SERVER['HTTP_HOST'], 'coastal.er.usgs.gov') === 0) {
                 $curlUrlHost = "http://coastal.er.usgs.gov/icoast";
             } else {
-                header('Location: collectionCreator.php');
+                header('Location: projectCreator.php');
                 exit;
             }
-            $curlUrl = $curlUrlHost . "/scripts/collectionImport.php";
+            $curlUrl = $curlUrlHost . "/scripts/projectCollectionImport.php";
             $curlPostParams = "user={$userData['user_id']}&checkCode={$userData['auth_check_code']}&importCollectionId={$importCollectionId}&importKey=$importKey";
             $c = curl_init();
             curl_setopt($c, CURLOPT_URL, $curlUrl);
@@ -803,13 +886,60 @@ HTML;
             curl_exec($c);
             curl_close($c);
 
-            header("Location: collectionImportProgress.php?collectionId=$importCollectionId");
-            exit;
+            $pageContentHTML .= <<<EOL
+                <h1> iCoast "{$projectMetadata['name']}" Project Creator</h1>
+                <h2>$prePostTitleText-Event Collection Import</h2>
+                <p>Your $collectionType-event collection import has started and will run in the background while you
+                    work on the other required aspects of the  {$projectMetadata['name']} project.</p>
+                <p>Total time to import can vary greatly depending on the number of images being imported, the
+                    location of the source image files and server load from other processes.</p>
+                <p>When you have progressed as far as is possible without having fully imported collections
+                    you will see a progress bar and estimated background process completion time.</p>
+                <form action="projectCreator.php?projectId={$projectMetadata['project_id']}" method="post"
+                    autocomplete="off">
+                    <input type="hidden" name="complete" value="1"/>
+                    <input class="clickableButton enlargedClickableButton" type="submit" value="Continue Project Creation">
+                </form>
 
+EOL;
         } else {
-            $error = '<p class="error">Initial database update failed. Import aborted. Please try again.</p>';
+            $error = '<p class="error">Inital database update failed. Import aborted. Please try again.</p>';
             session_unset();
             session_destroy();
+        }
+    }
+} else if ($collectionId) {
+
+    $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'collection');
+    if (empty($collectionMetadata)) {
+        $error = '<p class="error">The specified existing collection could not be found. Please try again.</p>';
+    } else {
+        $setCollectionQuery = "
+            UPDATE projects
+            SET {$collectionType}_collection_id = :existingCollectionId
+            WHERE project_id = :projectId
+            LIMIT 1";
+        $setCollectionParams = array(
+            'existingCollectionId' => $collectionMetadata['collection_id'],
+            'projectId' => $projectMetadata['project_id']
+        );
+        $setCollectionResult = run_prepared_query($DBH, $setCollectionQuery, $setCollectionParams);
+        if ($setCollectionResult->rowCount() == 1) {
+
+            $pageContentHTML .= <<<EOL
+                <h1> iCoast "{$projectMetadata['name']}" Project Creator</h1>
+                <h2>$prePostTitleText-Event Collection Import</h2>
+                <p>The existing iCoast collection "{$collectionMetadata['name']}" has been sucessfully set as the
+                    $collectionType event collection for your project.</p>
+                <form action="projectCreator.php?projectId={$projectMetadata['project_id']}" method="post"
+                    autocomplete="off">
+                    <input type="hidden" name="complete" value="1" />
+                    <input class="clickableButton enlargedClickableButton" type="submit" value="Continue Project Creation">
+                </form>
+
+EOL;
+        } else {
+            $error = '<p class="error">The database update for the existing project failed. Please try again.</p>';
         }
     }
 }
@@ -818,25 +948,23 @@ HTML;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build default page output
 if (empty($pageContentHTML)) {
-
-    if (isset($existingCollectionId)) {
-        $existingCollectionMetadata = retrieve_entity_metadata($DBH, $existingCollectionId, 'importCollection');
-        if ($existingCollectionMetadata &&
-            $existingCollectionMetadata['creator'] == $userId &&
-            (empty($existingCollectionMetadata['import_status_message']) ||
-                $existingCollectionMetadata['import_status_message'] == 'Deleted' ||
-                $existingCollectionMetadata['import_status_message'] == 'User Abort Request')
-        ) {
-            $collectionName = $existingCollectionMetadata['name'];
-            $collectionDescription = $existingCollectionMetadata['description'];
-            $deleteExistingCollectionQuery = <<<MYSQL
-              DELETE FROM import_collections
-              WHERE import_collection_id = :existingCollectionId
-              LIMIT 1
-MYSQL;
-            $deleteExistingCollectionParams['existingCollectionId'] = $existingCollectionId;
-            run_prepared_query($DBH, $deleteExistingCollectionQuery, $deleteExistingCollectionParams);
+// Create a list of existing collections to choose from
+    $existingCollectionSelectOptionsHTML = '<option value="0"></option>';
+    $collectionsQuery = '
+                    SELECT *
+                    FROM collections
+                    WHERE is_globally_enabled = 1';
+    $collectionsResult = run_prepared_query($DBH, $collectionsQuery);
+    while ($collection = $collectionsResult->fetch(PDO::FETCH_ASSOC)) {
+        $name = $collection['name'];
+        $description = $collection['description'];
+        $id = $collection['collection_id'];
+        $selected = '';
+        if (isset($collectionId) && $collectionId == $id) {
+            $selected = ' selected';
         }
+        $existingCollectionSelectOptionsHTML .=
+            "<option title=\"$description\" value=\"$id\" $selected>$name</option>";
     }
 
 // Find details for form sticky fields
@@ -850,17 +978,75 @@ MYSQL;
     $collectionDescription = htmlspecialchars($collectionDescription);
 
 // Set the default page content
-    $pageContentHTML = <<<HTML
-
-                <h1> iCoast Collection Creator</h1>
+    $pageContentHTML = <<<EOL
+                <h1> iCoast "{$projectMetadata['name']}" Project Creator</h1>
+                <h2>$prePostTitleText-Event Collection Import</h2>
                 $error
+                <p>In this step the images that will make up the $collectionType event collection must be determined. You
+                    have the option to reuse a collection that already exists in iCoast or to upload a
+                    new collection. More details are provided below.</p>
+                <h3>Option 1 - Reuse an Existing Collection</h3>
+                <p>Each existing project in iCoast is made of two collections; a post event collection and a pre
+                    event collection. These collections can serve as image sources for other projects assuming
+                    the date and region the collection covers is relevant to your new project.</p>
+                <p>Look through the collections listed in the drop down box below to see if any could work in this
+                    instance. Details regarding the collection and a map showing the coverage is provided upon
+                    selection</p>
+                <select id="existingCollectionSelect" class="clickableButton">
+                    $existingCollectionSelectOptionsHTML
+                </select>
+
+                <div id="importCollectionWrapper">
+                    <div id="importCollectionDetailsWrapper">
+                        <table class="adminStatisticsTable">
+                            <tbody>
+                                <tr>
+                                    <td>Name:</td>
+                                    <td id="collectionDetailsNameField" class="collectionDetailsField userData"></td>
+                                </tr>
+                                <tr>
+                                    <td>Description:</td>
+                                    <td id="collectionDetailsDescriptionField" class="collectionDetailsField userData"></td>
+                                </tr>
+                                <tr>
+                                    <td>Number Of Images Available For Use:</td>
+                                    <td id="collectionDetailsImageCountField" class="userData"></td>
+                                </tr>
+                                <tr>
+                                    <td>Date Range:</td>
+                                    <td id="collectionDetailsDateRangeField" class="collectionDetailsField userData"></td>
+                                </tr>
+                                <tr>
+                                    <td>Geographical Range:</td>
+                                    <td id="collectionDetailsGeoRangeField" class="collectionDetailsField userData"></td>
+                                </tr>
+                                <tr>
+                                    <td>Geographical Range By Date:</td>
+                                    <td id="collectionDetailsGeoRangeByDateField" class="collectionDetailsField userData"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <form id="existingCollectionForm" method="post" autocomplete="off">
+                            <input type="hidden" id="existingCollectionId" name="existingCollectionId" value="" />
+                            <button id="useExistingCollectionButton" class="clickableButton" type='submit'>Use This As The $prePostTitleText-Event Collection</button>
+                        </form>
+                    </div>
+                    <div id="importExistingCollectionMapWrapper">
+                        <div id="importExistingCollectionMap">
+                        </div>
+                        <div class="adminMapLegend">
+                        </div>
+                    </div>
+                </div>
+                <h3>Option 2 - Upload a New Collection</h3>
                 <p>Using specially formatted CSV (comma-separated value) files you can upload a new collection to iCoast
-                    for use in future projects. Simply fill in the collection details below
+                    for use in this project and any subsequent projects. Simpily fill in the collection details below
                     and select the file(s) containing the CSV data.</p>
                 <p>CSV files are normally supplied by <a title="Karen Morgan - E-mail: kmorgan@usgs.gov -
                     Phone: 727-502-8037" href="mailto:kmorgan@usgs.gov">Karen Morgan</a> and should follow the format as 
                     laid out in <a href="sampleCSV.csv">this sample</a>.</p> 
-                <p>Images referenced using URL's in the CSV files should be high resolution and already hosted on an internet accessible server. For assistance with this contact
+                <p>Images referenced using URL's in the CSV files you intend to upload
+                    should be high resolution and already hosted on an internet accessible server. For assistance with this contact  
                     <a title="Jolene Gittens - E-mail: jgittens@usgs.gov - Phone: 727-502-8038" href="mailto:jgittens@usgs.gov">Jolene Gittens</a>.
                     or 
                     <a title="Karen Morgan - E-mail: kmorgan@usgs.gov - Phone: 727-502-8037" href="mailto:kmorgan@usgs.gov">Karen Morgan</a>.</p>
@@ -868,50 +1054,189 @@ MYSQL;
                     (several hours) depending on the number of images involved.</p>
                 <form id="newCollectionForm" method="post" autocomplete="off" enctype="multipart/form-data">
                         <input type="hidden" name="MAX_FILE_SIZE" value="2000000" />
+                        <input type="hidden" name="projectId" value="$projectId" />
                         <div class="formFieldRow">
-                            <label for="collectionName" title="This is the text used to summarize  this collection within the iCoast Admin interface. It is used in all selection boxes where an admin can select a collection. Keep the text here simple and short. Using a storm name and date such as 'Post Hurricane Sandy Images 2012' is best. There is 50 character limit. This text is not publicly displayed.">Collection Name * :</label>
-                            <input type="text" id="collectionName" class="formInputStyle" name="collectionName" maxlength="50" value="$collectionName" />
+                            <label for="collectionName" title="This is the text used to summarize  this collection within the iCoast Admin interface. It is used in all selection boxes where an admin can select a collection. Keep the text here simple and short. Using a storm name and date such as 'Post Hurricane Sandy Images 2012' is best. There is 50 character limit. Thiis text is not publicly displayed.">$prePostTitleText-Event Collection Name * :</label>
+                            <input type="textbox" id="collectionName" class="clickableButton" name="collectionName" maxlength="50" value="$collectionName" />
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionDescription" title="This text explains the details of the collection and may be more verbose than the title. 500 character limit. This text is not publicly displayed.">Collection Description:</label>
-                            <textarea id="collectionDescription" class="formInputStyle" name="collectionDescription" maxlength="500">$collectionDescription</textarea>
+                            <label for="collectionDescription" title="This text explains the details of the collection and may be more verbose than the title. 500 character limit. This text is not publicly displayed.">$prePostTitleText-Event Collection Description:</label>
+                            <textarea id="collectionDescription" class="clickableButton" name="collectionDescription" maxlength="500">$collectionDescription</textarea>
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionCSVFile1" title="Select a properly formatted CSV file that contains the data for this new collection.">CSV File 1 * :</label>
-                            <input type="file" id="collectionCSVFile1" class="formInputStyle csvFileFormInput" name="collectionCSVFile1" accept=".csv" />
+                            <label for="collectionCSVFile1" title="Select a properly formatted CSV file that contains the data for this new collection.">$prePostTitleText-Event CSV File 1 * :</label>
+                            <input type="file" id="collectionCSVFile1" class="clickableButton csvFileFormInput" name="collectionCSVFile1" accept=".csv" />
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionCSVFile2" title="Select a properly formatted CSV file that contains the data for this new collection.">CSV File 2:</label>
-                            <input type="file" id="collectionCSVFile2" class="formInputStyle csvFileFormInput" name="collectionCSVFile2" accept=".csv" />
+                            <label for="collectionCSVFile2" title="Select a properly formatted CSV file that contains the data for this new collection.">$prePostTitleText-Event CSV File 2:</label>
+                            <input type="file" id="collectionCSVFile2" class="clickableButton csvFileFormInput" name="collectionCSVFile2" accept=".csv" />
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionCSVFile3" title="Select a properly formatted CSV file that contains the data for this new collection.">CSV File 3:</label>
-                            <input type="file" id="collectionCSVFile3" class="formInputStyle csvFileFormInput" name="collectionCSVFile3" accept=".csv" />
+                            <label for="collectionCSVFile3" title="Select a properly formatted CSV file that contains the data for this new collection.">$prePostTitleText-Event CSV File 3:</label>
+                            <input type="file" id="collectionCSVFile3" class="clickableButton csvFileFormInput" name="collectionCSVFile3" accept=".csv" />
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionCSVFile4" title="Select a properly formatted CSV file that contains the data for this new collection.">CSV File 4:</label>
-                            <input type="file" id="collectionCSVFile4" class="formInputStyle csvFileFormInput" name="collectionCSVFile4" accept=".csv" />
+                            <label for="collectionCSVFile4" title="Select a properly formatted CSV file that contains the data for this new collection.">$prePostTitleText-Event CSV File 4:</label>
+                            <input type="file" id="collectionCSVFile4" class="clickableButton csvFileFormInput" name="collectionCSVFile4" accept=".csv" />
                         </div>
                         <div class="formFieldRow">
-                            <label for="collectionCSVFile5" title="Select a properly formatted CSV file that contains the data for this new collection.">CSV File 5:</label>
-                            <input type="file" id="collectionCSVFile5" class="formInputStyle csvFileFormInput" name="collectionCSVFile5" accept=".csv" />
+                            <label for="collectionCSVFile5" title="Select a properly formatted CSV file that contains the data for this new collection.">$prePostTitleText-Event CSV File 5:</label>
+                            <input type="file" id="collectionCSVFile5" class="clickableButton csvFileFormInput" name="collectionCSVFile5" accept=".csv" />
                         </div>
                         <p>* indicates a required field</p>
-                        <button type="submit" id="uploadCollectionButton" class="clickableButton enlargedClickableButton">Upload Collection</button>
+                        <button type="submit" id="uploadCollectionButton" class="clickableButton">Upload Collection</button>
+
                 </form>
                 $importFailureDetails
-HTML;
 
-    $jQueryDocumentDotReadyCode = <<<JS
+EOL;
+    $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
+    $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+    $jQueryDocumentDotReadyCode = <<<EOL
+                        var collectionMap = L.map('importExistingCollectionMap', {maxZoom: 16}).setView([35, -92], 3);
+                        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                            attribution: 'Tiles via ESRI. &copy; Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+                            }).addTo(collectionMap);
+                        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(collectionMap);
+                        L.control.scale({
+                        position: 'topright',
+                            metric: false
+                        }).addTo(collectionMap);
 
-            $('#newCollectionForm').submit(function(){
+
+                        var polyLineGroup = L.featureGroup();
+
+                        $('#existingCollectionSelect').change(function() {
+                            var selectCollectionId = $(this).val();
+                            if (selectCollectionId > 0) {
+                                $.getJSON('ajax/collectionDetails.php', {collectionId: selectCollectionId}, function(collectionData) {
+                                    if (collectionMap.hasLayer(polyLineGroup)) {
+                                        polyLineGroup.clearLayers();
+                                    }
+                                    $('#collectionDetailsNameField').text(collectionData.name);
+                                    $('#collectionDetailsDescriptionField').text(collectionData.description);
+                                    $('#collectionDetailsImageCountField').text(collectionData.imageCount);
+                                    $('#collectionDetailsDateRangeField').text(collectionData.startDate + ' to ' + collectionData.endDate);
+                                    $('#collectionDetailsGeoRangeField').text(collectionData.startLocation + ' to ' + collectionData.endLocation);
+                                    $('#existingCollectionId').val(collectionData.collection_id);
+                                    $('#collectionDetailsGeoRangeByDateField').empty();
+                                    $('.adminMapLegend').empty();
+                                    if (collectionData.dateCount === 1) {
+                                        var colorIncrement = 0
+                                    } else {
+                                        var colorIncrement = Math.floor(510 / (collectionData.dateCount - 1));
+                                    }
+                                    var dateCount = 0;
+                                    $.each(collectionData.collectionDates, function(date, dateDetails) {
+                                        var decDateColor = colorIncrement * dateCount;
+                                        var red = 255;
+                                        var green = 0;
+                                        if (decDateColor <= 255) {
+                                            green += decDateColor;
+                                        } else {
+                                            green += 255;
+                                            red -= (decDateColor - 255);
+                                        }
+                                        red = red.toString(16);
+                                        if (red == '0') {
+                                            red = '00';
+                                        }
+                                        green = green.toString(16);
+                                        if (green == '0') {
+                                            green = '00';
+                                        }
+
+                                        var hexDateColor = '#' + red + green + '00';
+                                        $('#collectionDetailsGeoRangeByDateField').append(dateDetails.formattedDate + ' - ' + dateDetails.startLocation + ' to ' + dateDetails.endLocation + '<br>');
+                                        var polyLinePoints = [];
+                                        $.each(dateDetails.imagePreview, function(key, coordinateArray) {
+                                            polyLinePoints.push(L.latLng(coordinateArray.latitude, coordinateArray.longitude));
+                                        });
+                                        var collectionPolyLine = L.polyline(polyLinePoints, {
+                                            color: hexDateColor,
+                                            weight: 5,
+                                            opacity: 1,
+                                            smoothFactor: 1
+                                        });
+            console.log(collectionPolyLine);
+                                        polyLineGroup.addLayer(collectionPolyLine);
+                                        $('.adminMapLegend').append('' +
+                                        '<div class="adminMapLegendRow">' +
+                                        '    <div class="adminMapLegendRowIcon">' +
+                                        '        <div style="background-color:' + hexDateColor + ';"></div>' +
+                                        '    </div>' +
+                                        '    <div class="adminMapLegendSingleRowText">' +
+                                        '        <p>' + date + '</p>' +
+                                        '    </div>' +
+                                        '</div>');
+                                        dateCount ++;
+                                    });
+
+                                    $('#importCollectionWrapper').slideDown(400, function() {
+                                        positionFeedbackDiv();
+                                        collectionMap.invalidateSize();
+                                        collectionMap.fitBounds(polyLineGroup.getBounds());
+                                        polyLineGroup.addTo(collectionMap);
+                                    });
+                                });
+                            } else {
+                                $('#importCollectionWrapper').slideUp(400, positionFeedbackDiv);
+                            }
+                        });
+
+                        var collectionOptionOnLoad = $('#existingCollectionSelect').val();
+                        if (collectionOptionOnLoad > 0) {
+                    console.log(collectionOptionOnLoad);
+                            $('#existingCollectionSelect').change();
+                        }
+
+
+            $('#newCollectionForm, #existingCollectionForm').submit(function(){
                 $('#uploadCollectionButton, #useExistingCollectionButton').addClass('disabledClickableButton').attr('disabled', 'disabled');
             });
-JS;
+
+
+
+EOL;
 }
 
 
-$embeddedCSS = <<<CSS
+$embeddedCSS = <<<EOL
+    #importCollectionWrapper {
+        display: none;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    #importCollectionDetailsWrapper,
+    #importExistingCollectionMapWrapper {
+        float: left;
+        width:50%;
+        position: relative;
+    }
+
+    .adminMapLegend {
+        width: 100px;
+        bottom: 40px;
+    }
+
+    #importExistingCollectionMap {
+        height: 500px;
+        position: relative;
+    }
+
+    #importExistingCollectionMapWrapper .adminMapLegendRowIcon {
+        width: 14px;
+    }
+
+    #importExistingCollectionMapWrapper .adminMapLegendRowIcon div {
+        width: 14px;
+        height: 14px;
+    }
+
+    .adminMapLegendSingleRowText {
+        width: auto;
+    }
 
     .adminStatisticsTable td {
         line-height: 1.2em !important
@@ -920,4 +1245,4 @@ $embeddedCSS = <<<CSS
     .importErrorTable tr td:first-of-type{
         width: 100px;
     }   
-CSS;
+EOL;

@@ -176,8 +176,7 @@ if (isset($projectPropertyToUpdate)) {
             $projectPropertyToUpdate = false;
     }
 }
-$referingUrl = filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_VALIDATE_URL);
-$referingPage = detect_pageName($referingUrl);
+$referingPage = detect_pageName($_SERVER['HTTP_REFERER']);
 $importStatus = project_creation_stage($projectMetadata['project_id']);
 
 if (($importStatus <= 9 || $importStatus >= 15) &&

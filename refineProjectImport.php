@@ -1,6 +1,6 @@
 <?php
 $pageModifiedTime = filemtime(__FILE__);
-require('includes/pageCode/refineImportCode.php');
+require('includes/pageCode/refineProjectImportCode.php');
 $pageBody = <<<EOL
         <div id="adminPageWrapper">
             $adminNavHTML
@@ -29,7 +29,7 @@ $pageBody = <<<EOL
                     <input type="hidden" name="projectId" value="{$projectMetadata['project_id']}" />
                 </form>
                 $contentHTML
-                <form method="get" autocomplete="off" action="refineImport.php">
+                <form method="get" autocomplete="off" action="refineProjectImport.php">
                     <input type="hidden" name="projectId" value="{$projectMetadata['project_id']}" />
                     <button type="submit" class="clickableButton enlargedClickableButton" name="sequenceCollection">
                         Sequence Collection

@@ -7,14 +7,12 @@ $javaScriptLinkArray = array();
 $javaScript = '';
 $jQueryDocumentDotReadyCode = '';
 
-$embeddedCSS .= <<<EOL
+$embeddedCSS .= <<<CSS
     .sequencingActionButton,
     .masterControl {
-        width: 250px;
+        width: 270px;
     }        
-EOL;
-
-
+CSS;
 
 
 require_once('includes/globalFunctions.php');
@@ -28,61 +26,39 @@ $userData = authenticate_user($DBH, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE);
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
 
-$projectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
+$collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
 $hostURL = $_SERVER['HTTP_HOST'];
 
-$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-if (empty($projectMetadata)) {
-    header('Location: projectCreator.php?error=MissingProjectId');
-    exit;
-} else if ($projectMetadata['creator'] != $userId ||
-        $projectMetadata ['is_complete'] == 1) {
-    header('Location: projectCreator.php?error=InvalidProject');
-    exit;
-}
-
-$importStatus = project_creation_stage($projectMetadata['project_id']);
-if ($importStatus >= 31 && $importStatus <= 33) {
-    $collectionType = 'pre';
-    $prePostTitleText = "Pre";
-} else if ($importStatus >= 36 && $importStatus <= 38) {
-    $collectionType = 'post';
-    $prePostTitleText = "Post";
-} else {
-    header('Location: projectCreator.php?error=InvalidProject');
-    exit;
-}
-
-$collectionMetadataQuery = '
-    SELECT *
-    FROM import_collections
-    WHERE parent_project_id = :projectId
-        AND collection_type = :collectionType
-    ';
-$collectionMetadataParams = array(
-    'projectId' => $projectMetadata['project_id'],
-    'collectionType' => $collectionType
-);
-$collectionMetadataResult = run_prepared_query($DBH, $collectionMetadataQuery, $collectionMetadataParams);
-$collectionMetadata = $collectionMetadataResult->fetch(PDO::FETCH_ASSOC);
+$collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
 if (empty($collectionMetadata)) {
+    header('Location: collectionCreator.php?error=MissingCollectionId');
+    exit;
+} else if ($collectionMetadata['creator'] != $userId) {
+    header('Location: collectionCreator.php?error=InvalidProject');
     exit;
 }
-$collectionId = $collectionMetadata['import_collection_id'];
+
+$importStatus = collection_creation_stage($collectionMetadata['import_collection_id']);
+if ($importStatus != 4) {
+    header('Location: collectionCreator.php?error=InvalidCollection');
+    exit;
+}
+
 
 $pageContentHTML = '';
 
-if ($importStatus == 31 || $importStatus == 36) {
-    if (strcasecmp($hostURL, 'localhost') === 0 || 
-            strcasecmp($hostURL, 'igsafpesvm142') === 0) {
+if ($collectionMetadata['sequencing_stage'] == 1) {
+    if (strcasecmp($hostURL, 'localhost') === 0 ||
+        strcasecmp($hostURL, 'igsafpesvm142') === 0
+    ) {
         $curlUrlHost = "http://localhost";
     } else if (strcasecmp($hostURL, 'coastal.er.usgs.gov') === 0) {
         $curlUrlHost = "http://coastal.er.usgs.gov/icoast";
     } else {
-        header('Location: projectCreator.php');
+        header('Location: collectionCreator.php');
         exit;
     }
-    $curlUrl = $curlUrlHost . "/scripts/projectCollectionSequencer.php";
+    $curlUrl = $curlUrlHost . "/scripts/collectionSequencer.php";
 //    $curlPostParams = urlencode("collectionId=$collectionId&user={$userData['user_id']}&checkCode={$userData['auth_check_code']}");
     $curlPostParams = "collectionId=$collectionId&user={$userData['user_id']}&checkCode={$userData['auth_check_code']}";
 
@@ -96,12 +72,13 @@ if ($importStatus == 31 || $importStatus == 36) {
     curl_close($c);
 }
 
-if ($importStatus == 31 || $importStatus == 32 ||
-        $importStatus == 36 || $importStatus == 37) {
-    $pageContentHTML = <<<EOL
+if ($collectionMetadata['sequencing_stage'] == 1 ||
+    $collectionMetadata['sequencing_stage'] == 2
+) {
+    $pageContentHTML = <<<HTML
         <div id="sequenceContentWrapper">
             <div id="sequencingProgressDetailsWrapper">
-                <p>The "{$collectionMetadata['name']}" collection is now being sequenced.<br>
+                <p>The collection is now being sequenced.<br>
                     Once complete you will have the opportunity to review and edit the calculated "flight path".</p>
                 <p>This process may take several minutes. Progress can be monitored below.</p>
             </div>
@@ -112,20 +89,19 @@ if ($importStatus == 31 || $importStatus == 32 ||
             </div>
 
             <form id="reviewFlightButton" method="get" autocomplete="off" style="display:none">
-                <input type="hidden" name="projectId" value="{$projectMetadata['project_id']}">
+                <input type="hidden" name="collectionId" value="$collectionId">
                 <button type="submit" class="clickableButton enlargedClickableButton">
                     Review Flight Path
                 </button>
             </form>
-        </div>
-EOL;
+HTML;
 
 
-    $javaScript = <<<EOL
+    $javaScript = <<<JS
     var progressCheckTimer;
 
     function updateProgress() {
-        $.getJSON('ajax/projectSequencingProgressCheck.php', {collectionId: $collectionId}, function(importProgress) {
+        $.getJSON('ajax/collectionSequencingProgressCheck.php', {collectionId: $collectionId}, function(importProgress) {
             if (importProgress.response !== 'initalizing' && importProgress.response !== 'complete') {
                 $('.progressBarFill').css('width', importProgress.response + '%');
                 $('.progressBarText').css('left', '35%');
@@ -141,61 +117,29 @@ EOL;
             }
         });
     }
+JS;
 
-EOL;
-
-    $jQueryDocumentDotReadyCode = <<<EOL
+    $jQueryDocumentDotReadyCode = <<<JS
     progressCheckTimer = setInterval(function() {
         updateProgress()
     }, 2000);
 
-EOL;
-} else if ($importStatus == 33 || $importStatus == 38) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+JS;
+} else if ($collectionMetadata['sequencing_stage'] == 3) {
 
 
     $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
 
     $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
 
-    $sequencedPhotoQuery = <<<EOL
+    $sequencedPhotoQuery = <<<MYSQL
         SELECT import_image_id, latitude, longitude
         FROM import_images
         WHERE import_collection_id = $collectionId
             AND is_disabled = 0
             AND position_in_collection IS NOT NULL
         ORDER BY position_in_collection
-EOL;
+MYSQL;
     $sequencedPhotoResults = run_prepared_query($DBH, $sequencedPhotoQuery);
     $sequencedPhotosJS = '[';
     while ($photo = $sequencedPhotoResults->fetch(PDO::FETCH_ASSOC)) {
@@ -205,15 +149,13 @@ EOL;
     $sequencedPhotosJS .= ']';
 
 
-
-
-    $nonSequencedPhotoQuery = <<<EOL
+    $nonSequencedPhotoQuery = <<<MYSQL
         SELECT import_image_id, latitude, longitude
         FROM import_images
         WHERE import_collection_id = $collectionId
             AND is_disabled = 0
             AND position_in_collection IS NULL
-EOL;
+MYSQL;
     $nonSequencedPhotoResults = run_prepared_query($DBH, $nonSequencedPhotoQuery);
     $nonSequencedPhotosJS = '[';
     while ($photo = $nonSequencedPhotoResults->fetch(PDO::FETCH_ASSOC)) {
@@ -223,23 +165,7 @@ EOL;
     $nonSequencedPhotosJS .= ']';
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    $javaScript .= <<<EOL
+    $javaScript .= <<<JS
             //////////////////////////////////////////////////////////////////////////////////////////////////
             ////// POPUP FUNCTIONS
             function mouseOverFunction (marker) {
@@ -276,7 +202,7 @@ EOL;
             //////////////////////////////////////////////////////////////////////////////////////////////////
             /////// SET ACTION INSTRUCTIONS TEXT
             function setActionInstructions () {
-                if (map.getZoom() < 9) {
+                if (map.getZoom() < 11) {
                     $('#actionInstructions').empty().html(' \
                         <p class="error"> Individual image markers have been removed from the map due to the \
                             small scale of the current zoom level.</p> \
@@ -569,23 +495,10 @@ EOL;
 
 
 
-EOL;
+JS;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    $jQueryDocumentDotReadyCode .= <<<EOL
+    $jQueryDocumentDotReadyCode .= <<<JS
 
         map = L.map('sequencingMap', {maxZoom: 16});
         L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -677,11 +590,11 @@ EOL;
                 positionArray[positionInCollection] = imageId;
             });
             var ajaxData = {};
-            ajaxData['collectionId'] = {$collectionMetadata['import_collection_id']};
+            ajaxData['collectionId'] = $collectionId;
             ajaxData['positionData'] = positionArray;
-            $.post('ajax/commitProjectCollection.php', ajaxData, function (ajaxResponse) {
+            $.post('ajax/commitCollection.php', ajaxData, function (ajaxResponse) {
                 if (ajaxResponse == 1) {
-                    window.location.href = 'projectCreator.php?projectId=' + {$projectMetadata['project_id']} + '&complete';
+                    window.location.href = 'reviewCollection.php?collectionId=' + $collectionId;
                 } else {
                     $('.sequencingActionButton').removeClass('selectedClickableButton');
                     $('#actionOverview').empty();
@@ -689,7 +602,7 @@ EOL;
                     $('.masterControl, .sequencingActionButton')
                         .removeClass('disabledClickableButton')
                         .removeAttr('disabled')
-                    $('#commitCollectionButton').text('Continue Project Creation');
+                    $('#commitCollectionButton').text('Commit & Review');
                 }
             });
         });
@@ -697,21 +610,21 @@ EOL;
 
 
 
-EOL;
+JS;
 
 
-    $pageContentHTML = <<<EOL
+    $pageContentHTML = <<<HTML
         <div id="sequenceContentWrapper">
             <div id="sequencingProgressDetailsWrapper">
                 <h3>Sequencing Complete!</h3>
                 <p>iCoast has attempted to sequence the collection's images in a manner that creates a
                     simulated flight path along the coast. This path should exclude any unnecessary adjacent
                     images to create a single smooth line.</p>
-                <p>Before finally comitting this collection to the database you may refine this flight path by
+                <p>Before finally committing this collection to the database you may refine this flight path by
                     adding, removing, or swapping images. Use the buttons below to select the action you wish to
                     perform and then follow the displayed instructions to interact with the map markers.</p>
                 <p>Once you have finished making alterations click the <span class='italic'>
-                    Continue Project Creation</span> button at the bottom of the page. Images in the flight path will
+                    Review Collection</span> button at the bottom of the page. Images in the flight path will
                         be included in the collection. All other images will be discarded.</p>
             </div>
             <div id="sequencingActionButtonWrapper">
@@ -731,9 +644,8 @@ EOL;
             </div>
             <div id="sequencingMap"></div>
             <button type="button" id="commitCollectionButton" class="clickableButton enlargedClickableButton masterControl"
-                    name="commitCollection" title="Clicking this button will commit the changes made here to the database, thus finishing
-                    the creation of this collection.">
-                Continue Project Creation
+                    name="commitCollection" title="Clicking this button will commit the changes made here to the database.">
+                Commit & Review Collection
             </button>
             <button type="button" id="revertCollectionButton" class="clickableButton enlargedClickableButton masterControl"
                     title="Clicking this button will revert all changes made to the collection through the Insert
@@ -742,5 +654,5 @@ EOL;
             </button>
 
         </div>
-EOL;
+HTML;
 }

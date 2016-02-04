@@ -1,7 +1,7 @@
 <?php
 $pageModifiedTime = filemtime(__FILE__);
-require('includes/pageCode/modifyCollectionCode.php');
-$pageBody = <<<HTML
+require('includes/pageCode/modifyProjectCollectionCode.php');
+$pageBody = <<<EOL
         <div id="adminPageWrapper">
             $adminNavHTML
             <div id="adminContentWrapper">
@@ -9,13 +9,13 @@ $pageBody = <<<HTML
                     <p>You are logged in as <span class="userData">$maskedEmail</span>.</p>
                 </div>
                 <div>
-                    <h1> iCoast "{$collectionMetadata['name']}" Collection Creator</h1>
+                    <h1> iCoast "{$projectMetadata['name']}" Project Creator</h1>
                     $modifyPageHTML
 
 
                 </div>
             </div>
         </div>
-HTML;
+EOL;
 
 require('includes/template.php');

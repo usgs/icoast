@@ -9,15 +9,67 @@ if (!$userData) {
     exit;
 }
 
-$collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
-$importCollectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
-if (empty($importCollectionMetadata) ||
-    ($importCollectionMetadata && $importCollectionMetadata['creator'] != $userData['user_id'])
+if (isset($_GET['projectId'])) {
+    $projectId = $_GET['projectId'];
+} else {
+    $projectId = null;
+}
+settype($projectId, 'integer');
+$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
+if (empty($projectMetadata)) {
+    print 0;
+    exit;
+} else if ($projectMetadata['creator'] != $userData['user_id'] ||
+    $projectMetadata['is_complete'] == 1
 ) {
     print 0;
     exit;
 }
 
+if (isset($_GET['collectionType'])) {
+    $collectionType = $_GET['collectionType'];
+} else {
+    $collectionType = null;
+}
+if ($collectionType != 'pre' &&
+    $collectionType != 'post'
+) {
+    print 0;
+    exit;
+}
+
+if (isset($_GET['newCollection'])) {
+    $isNewCollection = $_GET['newCollection'];
+} else {
+    $isNewCollection = null;
+}
+if ($isNewCollection != 1 &&
+    $isNewCollection != 0
+) {
+    print 0;
+    exit;
+}
+
+if ($isNewCollection) {
+
+    $collectionIdQuery = '
+    SELECT *
+    FROM import_collections
+    WHERE parent_project_id = :parentProjectId
+        AND collection_type = :collectionType
+    LIMIT 1
+';
+    $collectionIdParams = array(
+        'parentProjectId' => $projectId,
+        'collectionType' => $collectionType
+    );
+    $collectionIdResult = run_prepared_query($DBH, $collectionIdQuery, $collectionIdParams);
+    $importCollectionMetadata = $collectionIdResult->fetch(PDO::FETCH_ASSOC);
+    if (empty($importCollectionMetadata)) {
+        print 0;
+        exit;
+    }
+    $collectionQueryParams['importCollectionId'] = $importCollectionMetadata['import_collection_id'];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +99,6 @@ if (empty($importCollectionMetadata) ||
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-$collectionQueryParams['importCollectionId'] = $importCollectionMetadata['import_collection_id'];
 
     $imageCountQuery = '
     SELECT COUNT(*)
@@ -70,14 +121,22 @@ $collectionQueryParams['importCollectionId'] = $importCollectionMetadata['import
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$collectionDeletionQuery = "
-        UPDATE import_collections
-        SET import_status_message = 'Deleted'
+    $collectionDeletionQuery = '
+        DELETE FROM import_collections
         WHERE import_collection_id = :importCollectionId
-    ";
+        LIMIT 1
+    ';
 
     $collectionDeletionResult = run_prepared_query($DBH, $collectionDeletionQuery, $collectionQueryParams);
-
+} else {
+    $collectionDeletionQuery = "
+        UPDATE projects
+        SET {$collectionType}_collection_id = NULL
+        WHERE project_id = :projectId
+        LIMIT 1";
+    $collectionDeletionParams['projectId'] = $projectMetadata['project_id'];
+    $collectionDeletionResult = run_prepared_query($DBH, $collectionDeletionQuery, $collectionDeletionParams);
+}
 if ($collectionDeletionResult->rowCount() == 1) {
     print 1;
 } else {

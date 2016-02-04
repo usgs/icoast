@@ -21,7 +21,7 @@ $maskedEmail = $userData['masked_email'];
 
 $projectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
 $matchRadius = filter_input(INPUT_GET, 'matchRadius', FILTER_VALIDATE_INT);
-$hostURL = filter_input(INPUT_SERVER, 'HTTP_HOST');
+$hostURL = $_SERVER['HTTP_HOST'];
 
 $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
 if (empty($projectMetadata)) {

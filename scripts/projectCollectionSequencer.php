@@ -26,22 +26,32 @@ $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importColle
 if (empty($collectionMetadata)) {
     exit;
 }
-if ($collectionMetadata['creator'] != $userMetadata['user_id']) {
+
+$importStatus = project_creation_stage($collectionMetadata['parent_project_id']);
+if ($importStatus != 31 && $importStatus != 36) {
     exit;
 }
 
-if ($collectionMetadata['sequencing_stage'] != 1) {
+$projectCreatorQuery = '
+    SELECT creator
+    FROM projects
+    WHERE project_id = :projectId';
+$projectCreatorParams['projectId'] = $collectionMetadata['parent_project_id'];
+$projectCreatorResult = run_prepared_query($DBH, $projectCreatorQuery, $projectCreatorParams);
+$creator = $projectCreatorResult->fetchColumn();
+if ($creator != $userMetadata['user_id']) {
     exit;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////        FUNCTIONS       //////////////////////////////////////////////////////
-function distance_sort($x, $y) {
+function distance_sort($x, $y)
+{
     return $x['distance'] > $y['distance'];
 }
 
-function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMeters = null) {
+function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMeters = null)
+{
 // If from and to images are the same then return false.
     if ($fromImage['sortOrder'] == $toImage['sortOrder']) {
         return false;
@@ -51,14 +61,14 @@ function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMete
 // Used as a crude filter to return false images that are clearly beyond $searchRadiusInMeters.
         $searchRadiusInDegreesLongitude = $searchRadiusInMeters * 0.0000128;
         $searchRadiusInDegreesLatitude = $searchRadiusInMeters * 0.00000903;
-        $northernLatitudeThreshold = $fromImage['latitude'] + $searchRadiusInDegreesLatitude;
-        $southernLatitudeThreshold = $fromImage['latitude'] - $searchRadiusInDegreesLatitude;
-        $easternLongitudeThreshold = $fromImage['longitude'] + $searchRadiusInDegreesLongitude;
-        $westernLongitudeThreshold = $fromImage['longitude'] - $searchRadiusInDegreesLongitude;
-        if ($toImage['latitude'] > $northernLatitudeThreshold ||
-            $toImage['latitude'] < $southernLatitudeThreshold ||
-            $toImage['longitude'] > $easternLongitudeThreshold ||
-            $toImage['longitude'] < $westernLongitudeThreshold
+        $northernLatitudeThreashold = $fromImage['latitude'] + $searchRadiusInDegreesLatitude;
+        $southernLatitudeThreashold = $fromImage['latitude'] - $searchRadiusInDegreesLatitude;
+        $easternLongitudeThreashold = $fromImage['longitude'] + $searchRadiusInDegreesLongitude;
+        $westernLongitudeThreashold = $fromImage['longitude'] - $searchRadiusInDegreesLongitude;
+        if ($toImage['latitude'] > $northernLatitudeThreashold ||
+            $toImage['latitude'] < $southernLatitudeThreashold ||
+            $toImage['longitude'] > $easternLongitudeThreashold ||
+            $toImage['longitude'] < $westernLongitudeThreashold
         ) {
             return false;
         }
@@ -75,10 +85,10 @@ function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMete
 
 // Calculate Distance using Spherical Law of Cosines
     $distance = 6378137 * acos(cos($fromImageLatitudeRadians) *
-                    cos($toImageLatitudeRadians) *
-                    cos($toImageLongitudeRadians - $fromImageLongitudeRadians) +
-                    sin($fromImageLatitudeRadians) *
-                    sin($toImageLatitudeRadians));
+            cos($toImageLatitudeRadians) *
+            cos($toImageLongitudeRadians - $fromImageLongitudeRadians) +
+            sin($fromImageLatitudeRadians) *
+            sin($toImageLatitudeRadians));
 // If precision distance calulation is within search radius then calculate the bearing and time values
 // and return an array with the results. Id outside search radius then return false.
     if (is_null($searchRadiusInMeters) || $distance < $searchRadiusInMeters) {
@@ -86,10 +96,10 @@ function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMete
         $resultArray['distance'] = $distance;
         $resultArray['timeDifference'] = $toImageTimestamp - $fromImageTimestamp;
         $bearingCalcInput1 = sin($toImageLongitudeRadians - $fromImageLongitudeRadians) *
-                cos($toImageLatitudeRadians);
+            cos($toImageLatitudeRadians);
         $bearingCalcInput2 = cos($fromImageLatitudeRadians) * sin($toImageLatitudeRadians) -
-                sin($fromImageLatitudeRadians) * cos($toImageLatitudeRadians) *
-                cos($toImageLongitudeRadians - $fromImageLongitudeRadians);
+            sin($fromImageLatitudeRadians) * cos($toImageLatitudeRadians) *
+            cos($toImageLongitudeRadians - $fromImageLongitudeRadians);
         $intermediateBearingCalculation = rad2deg(atan2($bearingCalcInput1, $bearingCalcInput2));
         $resultArray['bearing'] = ($intermediateBearingCalculation + 360) % 360;
         return $resultArray;
@@ -98,7 +108,8 @@ function distanceBearingTimeCalculator($fromImage, $toImage, $searchRadiusInMete
     }
 }
 
-function update_database($importImageId, $importCollectionId, $positionInCollection, $sortOrder, $totalImages) {
+function update_database($importImageId, $importCollectionId, $positionInCollection, $sortOrder, $totalImages)
+{
     if (isset($GLOBALS['DBH'])) {
         global $DBH;
     } else {
@@ -191,7 +202,6 @@ if ($rowsToReset > 0) {
 }
 
 
-
 $updateSequencingProgressQuery = '
     UPDATE import_collections
     SET sequencing_progress = 0, sequencing_stage = 2
@@ -221,7 +231,7 @@ while (true) {
 
     if (isset($imageArray[$targetImage]['sequenced']) || isset($imageArray[$targetImage]['disabled'])) {
         DEBUG_OUTPUT ? print "Image $targetImage has already been sequenced or is disabled. Skipping next image " .
-                                "search" : false;
+            "search" : false;
         $targetImage++;
         continue;
     }
@@ -241,7 +251,7 @@ while (true) {
 // Loop through all images
     for ($i = 0; $i <= $lastImageArrayIndex; $i++) {
         $relationshipResult = distanceBearingTimeCalculator(
-                $imageArray[$targetImage], $imageArray[$i], $relationalImageArrayRadius);
+            $imageArray[$targetImage], $imageArray[$i], $relationalImageArrayRadius);
         if ($relationshipResult) {
             $relationalImageArray[$i] = $relationshipResult;
         }
@@ -262,7 +272,7 @@ while (true) {
 // Loop through the previous images of $targetImage until total distance behind >=
 // MAX_PREVIOUS_IMAGE_DISTANCE
         while ($previousImageRelationshipData['distance'] + array_sum($previousImageDistanceArray) <
-        MAX_PREVIOUS_IMAGE_DISTANCE) {
+            MAX_PREVIOUS_IMAGE_DISTANCE) {
 // Build the arrays needed for previous image analysis.
             $previousImageArray[] = $previousImageId;
             $previousImageBearingArray[] = $previousImageRelationshipData['bearing'];
@@ -283,15 +293,6 @@ while (true) {
     }
 
 
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // If there is previous image data then interpolate from that the expected direction of the next image and
@@ -306,14 +307,15 @@ while (true) {
             $weightTotal = 0;
 // Calculate the maximum allowed previous image course change before the image and all prior images must be ignored.
             $maximumAllowedPreviousImageCourseChange = min((0.035 * MAX_PREVIOUS_IMAGE_DISTANCE) + 5, 75);
-            for ($i = 0; $i < count($previousImageBearingArray) - 1; $i ++) {
+            for ($i = 0; $i < count($previousImageBearingArray) - 1; $i++) {
                 $weightedCourseChange = 0;
                 $distanceTotal += $previousImageDistanceArray[$i];
                 $weight = pow(MAX_PREVIOUS_IMAGE_DISTANCE - $distanceTotal, 2); // Exponential weighting.
                 $weightTotal += $weight;
 // Compensate if the two comparing images are on different sides of North (0 degrees)
                 if (max($previousImageBearingArray[$i], $previousImageBearingArray[$i + 1]) > 270 &&
-                        min($previousImageBearingArray[$i], $previousImageBearingArray[$i + 1]) < 90) {
+                    min($previousImageBearingArray[$i], $previousImageBearingArray[$i + 1]) < 90
+                ) {
                     if ($previousImageBearingArray[$i] > 270) {
                         $tempBearing1 = $previousImageBearingArray[$i] - 360;
                         $tempBearing2 = $previousImageBearingArray[$i + 1];
@@ -327,22 +329,23 @@ while (true) {
                 }
                 $courseChange = $tempBearing1 - $tempBearing2;
                 if ($courseChange > (-1 * $maximumAllowedPreviousImageCourseChange) &&
-                        $courseChange < $maximumAllowedPreviousImageCourseChange) {
+                    $courseChange < $maximumAllowedPreviousImageCourseChange
+                ) {
                     $weightedCourseChange = $courseChange * $weight;
                     $weightedCourseChangeTotal += $weightedCourseChange;
                     DEBUG_OUTPUT ? print "IMAGE: {$previousImageArray[$i]}, COURSE CHANGE: $courseChange, "
-                                            . "WEIGHT: $weight, WEIGHT TOTAL: $weightTotal, "
-                                            . "WEIGHTED COURSE CHANGE: $weightedCourseChange, WEIGHTED COURSE CHANGE TOTAL: $weightedCourseChangeTotal<br>" : false;
+                        . "WEIGHT: $weight, WEIGHT TOTAL: $weightTotal, "
+                        . "WEIGHTED COURSE CHANGE: $weightedCourseChange, WEIGHTED COURSE CHANGE TOTAL: $weightedCourseChangeTotal<br>" : false;
                 } else {
                     DEBUG_OUTPUT ? print "IGNORED IMAGE: {$previousImageArray[$i]}, COURSE CHANGE: $courseChange. "
-                                            . "COURSE CHANGE EXCESSIVE. This and all subsequent previous images will be ignored.<br>" : false;
+                        . "COURSE CHANGE EXCESSIVE. This and all subsequent previous images will be ignored.<br>" : false;
                     break;
                 }
             }
             if ($weightTotal > 0) {
                 $expectedCourseChange = $weightedCourseChangeTotal / $weightTotal;
                 DEBUG_OUTPUT ? print "ExpectedCourseChange = $weightedCourseChangeTotal / $weightTotal = " .
-                                        "$expectedCourseChange<br/>" : false;
+                    "$expectedCourseChange<br/>" : false;
             } else {
                 $expectedCourseChange = 0;
                 DEBUG_OUTPUT ? print "ExpectedCourseChange = 0 (Weight Total was 0 (no previous images could be used))<br/>" : false;
@@ -366,7 +369,7 @@ while (true) {
             $adjustedBearing = $adjustedBearing + 360;
         }
         DEBUG_OUTPUT ? print "unadjustedBearing = $unadjustedBearing: adjustedBearing = $unadjustedBearing "
-                                . "+ $expectedCourseChange = $adjustedBearing<br/>" : false;
+            . "+ $expectedCourseChange = $adjustedBearing<br/>" : false;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Begin search of relationalImageArray for a shortlist of all images in the estimated direction
@@ -375,15 +378,17 @@ while (true) {
 // Skip the image if it is too far away, has been marked as a duplicate of another image
 // (less than MINIMUM_NEXT_IMAGE_DISTANCE from another image), has already been sequenced or is disabled.
             if ($nearbyImage['distance'] > INITIAL_MAXIMUM_COURSE_BASED_NEXT_IMAGE_DISTANCE ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+                isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
+                isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
+                isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+            ) {
                 continue; // Skip this nearby image.
             }
 // If the image is less than MINIMUM_NEXT_IMAGE_DISTANCE and is not already marked as a duplicate
 // of another image them mark it as a duplicate of $targetImage and then skip the image.
             if ($nearbyImage['distance'] < MINIMUM_NEXT_IMAGE_DISTANCE &&
-                    !isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+                !isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+            ) {
                 $imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'] = $targetImage;
                 $imageArray[$targetImage]['duplicates'][] = $nearbyImage['sortOrder'];
                 continue;
@@ -418,10 +423,11 @@ while (true) {
             if ($clockwiseBearingLimit < $anticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
                 if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit ||
-                        $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                    $nearbyImage['bearing'] <= $clockwiseBearingLimit
+                ) {
                     DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                            . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // To allow a difference between the expected bearing and the nearby image bearing to be
 // calculated both must be in the same degree range (if either are beyond 0 degrees
 // they must have 360 degrees added.
@@ -442,10 +448,11 @@ while (true) {
                 }
             } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries.
                 if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit &&
-                        $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                    $nearbyImage['bearing'] <= $clockwiseBearingLimit
+                ) {
                     DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                            . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Calculate difference between expected bearing and nearbyImage bearing. Add to the array.
                     $nearbyImage['bearingDifference'] = round(abs($nearbyImage['bearing'] - $adjustedBearing));
 // Add the nearbyImage to the nextImage shortlist.
@@ -533,10 +540,11 @@ while (true) {
 // less or no more than 60 seconds ahead. If so use it as the next image.
                     for ($i = 0; $i < count($groupedImages); $i++) {
                         if (abs($groupedImages[$i]['timeDifference']) <= (abs($distanceShortlist[0]['timeDifference']) + 60) &&
-                                $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']) {
+                            $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']
+                        ) {
                             $nextImage = $groupedImages[$i];
                             DEBUG_OUTPUT ? print "<br><b>Distance is bettered by course difference.</b> "
-                                                    . "Using Course Difference<br>" : false;
+                                . "Using Course Difference<br>" : false;
                             break 2;
                         }
                     }
@@ -545,8 +553,8 @@ while (true) {
 // Default to closest image by distance alone if no other image has been selected.
             if (is_null($nextImage)) {
                 DEBUG_OUTPUT ? print "<br><b>No agreement between distance and bearing difference arrays and no "
-                                        . "bearing based image could better the distance based image. Defaulting to closest image."
-                                        . "</b><br>" : false;
+                    . "bearing based image could better the distance based image. Defaulting to closest image."
+                    . "</b><br>" : false;
                 $nextImage = $distanceShortlist[0];
             }
 
@@ -561,7 +569,7 @@ while (true) {
             $imageArray[$nextImage['sortOrder']]['previousImageBearing'] = ($nextImage['bearing'] + 180) % 360;
 
             $positionInCollection = update_database(
-                    $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+                $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 // Determine the boundaries for the 180 degree search cone that will disable all images between
 // $targetImage and $nextImage
             $disableImageClockwiseBearingLimit = $nextImage['bearing'] + 90;
@@ -579,22 +587,24 @@ while (true) {
                 if ($disableImageClockwiseBearingLimit < $disableImageAnticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
                     if ($nearbyImage['distance'] < $nextImage['distance'] &&
-                            ($nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit ||
-                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit)) {
+                        ($nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit ||
+                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit)
+                    ) {
                         DEBUG_OUTPUT ? print "Intermediate image to disable within bearing limit "
-                                                . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                                . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                            . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 
 // Disable the image.
                         $imageArray[$nearbyImage['sortOrder']]['disabled'] = true;
                     }
                 } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries and closer than $nextImage.
                     if ($nearbyImage['distance'] < $nextImage['distance'] &&
-                            $nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit &&
-                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit) {
+                        $nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit &&
+                        $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit
+                    ) {
                         DEBUG_OUTPUT ? print "Intermediate image to disable within bearing limit "
-                                                . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                                . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                            . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Disable the image.
                         $imageArray[$nearbyImage['sortOrder']]['disabled'] = true;
                     }
@@ -603,7 +613,7 @@ while (true) {
 
             if (DEBUG_OUTPUT) {
                 print "<h4>Image found through distance based expanding estimated bearing search. "
-                        . "ID: {$nextImage['sortOrder']}, DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
+                    . "ID: {$nextImage['sortOrder']}, DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
                 print 'Current Image<pre>';
                 print_r($imageArray[$targetImage]);
                 print "</pre>Next Image<pre>";
@@ -623,7 +633,7 @@ while (true) {
 // => images were found. This next code block will expend the search cone to a flat 45 degrees to both
 // => sides of the unadjusted expected bearing.
         DEBUG_OUTPUT ? print "<h4>No next images found in estimated course cone. Widening search using "
-                                . "the unadjusted estimated course ($unadjustedBearing degrees +/- 45 degrees).</h4>" : false;
+            . "the unadjusted estimated course ($unadjustedBearing degrees +/- 45 degrees).</h4>" : false;
 
 // Set the bearing boundaries to +/- 45 degrees
         $clockwiseBearingLimit = ceil($unadjustedBearing + 45);
@@ -643,9 +653,10 @@ while (true) {
 // Skip the image if it is too far away, too close, has been marked as a duplicate of an image
 // (less than MINIMUM_NEXT_IMAGE_DISTANCE from an image) or if it has already been sequenced.
             if ($nearbyImage['distance'] > FINAL_MAXIMUM_COURSE_BASED_NEXT_IMAGE_DISTANCE ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
-                    isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+                isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
+                isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
+                isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+            ) {
                 continue; // Skip this nearby image.
             }
 
@@ -654,10 +665,11 @@ while (true) {
             if ($clockwiseBearingLimit < $anticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
                 if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit ||
-                        $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                    $nearbyImage['bearing'] <= $clockwiseBearingLimit
+                ) {
                     DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                            . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // To allow a difference between the expected bearing and the nearby image bearing to be
 // calculated both must be in the same degree range (if either are beyond 0 degrees
 // they must have 360 degrees added.
@@ -678,10 +690,11 @@ while (true) {
                 }
             } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries.
                 if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit &&
-                        $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                    $nearbyImage['bearing'] <= $clockwiseBearingLimit
+                ) {
                     DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                            . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Calculate difference between expected bearing and nearbyImage bearing. Add to the array.
                     $nearbyImage['bearingDifference'] = round(abs($nearbyImage['bearing'] - $unadjustedBearing));
 // Add the nearbyImage to the nextImage shortlist.
@@ -769,10 +782,11 @@ while (true) {
 // less or no more than 60 seconds ahead. If so use it as the next image.
                     for ($i = 0; $i < count($groupedImages); $i++) {
                         if (abs($groupedImages[$i]['timeDifference']) <= (abs($distanceShortlist[0]['timeDifference']) + 60) &&
-                                $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']) {
+                            $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']
+                        ) {
                             $nextImage = $groupedImages[$i];
                             DEBUG_OUTPUT ? print "<br><b>Distance is bettered by course difference.</b> "
-                                                    . "Using Course Difference<br>" : false;
+                                . "Using Course Difference<br>" : false;
                             break 2;
                         }
                     }
@@ -781,8 +795,8 @@ while (true) {
 // Default to closes image by distance alone if no other image has been selected.
             if (is_null($nextImage)) {
                 DEBUG_OUTPUT ? print "<br><b>No agreement between distance and bearing difference arrays and no "
-                                        . "bearing based image could better the distance based image. Defaulting to closest image."
-                                        . "</b><br>" : false;
+                    . "bearing based image could better the distance based image. Defaulting to closest image."
+                    . "</b><br>" : false;
                 $nextImage = $distanceShortlist[0];
             }
 
@@ -797,7 +811,7 @@ while (true) {
             $imageArray[$nextImage['sortOrder']]['previousImageBearing'] = ($nextImage['bearing'] + 180) % 360;
 
             $positionInCollection = update_database(
-                    $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+                $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 
 // Determine the boundaries for the 180 degree search cone that will disable all images between
 // $targetImage and $nextImage
@@ -816,22 +830,24 @@ while (true) {
                 if ($disableImageClockwiseBearingLimit < $disableImageAnticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
                     if ($nearbyImage['distance'] < $nextImage['distance'] &&
-                            ($nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit ||
-                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit)) {
+                        ($nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit ||
+                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit)
+                    ) {
                         DEBUG_OUTPUT ? print "Intermediate image to disable within bearing limit "
-                                                . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                                . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                            . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 
 // Disable the image.
                         $imageArray[$nearbyImage['sortOrder']]['disabled'] = true;
                     }
                 } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries and closer than $nextImage.
                     if ($nearbyImage['distance'] < $nextImage['distance'] &&
-                            $nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit &&
-                            $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit) {
+                        $nearbyImage['bearing'] >= $disableImageAnticlockwiseBearingLimit &&
+                        $nearbyImage['bearing'] <= $disableImageClockwiseBearingLimit
+                    ) {
                         DEBUG_OUTPUT ? print "Intermediate image to disable within bearing limit "
-                                                . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                                . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                            . "($disableImageAnticlockwiseBearingLimit - $disableImageClockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                            . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Disable the image.
                         $imageArray[$nearbyImage['sortOrder']]['disabled'] = true;
                     }
@@ -840,7 +856,7 @@ while (true) {
 
             if (DEBUG_OUTPUT) {
                 print "<h4>Image found through widened estimated bearing search. ID: {$nextImage['sortOrder']}, "
-                        . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
+                    . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
                 print 'Current Image<pre>';
                 print_r($imageArray[$targetImage]);
                 print "</pre>Next Image<pre>";
@@ -877,7 +893,7 @@ while (true) {
             If ((($imageArray[$targetImage]['latitude'] > 43.5241 && $imageArray[$targetImage]['latitude'] < 43.5665) &&
                     ($imageArray[$targetImage]['longitude'] > -70.341 && $imageArray[$targetImage]['longitude'] < -70.185)) ||
 // north coast of Saco Bay, ME.
-                    (($imageArray[$targetImage]['latitude'] > 43.335 && $imageArray[$targetImage]['latitude'] < 43.349) &&
+                (($imageArray[$targetImage]['latitude'] > 43.335 && $imageArray[$targetImage]['latitude'] < 43.349) &&
                     ($imageArray[$targetImage]['longitude'] > -70.542 && $imageArray[$targetImage]['longitude'] < -70.466))
 // coast south of Kennebunkport, ME.
             ) {
@@ -885,19 +901,20 @@ while (true) {
             } else if ((($imageArray[$targetImage]['latitude'] > 42.6583 && $imageArray[$targetImage]['latitude'] < 42.6652) &&
                     ($imageArray[$targetImage]['longitude'] > -70.6199 && $imageArray[$targetImage]['longitude'] < -70.5858)) ||
 // Rockport, MA.
-                    (($imageArray[$targetImage]['latitude'] > 43.447 && $imageArray[$targetImage]['latitude'] < 43.462) &&
+                (($imageArray[$targetImage]['latitude'] > 43.447 && $imageArray[$targetImage]['latitude'] < 43.462) &&
                     ($imageArray[$targetImage]['longitude'] > -70.379 && $imageArray[$targetImage]['longitude'] < -70.318)) ||
 // south coast of Saco Bay, ME.
-                    (($imageArray[$targetImage]['latitude'] > 42.653 && $imageArray[$targetImage]['latitude'] < 42.697) &&
+                (($imageArray[$targetImage]['latitude'] > 42.653 && $imageArray[$targetImage]['latitude'] < 42.697) &&
                     ($imageArray[$targetImage]['longitude'] > -70.784 && $imageArray[$targetImage]['longitude'] < -70.691)) ||
 // south coast of Ipswich Bay, MA.
-                    (($imageArray[$targetImage]['latitude'] > 42.517 && $imageArray[$targetImage]['latitude'] < 42.697) &&
+                (($imageArray[$targetImage]['latitude'] > 42.517 && $imageArray[$targetImage]['latitude'] < 42.697) &&
                     ($imageArray[$targetImage]['longitude'] > -70.784 && $imageArray[$targetImage]['longitude'] < -70.842))
 // Marblehead, MA.
             ) {
                 $unadjustedBearing = 90;
             } else if (($imageArray[$targetImage]['latitude'] > 42.6508 && $imageArray[$targetImage]['latitude'] < 42.7008) &&
-                    ($imageArray[$targetImage]['longitude'] > -70.6912 && $imageArray[$targetImage]['longitude'] < 70.6304)) {
+                ($imageArray[$targetImage]['longitude'] > -70.6912 && $imageArray[$targetImage]['longitude'] < 70.6304)
+            ) {
 // Adjust general coast bearing to account for east coast of Ipswich Bay, MA
                 $unadjustedBearing = 45;
             } else {
@@ -961,7 +978,8 @@ while (true) {
             break;
         case 17: //Southern Cape Cod Peninsular from Chatham MA to Cuttyhunk Island MA
             if (($imageArray[$targetImage]['latitude'] >= 41.61 && $imageArray[$targetImage]['latitude'] < 41.628) &&
-                    ($imageArray[$targetImage]['longitude'] >= -70.274 && $imageArray[$targetImage]['longitude'] < -70.266)) {
+                ($imageArray[$targetImage]['longitude'] >= -70.274 && $imageArray[$targetImage]['longitude'] < -70.266)
+            ) {
 // Northerly coastline south of Lewis Bay, MA
                 $unadjustedBearing = 350;
             } else if ($imageArray[$targetImage]['longitude'] >= -70.342 && $imageArray[$targetImage]['longitude'] < -70.316) {
@@ -973,7 +991,7 @@ while (true) {
         case 18: // Southern MA and RI from Westport MA, to Napatree Point, RI including Fishers Island, NY
             if (($imageArray[$targetImage]['longitude'] >= -71.066 && $imageArray[$targetImage]['longitude'] < -71.0375) ||
 // Coast of Horseneck Beach State Reservation
-                    ($imageArray[$targetImage]['longitude'] >= -71.866 && $imageArray[$targetImage]['longitude'] < -71.8586)
+                ($imageArray[$targetImage]['longitude'] >= -71.866 && $imageArray[$targetImage]['longitude'] < -71.8586)
 // Watch Tree Point RI
             ) {
                 $unadjustedBearing = 340;
@@ -982,7 +1000,7 @@ while (true) {
                 $unadjustedBearing = 270;
             } else if (($imageArray[$targetImage]['longitude'] >= -71.525 && $imageArray[$targetImage]['longitude'] < -71.485) ||
 // Point Judith RI to East Matunuck State Beach
-                    ($imageArray[$targetImage]['longitude'] >= -71.7657 && $imageArray[$targetImage]['longitude'] < -71.7515)
+                ($imageArray[$targetImage]['longitude'] >= -71.7657 && $imageArray[$targetImage]['longitude'] < -71.7515)
 // Weekapaug Point
             ) {
                 $unadjustedBearing = 315;
@@ -996,9 +1014,9 @@ while (true) {
         case 20: // Southern Block Island and Montauk, NY to Staten Island, NY
             if (($imageArray[$targetImage]['longitude'] >= -73.325 && $imageArray[$targetImage]['longitude'] < -73.315) ||
 // Democrat Point NY
-                    ($imageArray[$targetImage]['longitude'] >= -73.585 && $imageArray[$targetImage]['longitude'] < -73.575) ||
+                ($imageArray[$targetImage]['longitude'] >= -73.585 && $imageArray[$targetImage]['longitude'] < -73.575) ||
 // Point Lookout NY
-                    ($imageArray[$targetImage]['longitude'] >= -73.764 && $imageArray[$targetImage]['longitude'] < -73.754)
+                ($imageArray[$targetImage]['longitude'] >= -73.764 && $imageArray[$targetImage]['longitude'] < -73.754)
 // Silver Point NY
             ) {
                 $unadjustedBearing = 340;
@@ -1012,9 +1030,9 @@ while (true) {
                 $unadjustedBearing = 300;
             } else if (($imageArray[$targetImage]['latitude'] > 37.568 && $imageArray[$targetImage]['latitude'] < 37.589) ||
 // Wachapreague Inlet VA
-                    ($imageArray[$targetImage]['latitude'] > 39.105 && $imageArray[$targetImage]['latitude'] < 39.12) ||
+                ($imageArray[$targetImage]['latitude'] > 39.105 && $imageArray[$targetImage]['latitude'] < 39.12) ||
 // Townsends Inlet NJ
-                    ($imageArray[$targetImage]['latitude'] > 37.459 && $imageArray[$targetImage]['latitude'] < 37.477)
+                ($imageArray[$targetImage]['latitude'] > 37.459 && $imageArray[$targetImage]['latitude'] < 37.477)
 // Quinby Inlet
             ) {
                 $unadjustedBearing = 135;
@@ -1032,8 +1050,9 @@ while (true) {
             break;
         case 23: // Hatteras Island, NC to Hilton Head Island, SC
             if ($imageArray[$targetImage]['longitude'] > -75.6041 ||
-                    ($imageArray[$targetImage]['longitude'] > -76.7676 && $imageArray[$targetImage]['longitude'] < -76.534) ||
-                    ($imageArray[$targetImage]['longitude'] > -78.1867 && $imageArray[$targetImage]['longitude'] < -77.959)) {
+                ($imageArray[$targetImage]['longitude'] > -76.7676 && $imageArray[$targetImage]['longitude'] < -76.534) ||
+                ($imageArray[$targetImage]['longitude'] > -78.1867 && $imageArray[$targetImage]['longitude'] < -77.959)
+            ) {
 // Hatteras Island
 // Onslow Bay
 // Bald Head Island, NC
@@ -1056,11 +1075,13 @@ while (true) {
             break;
         case 30: // Sanibel Island, FL to Apalachee Bay, FL
             if (($imageArray[$targetImage]['latitude'] > 27.8782 && $imageArray[$targetImage]['latitude'] < 28.6137) &&
-                    ($imageArray[$targetImage]['longitude'] > -82.8934 && $imageArray[$targetImage]['longitude'] < -82.6132)) {
+                ($imageArray[$targetImage]['longitude'] > -82.8934 && $imageArray[$targetImage]['longitude'] < -82.6132)
+            ) {
 // Clearwater, FL to Spring Hill, FL
                 $unadjustedBearing = 20;
             } else if (($imageArray[$targetImage]['latitude'] > 29.1467 && $imageArray[$targetImage]['latitude'] < 29.19) &&
-                    ($imageArray[$targetImage]['longitude'] > -83.0730 && $imageArray[$targetImage]['longitude'] < -82.8117)) {
+                ($imageArray[$targetImage]['longitude'] > -83.0730 && $imageArray[$targetImage]['longitude'] < -82.8117)
+            ) {
 // coast east of Cedar Key, FL
                 $unadjustedBearing = 270;
             } else {
@@ -1076,12 +1097,13 @@ while (true) {
                 $unadjustedBearing = 243;
             } else if (($imageArray[$targetImage]['longitude'] > -85.22 && $imageArray[$targetImage]['longitude'] < -85.05) ||
 // Cape St George Island State Reserve, FL to Indian Pass, FL
-                    ($imageArray[$targetImage]['longitude'] > -86.36 && $imageArray[$targetImage]['longitude'] < -85.8552)
+                ($imageArray[$targetImage]['longitude'] > -86.36 && $imageArray[$targetImage]['longitude'] < -85.8552)
 // Panama City Beach, FL to Miramar Beach, FL
             ) {
                 $unadjustedBearing = 301;
             } else if (($imageArray[$targetImage]['latitude'] > 29.6516 && $imageArray[$targetImage]['latitude'] < 30.21) &&
-                    ($imageArray[$targetImage]['longitude'] > -85.8552 && $imageArray[$targetImage]['longitude'] < -85.3463)) {
+                ($imageArray[$targetImage]['longitude'] > -85.8552 && $imageArray[$targetImage]['longitude'] < -85.3463)
+            ) {
 // St. Joseph Bay to Panama City Beach, FL
                 $unadjustedBearing = 321;
             } else {
@@ -1118,9 +1140,9 @@ while (true) {
             break;
     }
     DEBUG_OUTPUT ? print "<h4>Either no previous images were found to generate an expected bearing or an "
-                            . "expected bearing was generated but nothing was found in the distance based or widened search cones. "
-                            . "Search will now continue based on a regional coastal bearing of $unadjustedBearing degrees "
-                            . "(+/- 60 degrees) and short range.</h4>" : false;
+        . "expected bearing was generated but nothing was found in the distance based or widened search cones. "
+        . "Search will now continue based on a regional coastal bearing of $unadjustedBearing degrees "
+        . "(+/- 60 degrees) and short range.</h4>" : false;
 
 // Set the bearing boundaries to +/- 60 degrees
     $clockwiseBearingLimit = ceil($unadjustedBearing + 60);
@@ -1139,15 +1161,17 @@ while (true) {
 // Skip the image if it is too far away, has been marked as a duplicate of another image
 // (less than MINIMUM_NEXT_IMAGE_DISTANCE from another image) or if it has already been sequenced.
         if ($nearbyImage['distance'] > INITIAL_MAXIMUM_REGION_BASED_NEXT_IMAGE_DISTANCE ||
-                isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
-                isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
-                isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+            isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
+            isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
+            isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+        ) {
             continue; // Skip this nearby image.
         }
 // If the image is less than MINIMUM_NEXT_IMAGE_DISTANCE and is not already marked as a duplicate
 // of another image them mark it as a duplicate of $targetImage and then skip the image.
         if ($nearbyImage['distance'] < MINIMUM_NEXT_IMAGE_DISTANCE &&
-                !isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+            !isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+        ) {
             $imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'] = $targetImage;
             $imageArray[$targetImage]['duplicates'][] = $nearbyImage['sortOrder'];
             continue;
@@ -1158,10 +1182,11 @@ while (true) {
         if ($clockwiseBearingLimit < $anticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
             if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit ||
-                    $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                $nearbyImage['bearing'] <= $clockwiseBearingLimit
+            ) {
                 DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                    . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                    . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // To allow a difference between the expected bearing and the nearby image bearing to be
 // calculated both must be in the same degree range (if either are beyond 0 degrees
 // they must have 360 degrees added.
@@ -1182,10 +1207,11 @@ while (true) {
             }
         } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries.
             if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit &&
-                    $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                $nearbyImage['bearing'] <= $clockwiseBearingLimit
+            ) {
                 DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                    . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                    . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Calculate difference between expected bearing and nearbyImage bearing. Add to the array.
                 $nearbyImage['bearingDifference'] = round(abs($nearbyImage['bearing'] - $unadjustedBearing));
 // Add the nearbyImage to the nextImage shortlist.
@@ -1273,10 +1299,11 @@ while (true) {
 // less. If so use it as the next image.
                 for ($i = 0; $i < count($groupedImages); $i++) {
                     if (abs($groupedImages[$i]['timeDifference']) <= (abs($distanceShortlist[0]['timeDifference']) + 60) &&
-                            $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']) {
+                        $groupedImages[$i]['sortOrder'] != $distanceShortlist[0]['sortOrder']
+                    ) {
                         $nextImage = $groupedImages[$i];
                         DEBUG_OUTPUT ? print "<br><b>Distance is bettered by course difference.</b> "
-                                                . "Using Course Difference<br>" : false;
+                            . "Using Course Difference<br>" : false;
                         break 2;
                     }
                 }
@@ -1285,8 +1312,8 @@ while (true) {
 // Default to closes image by distance alone if no other image has been selected.
         if (is_null($nextImage)) {
             DEBUG_OUTPUT ? print "<br><b>No agreement between distance and bearing difference arrays and no "
-                                    . "bearing based image could better the distance based image. Defaulting to closest image."
-                                    . "</b><br>" : false;
+                . "bearing based image could better the distance based image. Defaulting to closest image."
+                . "</b><br>" : false;
             $nextImage = $distanceShortlist[0];
         }
 
@@ -1301,11 +1328,11 @@ while (true) {
         $imageArray[$nextImage['sortOrder']]['previousImageBearing'] = ($nextImage['bearing'] + 180) % 360;
 
         $positionInCollection = update_database(
-                $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+            $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 
         if (DEBUG_OUTPUT) {
             print "<h4>Image found through short range region search. ID: {$nextImage['sortOrder']}, "
-                    . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
+                . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
             print 'Current Image<pre>';
             print_r($imageArray[$targetImage]);
             print "</pre>Next Image<pre>";
@@ -1322,7 +1349,7 @@ while (true) {
 // => No images could be found in the short range regional direction search. Expand the range to the value
 // => defined in the constant FINAL_MAXIMUM_REGION_BASED_NEXT_IMAGE_DISTANCE.
     DEBUG_OUTPUT ? print "<h4>No images found in short range regional bearing search. "
-                            . "Attempting long range search with the same search cone.</h4>" : false;
+        . "Attempting long range search with the same search cone.</h4>" : false;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build an array of data about the relationship to $targetImage of other images within a specified radius of
@@ -1331,7 +1358,7 @@ while (true) {
 // Loop through all images
     for ($i = 0; $i <= $lastImageArrayIndex; $i++) {
         $relationshipResult = distanceBearingTimeCalculator(
-                $imageArray[$targetImage], $imageArray[$i], FINAL_MAXIMUM_REGION_BASED_NEXT_IMAGE_DISTANCE);
+            $imageArray[$targetImage], $imageArray[$i], FINAL_MAXIMUM_REGION_BASED_NEXT_IMAGE_DISTANCE);
         if ($relationshipResult) {
             $relationalImageArray[$i] = $relationshipResult;
         }
@@ -1350,8 +1377,9 @@ while (true) {
 // Skip the image if it is too far away, too close, has been marked as a duplicate of an image
 // (less than MINIMUM_NEXT_IMAGE_DISTANCE from an image) or if it has already been sequenced.
         if (isset($imageArray[$nearbyImage['sortOrder']]['sequenced']) ||
-                isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
-                isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])) {
+            isset($imageArray[$nearbyImage['sortOrder']]['disabled']) ||
+            isset($imageArray[$nearbyImage['sortOrder']]['duplicateImageOf'])
+        ) {
             continue; // Skip this nearby image.
         }
 // If bearing cone crosses 0 degrees (clockwise boundary becomes less then anticlockwise boundary)
@@ -1359,19 +1387,21 @@ while (true) {
         if ($clockwiseBearingLimit < $anticlockwiseBearingLimit) { // 0 degrees is crossed.
 // True result means the nearbyImage is within the search cone
             if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit ||
-                    $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                $nearbyImage['bearing'] <= $clockwiseBearingLimit
+            ) {
                 DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                    . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                    . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Add the nearbyImage to the nextImage shortlist.
                 $nextImageShortlist[] = $nearbyImage;
             }
         } else { // 0 degrees is not crossed. Simply check if bearing is between cone boundaries.
             if ($nearbyImage['bearing'] >= $anticlockwiseBearingLimit &&
-                    $nearbyImage['bearing'] <= $clockwiseBearingLimit) {
+                $nearbyImage['bearing'] <= $clockwiseBearingLimit
+            ) {
                 DEBUG_OUTPUT ? print "Potential neighbour within bearing limit "
-                                        . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
-                                        . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
+                    . "($anticlockwiseBearingLimit - $clockwiseBearingLimit) found. {$nearbyImage['sortOrder']}:"
+                    . " {$nearbyImage['bearing']} deg, {$nearbyImage['distance']} m</br>" : false;
 // Add the nearbyImage to the nextImage shortlist.
                 $nextImageShortlist[] = $nearbyImage;
             }
@@ -1393,11 +1423,11 @@ while (true) {
         $imageArray[$nextImage['sortOrder']]['previousImageBearing'] = ($nextImage['bearing'] + 180) % 360;
 
         $positionInCollection = update_database(
-                $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+            $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 
         if (DEBUG_OUTPUT) {
             print "<h4>Image found through long range region search. ID: {$nextImage['sortOrder']}, "
-                    . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
+                . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
             print 'Current Image<pre>';
             print_r($imageArray[$targetImage]);
             print "</pre>Next Image<pre>";
@@ -1419,16 +1449,16 @@ while (true) {
 
     if ($targetImage < $lastImageArrayIndex) {
         DEBUG_OUTPUT ? print "<h4>No images found in long range regional bearing search. Now defaulting "
-                                . "to the next non-sequenced/non duplicate/non disabled image in the imageArray as the "
-                                . "next image.</h4>" : false;
+            . "to the next non-sequenced/non duplicate/non disabled image in the imageArray as the "
+            . "next image.</h4>" : false;
 // Get the inital loop variables for next image search
         $nextImageId = $targetImage + 1;
         $nextImage = $imageArray[$nextImageId];
 // Loop through the next images until one is found that isn't already sequenced, disabled, or marked as a
 // duplicate.
         while (isset($imageArray[$nextImageId]['sequenced']) ||
-        isset($imageArray[$nextImageId]['disabled']) ||
-        isset($imageArray[$nextImageId]['duplicateImageOf'])) {
+            isset($imageArray[$nextImageId]['disabled']) ||
+            isset($imageArray[$nextImageId]['duplicateImageOf'])) {
             if ($nextImageId < $lastImageArrayIndex) {
                 DEBUG_OUTPUT ? print "$nextImageId is sequenced, disabled, or is a duplicate. Incrementing again.<br>" : false;
                 $nextImageId = $nextImageId + 1;
@@ -1437,7 +1467,7 @@ while (true) {
                     $imageArray[$nextImageId]['sequenced'] = true;
                 }
                 DEBUG_OUTPUT ? print "The last image has been reached. No next image can be set. "
-                                        . "Aborting next image search<br>" : false;
+                    . "Aborting next image search<br>" : false;
                 break 2;
             }
         }
@@ -1451,11 +1481,11 @@ while (true) {
         $imageArray[$nextImage['sortOrder']]['previousImageBearing'] = ($nextImage['bearing'] + 180) % 360;
 
         $positionInCollection = update_database(
-                $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+            $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 
         if (DEBUG_OUTPUT) {
             print "<h4>Image determined by choosing next image in imageArray. ID: {$nextImage['sortOrder']}, "
-                    . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
+                . "DISTANCE: {$nextImage['distance']}, BEARING: {$nextImage['bearing']}</h4>";
             print 'Current Image<pre>';
             print_r($imageArray[$targetImage]);
             print "</pre>Next Image<br/><pre>";
@@ -1469,9 +1499,9 @@ while (true) {
         $imageArray[$targetImage]['sequenced'] = true;
     }
     DEBUG_OUTPUT ? print "<h4>No images found in long range regional bearing search and this is the last"
-                            . "image in the imageArray. No next image can be set. Aborting next image search</h4>" : false;
+        . "image in the imageArray. No next image can be set. Aborting next image search</h4>" : false;
     $positionInCollection = update_database(
-            $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
+        $imageArray[$targetImage]['import_image_id'], $collectionMetadata['import_collection_id'], $positionInCollection, $imageArray[$targetImage]['sortOrder'], $totalImages);
 
     break;
 } // END while (true). $targetImage loop to find neighbours.

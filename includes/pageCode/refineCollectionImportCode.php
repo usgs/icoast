@@ -18,122 +18,28 @@ $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
 
-$projectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
-$referringUrl = filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_VALIDATE_URL);
-$getCollectionType = filter_input(INPUT_GET, 'collectionType');
-$sequenceCollectionFlag = filter_input(INPUT_GET, 'sequenceCollection');
+$collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
+$sequenceCollectionFlag = filter_input(INPUT_GET, 'sequenceCollection', FILTER_VALIDATE_BOOLEAN);
 $getDisplayType = filter_input(INPUT_GET, 'displayType');
 $photosPerPage = filter_input(INPUT_GET, 'photosPerPage', FILTER_VALIDATE_INT);
 $getStartPhotoPosition = filter_input(INPUT_GET, 'startPhotoPosition', FILTER_VALIDATE_INT);
 
 
-$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-if (empty($projectMetadata)) {
-    header('Location: projectCreator.php?error=MissingProjectId');
-    exit;
-} else if ($projectMetadata['creator'] != $userId ||
-        $projectMetadata['is_complete'] == 1) {
-    header('Location: projectCreator.php?error=InvalidProject');
-    exit;
-}
-$projectIdParam['projectId'] = $projectMetadata['project_id'];
+$referringPage = detect_pageName($_SERVER['HTTP_REFERER']);
 
-$referringPage = detect_pageName($referringUrl);
-$importStatus = project_creation_stage($projectMetadata['project_id']);
-
-if ($importStatus == 30) {
-    $collectionType = 'pre';
-} else if ($importStatus == 35) {
-    $collectionType = 'post';
-} else if ($referringPage == 'reviewProject' &&
-        $importStatus == 50 &&
-        isset($getCollectionType) &&
-        ($getCollectionType == 'pre' || $getCollectionType == 'post')) {
-    $collectionType = $getCollectionType;
-
-    /////// Check Collection is Imported
-    $collectionTypeCheckQuery = "
-        SELECT COUNT(*)
-        FROM import_collections
-        WHERE parent_project_id = :projectId
-            AND collection_type = '$collectionType'";
-    $collectionTypeCheckResult = run_prepared_query($DBH, $collectionTypeCheckQuery, $projectIdParam);
-    if ($collectionTypeCheckResult->rowCount() != 1) {
-        header('Location: projectCreator.php?error=InvalidOperation');
-        exit;
-    }
-
-    // DELETE PROJECT MATCHES
-    $checkMatchesToDeleteQuery = '
-            SELECT COUNT(*)
-            FROM import_matches
-            WHERE project_id = :projectId
-            ';
-    $checkMatchesToDeleteResult = run_prepared_query($DBH, $checkMatchesToDeleteQuery, $projectIdParam);
-    $matchesToDelete = $checkMatchesToDeleteResult->fetchColumn();
-    if ($matchesToDelete > 0) {
-        $deleteMatchesQuery = "
-                DELETE
-                FROM import_matches
-                WHERE project_id = :projectId
-                LIMIT $matchesToDelete
-            ";
-        $deleteMatchesResult = run_prepared_query($DBH, $deleteMatchesQuery, $projectIdParam);
-        if ($deleteMatchesResult->rowCount() != $matchesToDelete) {
-            header('Location: projectCreator.php?error=UpdateFailed');
-            exit;
-        }
-    }
-
-    $updateImportCollectionsQuery = "
-        UPDATE import_collections
-        SET sequencing_stage = NULL,
-            sequencing_progress = NULL
-        WHERE parent_project_id = :projectId
-            AND collection_type = '$collectionType'
-        LIMIT 1";
-    $updateImportCollectionsResult = run_prepared_query($DBH, $updateImportCollectionsQuery, $projectIdParam);
-    if ($updateImportCollectionsResult->rowCount() != 1) {
-        header('Location: projectCreator.php?error=UpdateFailed');
-        exit;
-    }
-
-    $updateProjectsQuery = '
-        UPDATE projects
-        SET matching_progress = NULL
-        WHERE project_id = :projectId
-        LIMIT 1';
-    $updateProjectsResult = run_prepared_query($DBH, $updateProjectsQuery, $projectIdParam);
-    if ($updateProjectsResult->rowCount() != 1) {
-        header('Location: projectCreator.php?error=UpdateFailed');
-        exit;
-    }
-} else {
-    header('Location: projectCreator.php?error=InvalidProject');
-    exit;
-}
-
-$prePostTitleText = ucfirst($collectionType);
-
-$collectionMetadataQuery = '
-    SELECT *
-    FROM import_collections
-    WHERE parent_project_id = :projectId
-        AND collection_type = :collectionType
-    ';
-$collectionMetadataParams = array(
-    'projectId' => $projectMetadata['project_id'],
-    'collectionType' => $collectionType
-);
-$collectionMetadataResult = run_prepared_query($DBH, $collectionMetadataQuery, $collectionMetadataParams);
-$collectionMetadata = $collectionMetadataResult->fetch(PDO::FETCH_ASSOC);
+$collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
 if (empty($collectionMetadata)) {
     exit;
 }
-$collectionId = $collectionMetadata['import_collection_id'];
+
+$importStatus = collection_creation_stage($collectionMetadata['import_collection_id']);
+if ($importStatus != 3 && $importStatus != 5) {
+    header('Location: collectionCreator.php?error=InvalidCollection');
+    exit;
+}
 
 
-if (isset($sequenceCollectionFlag)) {
+if ($sequenceCollectionFlag) {
     $setSequencingQuery = '
         UPDATE import_collections
         SET sequencing_stage = 1
@@ -142,7 +48,8 @@ if (isset($sequenceCollectionFlag)) {
     $setSequencingParams['collectionId'] = $collectionId;
     $setSequencingResult = run_prepared_query($DBH, $setSequencingQuery, $setSequencingParams);
     if ($setSequencingResult->rowCount() == 1) {
-        header("Location: projectCreator.php?projectId={$projectMetadata['project_id']}&complete");
+        header("Location: sequenceCollection.php?collectionId=$collectionId");
+        exit;
     }
 }
 
@@ -297,8 +204,8 @@ EOL;
                 </div>
 EOL;
 
-    $javaScript .= <<<EOL
-                var projectId = {$projectMetadata['project_id']};
+    $javaScript .= <<<JS
+                var collectionId = $collectionId;
                 var photosPerPage = $photosPerPage;
                 var startPhotoPosition = $startPhotoPosition;
                 var numberOfPhotos = $photoCount;
@@ -324,9 +231,9 @@ EOL;
                         });
                     });
                 });
-EOL;
+JS;
 
-    $jQueryDocumentDotReadyCode .= <<<EOL
+    $jQueryDocumentDotReadyCode .= <<<JS
                 if (numberOfPhotoPages == 1) {
                     $('.pageJumpSelect').hide();
                 }
@@ -337,16 +244,16 @@ EOL;
 
                     $('.lastPageButton').click(function() {
                         var lastPageStartPhotoPosition = numberOfPhotos - (numberOfPhotos % photosPerPage);
-                        window.location.href='refineImport.php?'
-                            + 'projectId=' + projectId
+                        window.location.href='refineCollectionImport.php?'
+                            + 'collectionId=' + collectionId
                             + '&displayType=' + displayType
                             + '&startPhotoPosition=' + lastPageStartPhotoPosition
                             + '&photosPerPage=' + photosPerPage;
                     });
                     $('.nextPageButton').click(function() {
                         var nextPageStartPhotoPosition = (Math.floor(startPhotoPosition/photosPerPage)*photosPerPage) + photosPerPage;
-                        window.location.href='refineImport.php?'
-                            + 'projectId=' + projectId
+                        window.location.href='refineCollectionImport.php?'
+                            + 'collectionId=' + collectionId
                             + '&displayType=' + displayType
                             + '&startPhotoPosition=' + nextPageStartPhotoPosition
                             + '&photosPerPage=' + photosPerPage;
@@ -358,8 +265,8 @@ EOL;
                     $('.firstPageButton, .previousPageButton').attr('disabled',false);
 
                     $('.firstPageButton').click(function() {
-                        window.location.href='refineImport.php?'
-                            + 'projectId=' + projectId
+                        window.location.href='refineCollectionImport.php?'
+                            + 'collectionId=' + collectionId
                             + '&displayType=' + displayType
                             + '&photosPerPage=' + photosPerPage;
                     });
@@ -368,8 +275,8 @@ EOL;
                         if (previousPageStartPhotoPosition < 0) {
                             previousPageStartPhotoPosition = 0;
                         }
-                        window.location.href='refineImport.php?'
-                            + 'projectId=' + projectId
+                        window.location.href='refineCollectionImport.php?'
+                            + 'collectionId=' + collectionId
                             + '&displayType=' + displayType
                             + '&startPhotoPosition=' + previousPageStartPhotoPosition
                             + '&photosPerPage=' + photosPerPage;
@@ -381,8 +288,8 @@ EOL;
                     var requestedPhotosPerPage = $(this).val();
                     console.log(requestedPhotosPerPage);
                     startPhotoPosition = Math.floor(startPhotoPosition/requestedPhotosPerPage)*requestedPhotosPerPage;
-                    window.location.href='refineImport.php?'
-                        + 'projectId=' + projectId
+                    window.location.href='refineCollectionImport.php?'
+                        + 'collectionId=' + collectionId
                         + '&displayType=' + displayType
                         + '&startPhotoPosition=' + startPhotoPosition
                         + '&photosPerPage=' + requestedPhotosPerPage;
@@ -397,8 +304,8 @@ EOL;
                 $('.pageJumpSelect').change(function() {
                     var requestedPage = $('.pageJumpSelect').val();
                     jumpPhotoPosition = (requestedPage - 1) * photosPerPage;
-                    window.location.href='refineImport.php?'
-                        + 'projectId=' + projectId
+                    window.location.href='refineCollectionImport.php?'
+                        + 'collectionId=' + collectionId
                         + '&displayType=' + displayType
                         + '&startPhotoPosition=' + jumpPhotoPosition
                         + '&photosPerPage=' + photosPerPage;
@@ -425,7 +332,7 @@ EOL;
 
                     });
                 });
-EOL;
+JS;
 
     //
 //
@@ -439,16 +346,16 @@ EOL;
     //
     //
 } else { // $displayType = 'Show Map'
-    $photoQuery = <<<EOL
+    $photoQuery = <<<MYSQL
         SELECT import_image_id, latitude, longitude, is_disabled
         FROM import_images
         WHERE import_collection_id = $collectionId
-EOL;
+MYSQL;
 
     $photoQueryResults = run_prepared_query($DBH, $photoQuery);
     $mapResults = $photoQueryResults->fetchAll(PDO::FETCH_ASSOC);
     $JSONmapResults = json_encode($mapResults);
-    $contentHTML = <<<EOL
+    $contentHTML = <<<HTML
             <p>Zoom in to show individual image markers.<br>
                 <span style="color: green">Green</span> markers indicate a photo is enabled.
                 <span style="color: red">Red</span> markers indicate a photo is disabled.<br>
@@ -460,7 +367,7 @@ EOL;
             <div id="refineImportMap">
             </div>
 
-EOL;
+HTML;
 
     $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
     $cssLinkArray[] = 'css/markerCluster.css';
@@ -468,7 +375,7 @@ EOL;
     $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
     $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 
-    $jQueryDocumentDotReadyCode .= <<<EOL
+    $jQueryDocumentDotReadyCode .= <<<JS
             var photos = $JSONmapResults;
             var popup = L.popup({closeOnClick: true, offset: L.point(0,-35)});
             var map = L.map('refineImportMap', {maxZoom: 16});
@@ -617,5 +524,5 @@ EOL;
             map.fitBounds(allMarkers.getBounds());
             allMarkers.addTo(map);
 
-EOL;
+JS;
 }

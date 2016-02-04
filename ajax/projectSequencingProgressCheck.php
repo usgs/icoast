@@ -9,12 +9,7 @@ if (!$userData) {
     exit;
 }
 
-if (isset($_GET['collectionId'])) {
-    $collectionId = $_GET['collectionId'];
-} else {
-    exit;
-}
-settype($collectionId, 'integer');
+$collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
 $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
 if (empty($collectionMetadata)) {
     exit;
@@ -37,7 +32,7 @@ $results = array();
 if ($collectionMetadata['sequencing_stage'] == 1) {
     $results['response'] = 'initializing';
 } else if ($collectionMetadata['sequencing_stage'] == 2) {
-    $results['response'] =  $collectionMetadata['sequencing_progress'];
+    $results['response'] = $collectionMetadata['sequencing_progress'];
 } else {
     $results['response'] = 'complete';
 }

@@ -10,18 +10,28 @@ if (!$userData) {
     exit;
 }
 
-$collectionId = filter_input(INPUT_POST, 'collectionId', FILTER_VALIDATE_INT);
+if (isset($_POST['collectionId'])) {
+    $collectionId = $_POST['collectionId'];
+} else {
+    exit;
+}
+settype($collectionId, 'integer');
 $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
 if (empty($collectionMetadata)) {
     exit;
 }
+unset($collectionId);
 
-if ($collectionMetadata['sequencing_stage'] != 3 ||
-    $collectionMetadata['creator'] != $userData['user_id']
-) {
+$projectCreatorQuery = '
+    SELECT creator
+    FROM projects
+    WHERE project_id = :projectId';
+$projectCreatorParams['projectId'] = $collectionMetadata['parent_project_id'];
+$projectCreatorResult = run_prepared_query($DBH, $projectCreatorQuery, $projectCreatorParams);
+$creator = $projectCreatorResult->fetchColumn();
+if ($creator != $userData['user_id']) {
     exit;
 }
-
 
 $clearPositionInCollectionQuery = '
     UPDATE import_images
@@ -37,7 +47,7 @@ if ($clearPositionInCollectionResult->rowCount() == 0) {
 
 $positionArray = $_POST['positionData'];
 foreach ($positionArray as $position => $imageId) {
-    $position ++;
+    $position++;
     settype($position, 'integer');
     settype($imageId, 'integer');
     if (!empty($position) && !empty($imageId)) {

@@ -10,13 +10,14 @@ ignore_user_abort(true);
 ini_set('memory_limit', '256M');
 ini_set('max_execution_time', 172800);
 
-function abort_import($DBH = null, $failureReason = null, $importCollectionId = null) {
+function abort_import($DBH = null, $failureReason = null, $importCollectionId = null)
+{
     if ($DBH != null && $failureReason != null && $importCollectionId != null) {
         $updateCollectionQuery = '
         UPDATE import_collections
         SET
-            import_key = null,
-            session_id = null,
+            import_key = NULL,
+            session_id = NULL,
             import_end_timestamp = :endTimestamp,
             import_status_message = :failureReason
         WHERE import_collection_id = :importCollectionId
@@ -32,7 +33,8 @@ function abort_import($DBH = null, $failureReason = null, $importCollectionId = 
     exit;
 }
 
-function user_requested_abort($DBH, $importCollectionMetadata, $processedImageCount) {
+function user_requested_abort($DBH, $importCollectionMetadata, $processedImageCount)
+{
     $deleteImportedImagesQuery = "
         DELETE FROM import_images
         WHERE import_collection_id = :importCollectionId
@@ -61,7 +63,8 @@ function user_requested_abort($DBH, $importCollectionMetadata, $processedImageCo
     abort_import($DBH, 'User Abort Request', $importCollectionMetadata['import_collection_id']);
 }
 
-function failedImageUpdate($collectionId, $count) {
+function failedImageUpdate($collectionId, $count)
+{
     if (isset($GLOBALS['DBH'])) {
         global $DBH;
     } else {
@@ -82,7 +85,8 @@ function failedImageUpdate($collectionId, $count) {
     run_prepared_query($DBH, $updateFailedCountQuery, $updateFailedCountParams);
 }
 
-function userAbortCheck($importCollectionMetadata, $processedImageCount) {
+function userAbortCheck($importCollectionMetadata, $processedImageCount)
+{
     if (isset($GLOBALS['DBH'])) {
         global $DBH;
     } else {
@@ -120,15 +124,15 @@ if (empty($userMetadata)) {
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check update permission and project state validity
 if (isset($importCollectionId)) {
     $importCollectionMetadata = retrieve_entity_metadata($DBH, $importCollectionId, 'importCollection');
     if ($importCollectionMetadata) {
         if (isset($importKey) &&
-                (!empty($importKey)) &&
-                $importCollectionMetadata['import_key'] == $importKey) {
+            (!empty($importKey)) &&
+            $importCollectionMetadata['import_key'] == $importKey
+        ) {
             if (!empty($importCollectionMetadata['session_id']) && !empty($importCollectionMetadata['import_start_timestamp'])) {
                 $elapsedTime = time() - $importCollectionMetadata['import_start_timestamp'];
                 if ($elapsedTime < 10) {
@@ -154,10 +158,10 @@ if (isset($importCollectionId)) {
             } else {
                 $message = '';
                 if (empty($importCollectionMetadata['session_id'])) {
-                    $message .='Database session_id field is empty. ';
+                    $message .= 'Database session_id field is empty. ';
                 }
                 if (empty($importCollectionMetadata['import_start_timestamp'])) {
-                    $message .='Database import_start_timestamp field is empty.';
+                    $message .= 'Database import_start_timestamp field is empty.';
                 }
                 abort_import($DBH, $message, $importCollectionMetadata['import_collection_id']);
             }
@@ -179,15 +183,31 @@ if (isset($importCollectionId)) {
     abort_import($DBH, "No collection ID found.");
 }
 
-$importStatus = collection_creation_stage($importCollectionMetadata['import_collection_id']);
-if ($importStatus != 1) {
-    exit;
+if (isset($_SESSION['collectionType'])) {
+    switch ($_SESSION['collectionType']) {
+        case 'pre':
+            $databaseColumn = 'pre_import_collection_id';
+            $expectedImportStatus = 1;
+            break;
+        case 'post':
+            $databaseColumn = 'post_import_collection_id';
+            $expectedImportStatus = 2;
+            break;
+        default:
+            abort_import($DBH, "Invalid collection type provided ({$_SESSION['collectionType']})", $importCollectionMetadata['import_collection_id']);
+    }
+} else {
+    abort_import($DBH, 'Missing Stage Level', $importCollectionMetadata['import_collection_id']);
 }
 
-//$logFilename = '../images/logs/import' . $importCollectionMetadata['import_collection_id'] . '.txt';
-//if (file_exists($logFilename)) {
-//    unlink($logFilename);
-//}
+$importStatus = project_creation_stage($importCollectionMetadata['parent_project_id']);
+if ($importStatus != $expectedImportStatus) {
+    exit;
+}
+$logFilename = '../images/logs/import' . $importCollectionMetadata['import_collection_id'] . '.txt';
+if (file_exists($logFilename)) {
+    unlink($logFilename);
+}
 //file_put_contents($logFilename, 'Start'. "\r\n", FILE_APPEND);
 //chmod($logFilename, 0777);
 

@@ -5,6 +5,8 @@ require_once('../includes/adminFunctions.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
+ini_set('memory_limit', '64M');
+
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
 
 if (isset($_GET['collectionId'])) {
@@ -116,6 +118,9 @@ if (isset($_GET['collectionId'])) {
             $counter = 0;
             if (count($imagesOnDate) > 0) {
                 $n = floor(count($imagesOnDate) / 10);
+                if ($n == 0) {
+                    $n = 1;
+                }
                 for ($i = 0; $i < count($imagesOnDate); $i = $i + $n) {
                     $collection['collectionDates'][$imageDate]['imagePreview'][] = array(
                         'longitude' => $imagesOnDate[$i][1],

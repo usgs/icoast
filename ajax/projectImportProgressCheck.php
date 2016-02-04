@@ -19,11 +19,13 @@ $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
 if (empty($projectMetadata)) {
     exit;
 } else if ($projectMetadata['creator'] != $userData['user_id'] ||
-        $projectMetadata['is_complete'] == 1) {
+    $projectMetadata['is_complete'] == 1
+) {
     exit;
 }
 
-function time_formatter($time) {
+function time_formatter($time)
+{
     $hours = floor($time / 3600);
     $timeRemainder = $time % 3600;
     $minutes = floor($timeRemainder / 60);
@@ -118,7 +120,8 @@ if (empty($preCollectionMetadata)) {
 //
 //
 } else if ($preCollectionMetadata['import_status_message'] == 'Processing' &&
-        $preCollectionMetadata['user_abort_import_flag'] == 0) {
+    $preCollectionMetadata['user_abort_import_flag'] == 0
+) {
     $totalImages = $preCollectionMetadata['total_images'];
     $processedImages = $preCollectionMetadata['processed_images'] + $preCollectionMetadata['portrait_images'];
     $startTime = $preCollectionMetadata['import_start_timestamp'];
@@ -168,7 +171,8 @@ if (empty($preCollectionMetadata)) {
 //
 //
 } else if ($preCollectionMetadata['import_status_message'] == 'Sleeping' &&
-        $preCollectionMetadata['user_abort_import_flag'] == 0) {
+    $preCollectionMetadata['user_abort_import_flag'] == 0
+) {
     $totalImages = $preCollectionMetadata['total_images'];
     $processedImages = $preCollectionMetadata['processed_images'] + $preCollectionMetadata['portrait_images'];
     $startTime = $preCollectionMetadata['import_start_timestamp'];
@@ -209,7 +213,8 @@ if (empty($preCollectionMetadata)) {
 //
 //
 } else if ($preCollectionMetadata['user_abort_import_flag'] == 1 &&
-        $preCollectionMetadata['import_status_message'] != 'User Abort Request') {
+    $preCollectionMetadata['import_status_message'] != 'User Abort Request'
+) {
     $statusArray['preCollection']['status'] = 'abortRequested';
     $statusArray['preCollection']['name'] = $preCollectionMetadata['name'];
 } else if ($preCollectionMetadata['import_status_message'] == 'User Abort Request') {
@@ -297,7 +302,8 @@ if (empty($postCollectionMetadata)) {
 //
 //
 } else if ($postCollectionMetadata['import_status_message'] == 'Processing' &&
-        $postCollectionMetadata['user_abort_import_flag'] == 0) {
+    $postCollectionMetadata['user_abort_import_flag'] == 0
+) {
     $totalImages = $postCollectionMetadata['total_images'];
     $processedImages = $postCollectionMetadata['processed_images'] + $postCollectionMetadata['portrait_images'];
     $startTime = $postCollectionMetadata['import_start_timestamp'];
@@ -347,7 +353,8 @@ if (empty($postCollectionMetadata)) {
 //
 //
 } else if ($postCollectionMetadata['import_status_message'] == 'Sleeping' &&
-        $postCollectionMetadata['user_abort_import_flag'] == 0) {
+    $postCollectionMetadata['user_abort_import_flag'] == 0
+) {
     $totalImages = $postCollectionMetadata['total_images'];
     $processedImages = $postCollectionMetadata['processed_images'] + $postCollectionMetadata['portrait_images'];
     $startTime = $postCollectionMetadata['import_start_timestamp'];
@@ -384,7 +391,8 @@ if (empty($postCollectionMetadata)) {
     $statusArray['postCollection']['endTime'] = formattedTime($endTime, $userData['time_zone'], TRUE, TRUE);
     $statusArray['postCollection']['timeProgressPercentage'] = $timeProgressPercentage;
 } else if ($postCollectionMetadata['user_abort_import_flag'] == 1 &&
-        $postCollectionMetadata['import_status_message'] != 'User Abort Request') {
+    $postCollectionMetadata['import_status_message'] != 'User Abort Request'
+) {
     $statusArray['postCollection']['status'] = 'abortRequested';
     $statusArray['postCollection']['name'] = $postCollectionMetadata['name'];
 } else if ($postCollectionMetadata['import_status_message'] == 'User Abort Request') {
@@ -394,7 +402,6 @@ if (empty($postCollectionMetadata)) {
     $statusArray['postCollection']['status'] = 'failed';
     $statusArray['postCollection']['import_status_message'] = 'Collection not found in database.';
 }
-
 
 
 $jsonData = json_encode($statusArray);

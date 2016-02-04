@@ -51,12 +51,24 @@ if ($pageName == 'systemEditor') {
     $adminNavHTML .= '<li><a href="systemEditor.php">System</a></li>';
 }
 
-if ($pageName == 'projectCreator' || $pageName == 'collectionImportController' ||
-        $pageName == 'questionBuilder' || $pageName == 'importProgress' ||
-        $pageName == 'taskPreview' || $pageName == 'refineImport' ||
+if ($pageName == 'collectionCreator' || $pageName == 'collectionImportController' ||
+    $pageName == 'collectionImportProgress' || $pageName == 'refineCollectionImport' ||
+    $pageName == 'sequenceCollection' || $pageName == 'reviewCollection' ||
+    $pageName == 'modifyCollection' || $pageName == 'finalizeCollection'
+) {
+    $adminNavHTML .= ' <li class="activePageLink"><a href="collectionCreator.php">Collection Creator</a></li>';
+    $pageTitle = "USGS iCoast - Collection Creator";
+} else {
+    $adminNavHTML .= '<li><a href="collectionCreator.php">Collection Creator</a></li>';
+}
+
+if ($pageName == 'projectCreator' || $pageName == 'projectCollectionImportController' ||
+    $pageName == 'questionBuilder' || $pageName == 'projectCollectionImportProgress' ||
+    $pageName == 'taskPreview' || $pageName == 'refineProjectImport' ||
         $pageName == 'sequenceImport' || $pageName == 'matchCollections' ||
         $pageName == 'finalizeProject' || $pageName == 'reviewProject' ||
-        $pageName == 'modifyCollection' || $pageName == 'modifyProject') {
+    $pageName == 'modifyProjectCollection' || $pageName == 'modifyProject'
+) {
     $adminNavHTML .= ' <li class="activePageLink"><a href="projectCreator.php">Project Creator</a></li>';
     $pageTitle = "USGS iCoast - Project Creator";
 } else {

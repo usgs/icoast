@@ -970,28 +970,28 @@ $jQueryDocumentDotReadyCode .= <<<EOL
 
 
     $('#editPostCollection').click(function() {
-        window.location.href = 'modifyCollection.php?projectId=' + projectId + '&edit=post';
+        window.location.href = 'modifyProjectCollection.php?projectId=' + projectId + '&edit=post';
     });
 
     $('#deletePostCollection, #removePostCollection').click(function() {
-        window.location.href = 'modifyCollection.php?projectId=' + projectId + '&delete=post';
+        window.location.href = 'modifyProjectCollection.php?projectId=' + projectId + '&delete=post';
     });
 
 
     $('#editPreCollection').click(function() {
-        window.location.href = 'modifyCollection.php?projectId=' + projectId + '&edit=pre';
+        window.location.href = 'modifyProjectCollection.php?projectId=' + projectId + '&edit=pre';
     });
 
     $('#deletePreCollection, #removePreCollection').click(function() {
-        window.location.href = 'modifyCollection.php?projectId=' + projectId + '&delete=pre';
+        window.location.href = 'modifyProjectCollection.php?projectId=' + projectId + '&delete=pre';
     });
 
     $('#resequencePostCollection').click(function() {
-        window.location.href = 'refineImport.php?projectId=' + projectId + '&collectionType=post';
+        window.location.href = 'refineProjectImport.php?projectId=' + projectId + '&collectionType=post';
     });
 
     $('#resequencePreCollection').click(function() {
-        window.location.href = 'refineImport.php?projectId=' + projectId + '&collectionType=pre';
+        window.location.href = 'refineProjectImport.php?projectId=' + projectId + '&collectionType=pre';
     });
 
     $('#liveButton').click(function() {

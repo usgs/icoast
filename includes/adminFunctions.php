@@ -413,13 +413,107 @@ function admin_access() {
 
 }
 
+
+function collection_creation_stage($collectionId, $redirect = false)
+{
+    if (isset($GLOBALS['DBH'])) {
+        global $DBH;
+    } else {
+        return false;
+    }
+    $collectionId = filter_var($collectionId, FILTER_VALIDATE_INT);
+    $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
+    if (empty($collectionMetadata)) {
+        header('Location: http://localhost/collectionCreator.php?error=NoCollection');
+    }
+
+    $statusArray = array();
+    if (is_null($collectionMetadata['sequencing_stage'])) {
+
+        if (is_null($collectionMetadata['import_status_message'])) {
+            $statusArray[] = 'importNotStarted';
+        } else if ($collectionMetadata['import_status_message'] == 'Complete') {
+            $statusArray[] = 'importComplete';
+        } else {
+            $statusArray[] = 'importInProgress';
+        }
+
+    } else {
+
+        if ($collectionMetadata['sequencing_stage'] >= 1 &&
+            $collectionMetadata['sequencing_stage'] <= 3
+        ) {
+            $statusArray[] = 'sequencing';
+        } else if ($collectionMetadata['sequencing_stage'] == 4) {
+            $statusArray[] = 'review';
+        }
+
+    }
+
+    if ($redirect) {
+        if (in_array('importNotStarted', $statusArray)) {
+            header("Location: collectionImportController.php.?collectionId=$collectionId");
+            exit;
+        }
+        if (in_array('importInProgress', $statusArray) ||
+            in_array('importComplete', $statusArray)
+        ) {
+            header("Location: collectionImportProgress.php?collectionId=$collectionId");
+            exit;
+        }
+        if (in_array('sequencing', $statusArray)) {
+            header("Location: sequenceCollection.php?collectionId=$collectionId");
+            exit;
+        }
+        if (in_array('review', $statusArray)) {
+            header("Location: reviewCollection.php?collectionId=$collectionId");
+            exit;
+        }
+        return false;
+    } else {
+        if (in_array('importNotStarted', $statusArray)) {
+            return 1;
+        }
+        if (in_array('importInProgress', $statusArray)) {
+            return 2;
+        }
+        if (in_array('importComplete', $statusArray)) {
+            return 3;
+        }
+        if (in_array('sequencing', $statusArray)) {
+            return 4;
+        }
+        if (in_array('review', $statusArray)) {
+            return 5;
+        }
+
+        return false;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function project_creation_stage($projectId, $redirect = false) {
     if (isset($GLOBALS['DBH'])) {
         global $DBH;
     } else {
         return false;
     }
-    settype($projectId, 'integer');
+    $projectId = filter_var($projectId, FILTER_VALIDATE_INT);
     $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
     if (empty($projectMetadata) || $projectMetadata['is_complete'] == 1) {
         header('Location: http://localhost/projectCreator.php?error=InvalidProject');
@@ -628,27 +722,27 @@ function project_creation_stage($projectId, $redirect = false) {
 
     if ($redirect) {
         if (in_array('noPreCollection', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
             exit;
         }
         if (in_array('preCollectionImportNotStarted', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
             exit;
         }
         if (in_array('preCollectionImportFailed', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=pre");
             exit;
         }
         if (in_array('noPostCollection', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
             exit;
         }
         if (in_array('postCollectionImportNotStarted', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
             exit;
         }
         if (in_array('postCollectionImportFailed', $statusArray)) {
-            header("Location: collectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
+            header("Location: projectCollectionImportController.php?projectId={$projectMetadata['project_id']}&collectionType=post");
             exit;
         }
         if (in_array('incompleteTasks', $statusArray)) {
@@ -675,11 +769,11 @@ function project_creation_stage($projectId, $redirect = false) {
                 in_array('postCollectionImportInProgress', $statusArray) ||
                 in_array('preCollectionImportComplete', $statusArray) ||
                 in_array('postCollectionImportComplete', $statusArray)) {
-            header("Location: importProgress.php?projectId={$projectMetadata['project_id']}");
+            header("Location: projectCollectionImportProgress.php?projectId={$projectMetadata['project_id']}");
             exit;
         }
         if (in_array('preCollectionSequencingNotStarted', $statusArray)) {
-            header("Location: refineImport.php?projectId={$projectMetadata['project_id']}");
+            header("Location: refineProjectImport.php?projectId={$projectMetadata['project_id']}");
             exit;
         }
         if (in_array('preCollectionRefined', $statusArray) ||
@@ -689,7 +783,7 @@ function project_creation_stage($projectId, $redirect = false) {
             exit;
         }
         if (in_array('postCollectionSequencingNotStarted', $statusArray)) {
-            header("Location: refineImport.php?projectId={$projectMetadata['project_id']}");
+            header("Location: refineProjectImport.php?projectId={$projectMetadata['project_id']}");
             exit;
         }
         if (in_array('postCollectionRefined', $statusArray) ||

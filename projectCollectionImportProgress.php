@@ -1,6 +1,6 @@
 <?php
 $pageModifiedTime = filemtime(__FILE__);
-require('includes/pageCode/importProgressCode.php');
+require('includes/pageCode/projectCollectionImportProgressCode.php');
 $pageBody = <<<EOL
         <div id="adminPageWrapper">
             $adminNavHTML

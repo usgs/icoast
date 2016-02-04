@@ -23,7 +23,7 @@ $maskedEmail = $userData['masked_email'];
 $projectId = filter_input(INPUT_GET, 'projectId', FILTER_VALIDATE_INT);
 $makeLiveFlag = filter_input(INPUT_GET, 'makeLive', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 $makeFocusFlag = filter_input(INPUT_GET, 'makeFocus', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-$httpHost = filter_input(INPUT_SERVER, 'HTTP_HOST');
+$httpHost = $_SERVER['HTTP_HOST'];
 
 $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
 if (empty($projectMetadata)) {
@@ -108,7 +108,7 @@ $javaScript .= <<<EOL
     var progressCheckTimer;
 
     function updateProgress() {
-        $.getJSON('ajax/finalizerProgressChecker.php', {projectId: projectId}, function(finalizerProgress) {
+        $.getJSON('ajax/projectFinalizerProgressChecker.php', {projectId: projectId}, function(finalizerProgress) {
 
             switch (finalizerProgress.stage) {
                 case 1:

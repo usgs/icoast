@@ -25,7 +25,8 @@ if (empty($projectMetadata)) {
     header('Location: projectCreator.php?error=MissingProjectId');
     exit;
 } else if ($projectMetadata['creator'] != $userId ||
-        $projectMetadata['is_complete'] == 1) {
+    $projectMetadata['is_complete'] == 1
+) {
     header('Location: projectCreator.php?error=InvalidProject');
     exit;
 }
@@ -70,8 +71,9 @@ if (isset($importComplete)) {
         }
     } else if (count($collections) == 1) {
         if ($collections[0]['import_status_message'] == 'Complete' &&
-                ($collections[0]['collection_type'] == 'pre' ||
-                $collections[0]['collection_type'] == 'post')) {
+            ($collections[0]['collection_type'] == 'pre' ||
+                $collections[0]['collection_type'] == 'post')
+        ) {
             if ($collections[0]['collection_type'] == 'pre') {
                 $existingCollectionTypeToCheck = 'post';
             } else if ($collections[0]['collection_type'] == 'post') {
@@ -98,13 +100,13 @@ if (isset($importComplete)) {
     }
 }
 
-$embeddedCSS .= <<<EOL
+$embeddedCSS .= <<<CSS
     .bold {
         font-weight: bold;
     }    
-EOL;
+CSS;
 
-$javaScript .= <<<EOL
+$javaScript .= <<<JS
         
             var projectId = {$projectMetadata['project_id']};
             var progressCheckTimer;
@@ -123,7 +125,7 @@ $javaScript .= <<<EOL
             function updateProgress() {
                 clearInterval(countdownTimer);
                 clearInterval(progressCheckTimer);
-                $.getJSON('ajax/importProgressCheck.php', {projectId: projectId}, function(importProgress) {
+                $.getJSON('ajax/projectImportProgressCheck.php', {projectId: projectId}, function(importProgress) {
                     var importText;
                     if (((importProgress.preCollection.status === 'complete' && importProgress.preCollection.sucessfulImages > 0) &&
                             (importProgress.postCollection.status === 'complete' && importProgress.postCollection.sucessfulImages > 0)) ||
@@ -244,7 +246,7 @@ $javaScript .= <<<EOL
 
                             $('#preEventCollectionProgressWrapper').html(htmlToInsert);
                             $('#preCollectionAbortButton').click(function() {
-                                $.getJSON('ajax/abortImport.php', {projectId: projectId, collectionType: 'pre'},
+                                $.getJSON('ajax/abortImport.php', {targetId: projectId, collectionType: 'pre'},
                                 function(abortResult) {
                                     $('#preCollectionImportDetails').empty().html('<p class="error">Abort Requested</p> \
                                     <p>A request to abort the import of this<br> \
@@ -370,7 +372,7 @@ $javaScript .= <<<EOL
                             $('#preEventCollectionProgressWrapper').html(htmlToInsert);
                             if (importProgress.preCollection.sucessfulImages > 0) {
                                 $('#preCollectionDeleteButton').click(function() {
-                                    $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'pre', newCollection: 1},
+                                    $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'pre', newCollection: 1},
                                     function(deletionResult) {
                                         if (deletionResult === 1) {
                                             $('#preCollectionImportDetails').empty().html(' \
@@ -400,7 +402,7 @@ $javaScript .= <<<EOL
                                     });
                                 });
                             } else { // (importProgress.preCollection.sucessfulImages == 0)
-                                $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'pre', newCollection: 1},
+                                $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'pre', newCollection: 1},
                                 function(deletionResult) {
                                     if (deletionResult === 0) {
                                         $('#preCollectionImportDetails').empty().html('\
@@ -419,7 +421,7 @@ $javaScript .= <<<EOL
                                         $('#continueForm').attr('action', 'projectCreator.php?projectId=' + projectId);
                                         if (importProgress.postCollection.status !== 'complete' &&
                                                 importProgress.postCollection.status !== 'existing') {
-                                            $.getJSON('ajax/abortImport.php', {projectId: projectId, collectionType: 'pre'});
+                                            $.getJSON('ajax/abortImport.php', {targetId: projectId, collectionType: 'pre'});
                                         }
                                     }
 
@@ -448,7 +450,7 @@ $javaScript .= <<<EOL
 
 
                             $('#preCollectionDeleteButton').click(function() {
-                                $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'pre', newCollection: 0},
+                                $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'pre', newCollection: 0},
                                 function(deletionResult) {
                                     if (deletionResult === 1) {
                                         $('#preCollectionImportDetails').empty().html(' \
@@ -594,7 +596,7 @@ $javaScript .= <<<EOL
 
                             $('#postEventCollectionProgressWrapper').html(htmlToInsert);
                             $('#postCollectionAbortButton').click(function() {
-                                $.getJSON('ajax/abortImport.php', {projectId: projectId, collectionType: 'post'},
+                                $.getJSON('ajax/abortImport.php', {targetId: projectId, collectionType: 'post'},
                                 function(abortResult) {
                                     $('#postCollectionImportDetails').empty().html('<p class="error">Abort Requested</p> \
                                     <p>A request to abort the import of this<br> \
@@ -720,7 +722,7 @@ $javaScript .= <<<EOL
                             $('#postEventCollectionProgressWrapper').html(htmlToInsert);
                             if (importProgress.postCollection.sucessfulImages > 0) {
                                 $('#postCollectionDeleteButton').click(function() {
-                                    $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'post', newCollection: 1},
+                                    $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'post', newCollection: 1},
                                     function(deletionResult) {
                                         if (deletionResult === 1) {
                                             $('#postCollectionImportDetails').empty().html(' \
@@ -750,7 +752,7 @@ $javaScript .= <<<EOL
                                     });
                                 });
                             } else { // (importProgress.postCollection.sucessfulImages == 0)
-                                $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'post', newCollection: 1},
+                                $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'post', newCollection: 1},
                                 function(deletionResult) {
                                     if (deletionResult === 0) {
                                         $('#postCollectionImportDetails').empty().html('\
@@ -769,7 +771,7 @@ $javaScript .= <<<EOL
                                         $('#continueForm').attr('action', 'projectCreator.php?projectId=' + projectId);
                                         if (importProgress.postCollection.status !== 'complete' &&
                                                 importProgress.postCollection.status !== 'existing') {
-                                            $.getJSON('ajax/abortImport.php', {projectId: projectId, collectionType: 'post'});
+                                            $.getJSON('ajax/abortImport.php', {targetId: projectId, collectionType: 'post'});
                                         }
                                     }
 
@@ -798,7 +800,7 @@ $javaScript .= <<<EOL
 
 
                             $('#postCollectionDeleteButton').click(function() {
-                                $.getJSON('ajax/deleteImportCollection.php', {projectId: projectId, collectionType: 'post', newCollection: 0},
+                                $.getJSON('ajax/deleteImportCollectionFromProject.php', {projectId: projectId, collectionType: 'post', newCollection: 0},
                                 function(deletionResult) {
                                     if (deletionResult === 1) {
                                         $('#postCollectionImportDetails').empty().html(' \
@@ -896,10 +898,10 @@ $javaScript .= <<<EOL
                 });
             }
    
-EOL;
+JS;
 
-$jQueryDocumentDotReadyCode .= <<<EOL
+$jQueryDocumentDotReadyCode .= <<<JS
         
         updateProgress();
         
-EOL;
+JS;

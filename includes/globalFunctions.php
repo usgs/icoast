@@ -215,7 +215,6 @@ function crowdTypeConverter($DBH, $crowdTypeId = null, $otherCrowdType = null) {
 function detect_pageName($url = false) {
     if (!$url) {
         $url = $_SERVER['PHP_SELF'];
-        //$url = filter_input(INPUT_SERVER, 'PHP_SELF', FILTER_SANITIZE_URL);
     }
     $filePath = rtrim($url, '/');
     $substrStart = strrpos($filePath, '/') + 1;

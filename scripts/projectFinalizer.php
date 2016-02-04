@@ -109,10 +109,21 @@ while (true) {
 
                 $insertCollectionLiveQuery = '
                     INSERT INTO collections
-                    (name, description, is_globally_enabled)
-                    SELECT name, description, 1 as is_globally_enabled
-                    FROM import_collections
-                    WHERE import_collection_id = :importCollectionId
+                    (
+                      import_collection_id,
+                      creator,
+                      name,
+                      description,
+                      is_globally_enabled
+                      )
+                        SELECT
+                          import_collection_id,
+                          creator,
+                          name,
+                          description,
+                          1 as is_globally_enabled
+                        FROM import_collections
+                        WHERE import_collection_id = :importCollectionId
                     ';
 
                 $liveCollectionId = run_prepared_query($DBH, $insertCollectionLiveQuery, $collectionIdParam, true);

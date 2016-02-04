@@ -31,9 +31,8 @@ if (empty($projectId)) {
         exit;
     }
 }
-$referingUrl = filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_VALIDATE_URL);
-if (!empty($referingUrl)) {
-    $referingPage = detect_pageName($referingUrl);
+if ($_SERVER['HTTP_REFERER']) {
+    $referingPage = detect_pageName($_SERVER['HTTP_REFERER']);
     if ($referingPage != 'projectEditor' && $referingPage != 'reviewProject') {
         $creationStatus = project_creation_stage($projectMetadata['project_id']);
         if ($creationStatus != 10) {

@@ -6,47 +6,45 @@ $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 $userData = authenticate_user($DBH, TRUE, FALSE, TRUE, TRUE, FALSE, FALSE);
-if (!$userData) {
+if (empty($userData)) {
     exit;
 }
 
-if (isset($_GET['photoId'])) {
-    settype($_GET['photoId'], 'integer');
-    if (!empty($_GET['photoId'])) {
-        $photoMetadata = retrieve_entity_metadata($DBH, $_GET['photoId'], 'importImage');
-    }
+$photoId = filter_input(INPUT_GET, 'photoId', FILTER_VALIDATE_INT);
+$photoMetadata = retrieve_entity_metadata($DBH, $_GET['photoId'], 'importImage');
+if (empty($photoMetadata)) {
+    exit;
 }
 
-if (isset($_GET['currentStatus']) && ($_GET['currentStatus'] == 0 || $_GET['currentStatus'] == 1)) {
-    $currentStatus = $_GET['currentStatus'];
+$currentStatus = filter_input(INPUT_GET, 'currentStatus', FILTER_VALIDATE_BOOLEAN);
+if (is_null($currentStatus)) {
+    exit;
 }
 
-$parentProjectCreatorQuery = '
-    SELECT p.creator
-    FROM import_collections ic
-    INNER JOIN projects p ON ic.parent_project_id = p.project_id
-    WHERE ic.import_collection_id = :importCollectionId
+$collectionCreatorQuery = '
+    SELECT creator
+    FROM import_collections
+    WHERE import_collection_id = :importCollectionId
     LIMIT 1';
-$parentProjectCreatorParams['importCollectionId'] = $photoMetadata['import_collection_id'];
-$parentProjectCreatorResult = run_prepared_query($DBH, $parentProjectCreatorQuery, $parentProjectCreatorParams);
-$parentProjectCreator = $parentProjectCreatorResult->fetchColumn();
+$collectionCreatorParams['importCollectionId'] = $photoMetadata['import_collection_id'];
+$collectionCreatorResult = run_prepared_query($DBH, $collectionCreatorQuery, $collectionCreatorParams);
+$collectionCreator = $collectionCreatorResult->fetchColumn();
 
-if (!isset($userData) ||
-        !isset($photoMetadata) ||
-        !isset($currentStatus) ||
-        $parentProjectCreator != $userData['user_id']) {
+if ($collectionCreator != $userData['user_id']) {
     exit();
 }
 
 if ($photoMetadata['is_disabled'] == $currentStatus) {
-
-    $updateQuery = "UPDATE import_images SET is_disabled = ";
     if ($photoMetadata['is_disabled'] == 0) {
-        $updateQuery .= '1';
+        $newStatus = '1';
     } else {
-        $updateQuery .= '0';
+        $newStatus = '0';
     }
-    $updateQuery .= " WHERE import_image_id = {$photoMetadata['import_image_id']} LIMIT 1";
+    $updateQuery = "
+      UPDATE import_images
+      SET is_disabled = $newStatus
+      WHERE import_image_id = {$photoMetadata['import_image_id']}
+      LIMIT 1";
 
     $queryResult = $DBH->query($updateQuery);
     $affectedRows = $queryResult->rowCount();
