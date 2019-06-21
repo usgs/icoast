@@ -727,7 +727,7 @@ EOL;
                     </div>
                     <div class="adminMapLegendRow">
                       <div class="adminMapLegendRowIcon">
-                        <img src="http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png" alt="Image of a blue map marker pin"
+                        <img src="images/system/blueMarker.png" alt="Image of a blue map marker pin"
                             width="13" height="24" title="">
                       </div>
                       <div class="adminMapLegendRowText">
@@ -1078,7 +1078,7 @@ EOL;
                     </div>
                     <div class="adminMapLegendRow">
                       <div class="adminMapLegendRowIcon">
-                        <img src="http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png" alt="Image of a blue map marker pin"
+                        <img src="images/system/blueMarker.png" alt="Image of a blue map marker pin"
                             width="13" height="24" title="">
                       </div>
                       <div class="adminMapLegendRowText">
@@ -1118,10 +1118,10 @@ EOL;
 
 
 
-$cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+$cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
 
-$javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 $javaScriptLinkArray[] = 'scripts/elevateZoom.js';
 

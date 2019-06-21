@@ -129,18 +129,20 @@ function image_match($postCollectionId, $preCollectionId) {
 		* cos(radians(longitude) - radians({$image['longitude']}) ) + sin(radians({$image['latitude']}))
 		    * sin(radians(latitude)))) AS distance FROM images
 		    WHERE collection_id = $preCollectionId HAVING distance < " . MAX_MATCH_RADIUS .
-                    " ORDER BY distance LIMIT 1;";
+                                 " ORDER BY distance LIMIT 1;";
             $imagesSelectQueryResults = run_database_query($imagesSelectQuery);
-            if ($imagesSelectQueryResults) {
+            if ($imagesSelectQueryResults)
+            {
                 // If a match is found add it to the $imageMatchArray else use  0 as the matching
                 // pre-image id and set disabled and displayFile flags accordingly. Add to $imageMatchArray.
-                if ($imagesSelectQueryResults->num_rows > 0) {
+                if ($imagesSelectQueryResults->num_rows > 0)
+                {
                     $match = $imagesSelectQueryResults->fetch_assoc();
                     $imageMatchArray[] = array(
-                        'postCollectionId' => $postCollectionId,
-                        'postImageId' => $image['image_id'],
+                        'postCollectionId'  => $postCollectionId,
+                        'postImageId'       => $image['image_id'],
                         'postImageDisabled' => $image['is_globally_disabled'],
-                        'preCollectionId' => $preCollectionId,
+                        'preCollectionId'   => $preCollectionId,
                         'preImageId' => $match['image_id'],
                         'preImageDisabled' => $match['is_globally_disabled']);
                 } else {
@@ -287,7 +289,7 @@ function image_resizer($imagesToResize) {
                   $singleImage = array(
                   'image_id' => 18765,
                   'filename' => '2011_0831_151955d2.jpg',
-                  'full_url' => 'http://coastal.er.usgs.gov/hurricanes/oblique/images/2011/0831/2011_0831_151955d2.jpg',
+                  'full_url' => 'https://coastal.er.usgs.gov/hurricanes/oblique/images/2011/0831/2011_0831_151955d2.jpg',
                   'dataset_id' => 7);
                   print '<pre>';
                   print_r($singleImage);
@@ -452,7 +454,7 @@ function collection_creation_stage($collectionId, $redirect = false)
 
     if ($redirect) {
         if (in_array('importNotStarted', $statusArray)) {
-            header("Location: collectionImportController.php.?collectionId=$collectionId");
+            header("Location: collectionImportController.php?collectionId=$collectionId");
             exit;
         }
         if (in_array('importInProgress', $statusArray) ||

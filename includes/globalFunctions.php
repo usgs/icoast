@@ -68,7 +68,7 @@ function restoreSafeHTMLTags($escapedString, $balanceTags = true, $breaks = true
     return $restoredString;
 }
 
-function printArray($array) {
+function array_dump($array) {
     print '<pre>';
     print_r($array);
     print '</pre>';
@@ -548,14 +548,14 @@ function run_prepared_query($DBH, $query, $params = array(), $returnInsertId = F
 function run_database_query($query) {
 //print "<p><b>In run_database_query function.</b><br>Arguments:<br>$query</p>";
 // Define required files and initial includes
-    if (isset($GLOBALS['dbc'])) {
-        global $dbc;
+    if (isset($GLOBALS['DBH'])) {
+        global $DBH;
     } else {
         return FALSE;
     }
 // Run the user specified query.
-    if (!$queryResult = $dbc->query($query)) {
-        print "Query failure.<br>Error Number:" . $dbc->errno . "<br>Error: " .
+    if (!$queryResult = $DBH->query($query)) {
+        print "Query failure.<br>Error Number:" . $DBH->errno . "<br>Error: " .
                 $dbc->error . "<br>Query: $query";
         print "RETURNING: FALSE<br>";
         return FALSE;
@@ -992,6 +992,10 @@ function retrieve_entity_metadata($DBH, $ids, $entity) {
             case 'imageGroup':
                 $table = 'image_group_metadata';
                 $column = 'image_group_id';
+                break;
+            case 'userGroup';
+                $table = 'user_group_metadata';
+                $column = 'user_group_id';
                 break;
             default:
                 print "RETURNING: FALSE";

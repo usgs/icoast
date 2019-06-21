@@ -18,20 +18,31 @@ $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH);
 $userId = $userData['user_id'];
 
-if (!isset($_GET['projectId']) || !isset($_GET['imageId'])) {
+if (!isset($_GET['projectId']) || !isset($_GET['imageId']))
+{
     header('Location: index.php');
     exit;
 }
 
-$filtered = TRUE;
+$filtered = true;
 $projectId = $_GET['projectId'];
 $postImageId = $_GET['imageId'];
 
-if (!$projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project')) {
+if (!$projectMetadata =
+    retrieve_entity_metadata($DBH,
+                             $projectId,
+                             'project')
+)
+{
     //  Placeholder for error management
     exit("Project $projectId not found in Database");
 }
-if (!$postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image')) {
+if (!$postImageMetadata =
+    retrieve_entity_metadata($DBH,
+                             $postImageId,
+                             'image')
+)
+{
     //  Placeholder for error management
     exit("Image $postImageId not found in Database");
 }
@@ -51,7 +62,10 @@ $annotationsInProjectCountQuery = "
         AND annotation_completed = 1
         AND project_id = {$projectMetadata['project_id']}";
 $annotationsInProjectCountParams['userId'] = $userId;
-$STH = run_prepared_query($DBH, $annotationsInProjectCountQuery, $annotationsInProjectCountParams);
+$STH =
+    run_prepared_query($DBH,
+                       $annotationsInProjectCountQuery,
+                       $annotationsInProjectCountParams);
 $numberOfAnnotationsInProject = $STH->fetchColumn();
 $ordinalNumberOfAnnotationsInProject = ordinal_suffix($numberOfAnnotationsInProject);
 
@@ -63,20 +77,30 @@ $annotationCountQuery = "
     WHERE user_id = :userId
         AND annotation_completed = 1";
 $annotationCountParams['userId'] = $userId;
-$STH = run_prepared_query($DBH, $annotationCountQuery, $annotationCountParams);
+$STH =
+    run_prepared_query($DBH,
+                       $annotationCountQuery,
+                       $annotationCountParams);
 $numberOfAnnotations = $STH->fetchColumn();
-if ($numberOfAnnotations == 0) {
+if ($numberOfAnnotations == 0)
+{
     header('Location: welcome.php');
     exit;
 }
-if ($numberOfAnnotations != $userData['completed_annotation_count']) {
-    $setAnnotationCountQuery = "UPDATE users SET completed_annotation_count = :numberOfAnnotations WHERE user_id = :userId";
+if ($numberOfAnnotations != $userData['completed_annotation_count'])
+{
+    $setAnnotationCountQuery =
+        "UPDATE users SET completed_annotation_count = :numberOfAnnotations WHERE user_id = :userId";
     $setAnnotationCountParams = array(
-        'userId' => $userId,
+        'userId'              => $userId,
         'numberOfAnnotations' => $numberOfAnnotations,
     );
-    $STH = run_prepared_query($DBH, $setAnnotationCountQuery, $setAnnotationCountParams);
-    if ($STH->rowCount() == 0) {
+    $STH =
+        run_prepared_query($DBH,
+                           $setAnnotationCountQuery,
+                           $setAnnotationCountParams);
+    if ($STH->rowCount() == 0)
+    {
         //  Placeholder for error management
         print 'User Annotation Count Update Error: Update did not complete sucessfully.';
         exit;
@@ -89,68 +113,103 @@ $positionQuery = "
     WHERE completed_annotation_count > :numberOfAnnotations
     ORDER BY completed_annotation_count DESC";
 $positionParams['numberOfAnnotations'] = $numberOfAnnotations;
-$STH = run_prepared_query($DBH, $positionQuery, $positionParams);
+$STH =
+    run_prepared_query($DBH,
+                       $positionQuery,
+                       $positionParams);
 $annotaionPositions = $STH->fetchAll(PDO::FETCH_ASSOC);
 $positionInICoast = count($annotaionPositions) + 1;
 $ordinalPositionInICoast = ordinal_suffix($positionInICoast) . ' Place';
 
-$jointPosition = FALSE;
+$jointPosition = false;
 $jointQuery = "SELECT COUNT(*) FROM users WHERE completed_annotation_count = $numberOfAnnotations";
 $jointParams['numberOfAnnotations'] = $numberOfAnnotations;
-$STH = run_prepared_query($DBH, $jointQuery, $jointParams);
-if ($STH->fetchColumn() > 1) {
-    $jointPosition = TRUE;
+$STH =
+    run_prepared_query($DBH,
+                       $jointQuery,
+                       $jointParams);
+if ($STH->fetchColumn() > 1)
+{
+    $jointPosition = true;
 }
 
-if ($jointPosition) {
+if ($jointPosition)
+{
     $ordinalPositionInICoast = "Joint " . $ordinalPositionInICoast;
-} elseif ($positionInICoast == 1) {
+}
+elseif ($positionInICoast == 1)
+{
     $ordinalPositionInICoast .= " - Top iCoast Tagger!";
 }
 
 $annotationsToNextHTML = "";
-if ($positionInICoast > 1) {
+if ($positionInICoast > 1)
+{
     $annotationsToFirst = $annotaionPositions[0]['completed_annotation_count'] - $numberOfAnnotations + 1;
     $nextPosition = ordinal_suffix($positionInICoast - 1);
-    $annotationsToNextHTML = "<tr><td class=\"rowTitle\"># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td></tr>";
+    $annotationsToNextHTML =
+        "<tr><td class=\"rowTitle\"># of Photos to be 1st:</td><td class=\"userData\">$annotationsToFirst</td></tr>";
 }
-
-
-
 
 
 //--------------------------------------------------------------------------------------------------
 // Retreive annotation data for the last annotated image.
 $lastAnnotationQuery = "SELECT * FROM annotations WHERE user_id = :userId AND "
-        . "project_id = :projectId AND image_id = :postImageId";
+                       . "project_id = :projectId AND image_id = :postImageId";
 $lastAnnotationParams = array(
-    'userId' => $userId,
-    'projectId' => $projectId,
+    'userId'      => $userId,
+    'projectId'   => $projectId,
     'postImageId' => $postImageId
 );
-$STH = run_prepared_query($DBH, $lastAnnotationQuery, $lastAnnotationParams);
+$STH =
+    run_prepared_query($DBH,
+                       $lastAnnotationQuery,
+                       $lastAnnotationParams);
 $lastAnnotation = $STH->fetch(PDO::FETCH_ASSOC);
 $annotationId = $lastAnnotation['annotation_id'];
 
-$lastAnnotationTime = timeDifference($lastAnnotation['initial_session_start_time'], $lastAnnotation['initial_session_end_time']);
-$tagCount = tagsInAnnotation($DBH, $annotationId);
+$lastAnnotationTime =
+    timeDifference($lastAnnotation['initial_session_start_time'],
+                   $lastAnnotation['initial_session_end_time']);
+$tagCount =
+    tagsInAnnotation($DBH,
+                     $annotationId);
 
 
 //--------------------------------------------------------------------------------------------------
 // Find image id's of next and previous post images
-$postImageArray = find_adjacent_images($DBH, $postImageId, $projectId, $userId, 1, 20);
+$postImageArray =
+    find_adjacent_images($DBH,
+                         $postImageId,
+                         $projectId,
+                         $userId,
+                         1,
+                         20);
 $previousImageId = $postImageArray[0]['image_id'];
-if ($previousImageId != 0 && !$previousImageMetadata = retrieve_entity_metadata($DBH, $previousImageId, 'image')) {
+if ($previousImageId != 0 &&
+    !$previousImageMetadata =
+        retrieve_entity_metadata($DBH,
+                                 $previousImageId,
+                                 'image')
+)
+{
     //  Placeholder for error management
     exit("Previous Image $previousImageId not found in Database");
 }
 $previousImageLatitude = $previousImageMetadata['latitude'];
 $previousImageLongitude = $previousImageMetadata['longitude'];
-$previousImageDisplayURL = "images/collections/{$previousImageMetadata['collection_id']}/main/{$previousImageMetadata['filename']}";
+$previousImageDisplayURL =
+    "images/collections/{$previousImageMetadata['collection_id']}/main/{$previousImageMetadata['filename']}";
 $previousImageLocation = build_image_location_string($previousImageMetadata);
 
 $nextImageId = $postImageArray[2]['image_id'];
-if ($nextImageId != 0 && !$nextImageMetadata = retrieve_entity_metadata($DBH, $nextImageId, 'image')) {
+if ($nextImageId != 0 &&
+    !$nextImageMetadata =
+        retrieve_entity_metadata($DBH,
+                                 $nextImageId,
+                                 'image')
+)
+{
     //  Placeholder for error management
     exit("Next Image $nextImageId not found in Database");
 }
@@ -163,30 +222,77 @@ $nextImageLocation = build_image_location_string($nextImageMetadata);
 // Build next/previous post image buttons HTML
 
 
-if ($previousImageId != 0) {
-    $leftCoastalNavigationButtonHTML = '<button class="clickableButton leftCoastalNavButton" type="button" title="Click to show the next available POST-storm Photo to the LEFT of your last annotated photo." id="leftButton"><img src="images/system/leftArrow.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="64" width="41"></button>';
-} else {
-    $leftCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton leftCoastalNavButton" type="button" title="No more images are within range in this direction. Use the Map to move along the coat to the next region." id="leftButton" disabled><img src="images/system/leftArrow.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="64" width="41"></button>';
+if ($previousImageId != 0)
+{
+    $leftCoastalNavigationButtonHTML =
+        '<button class="clickableButton leftCoastalNavButton" type="button" title="Click to show the next available POST-storm Photo to the LEFT of your last annotated photo." id="leftButton"><img src="images/system/leftArrow.png" alt="Image of a left facing arrow. Used to navigate left along the coast" height="64" width="41"></button>';
 }
-if ($nextImageId != 0) {
-    $rightCoastalNavigationButtonHTML = '<button class="clickableButton" type="button" title="Click to show the next available POST-storm Photo to the RIGHT of your last annotated photo." id="rightButton"><img src="images/system/rightArrow.png" alt="Image of a right facing arrow. Used to navigate right along the coast" height="64" width="41"></button>';
-} else {
-    $rightCoastalNavigationButtonHTML = '<button class="clickableButton disabledClickableButton" type="button" title="No more images within range in this direction. Use the Map to move along the coat to the next region." id="rightButton" disabled><img src="images/system/rightArrow.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="64" width="41"></button>';
+else
+{
+    $leftCoastalNavigationButtonHTML =
+        '<button class="clickableButton disabledClickableButton leftCoastalNavButton" type="button" title="No more images are within range in this direction. Use the Map to move along the coat to the next region." id="leftButton" disabled><img src="images/system/leftArrow.png" alt="Image of a faded left facing arrow. Used to indicate there are no more images to the left of the last annotated image." height="64" width="41"></button>';
+}
+if ($nextImageId != 0)
+{
+    $rightCoastalNavigationButtonHTML =
+        '<button class="clickableButton" type="button" title="Click to show the next available POST-storm Photo to the RIGHT of your last annotated photo." id="rightButton"><img src="images/system/rightArrow.png" alt="Image of a right facing arrow. Used to navigate right along the coast" height="64" width="41"></button>';
+}
+else
+{
+    $rightCoastalNavigationButtonHTML =
+        '<button class="clickableButton disabledClickableButton" type="button" title="No more images within range in this direction. Use the Map to move along the coat to the next region." id="rightButton" disabled><img src="images/system/rightArrow.png" alt="Image of a faded right facing arrow. Used to indicate there are no more images to the right of the last annotated image." height="64" width="41"></button>';
 }
 
 
 //--------------------------------------------------------------------------------------------------
 // Build project selection information
 $allProjects = array();
-$allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 ORDER BY project_id ASC";
-foreach ($DBH->query($allProjectsQuery) as $row) {
+$allProjectsQuery = <<<MySQL
+SELECT 
+	*
+FROM 
+(
+	(
+		SELECT 
+			project_id, 
+			name 
+		FROM projects 
+		WHERE 
+			is_public = 1 AND 
+			is_complete = 1 
+	)
+	UNION
+	(
+		SELECT DISTINCT 
+			ugm.project_id,
+			concat(p.name, ' (Preview)')
+		FROM 
+			user_groups ug
+		LEFT JOIN user_group_metadata ugm ON ug.user_group_id = ugm.user_group_id
+		LEFT JOIN projects p ON ugm.project_id = p.project_id
+		WHERE 
+			ug.user_id = $userId AND
+			ugm.is_enabled = 1 AND
+			p.is_complete = 1 
+	)
+) AS t
+GROUP BY
+	t.project_id
+ORDER BY 
+    t.project_id DESC
+MySQL;
+foreach ($DBH->query($allProjectsQuery) as $row)
+{
     $allProjects[] = $row;
 }
 $numberOfProjects = count($allProjects);
-if ($numberOfProjects > 1) {
+if ($numberOfProjects > 1)
+{
     $projectSelectOptionHTML = "";
-    for ($i = 0; $i < $numberOfProjects; $i++) {
-        if ($allProjects[$i]['project_id'] == $projectId) {
+    for ($i = 0; $i < $numberOfProjects; $i++)
+    {
+        if ($allProjects[$i]['project_id'] == $projectId)
+        {
             $id = $allProjects[$i]['project_id'];
             $name = $allProjects[$i]['name'];
             $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>\r\n";
@@ -194,7 +300,8 @@ if ($numberOfProjects > 1) {
         }
     }
 
-    foreach ($allProjects as $project) {
+    foreach ($allProjects as $project)
+    {
         $id = $project['project_id'];
         $name = $project['name'];
         $projectSelectOptionHTML .= "<option value=\"$id\">$name</option>\r\n";
@@ -211,38 +318,66 @@ if ($numberOfProjects > 1) {
           </div>
 
 EOL;
-} else if ($numberOfProjects == 1) {
-    $projectSelectionHTML = <<<EOL
+}
+else
+{
+    if ($numberOfProjects == 1)
+    {
+        $projectSelectionHTML = <<<EOL
             <p>You are annotating the only project currently available in iCoast. Other selections are not available at this time.</p>
 
 EOL;
-} else {
-    $projectSelectionHTML = <<<EOL
+    }
+    else
+    {
+        $projectSelectionHTML = <<<EOL
       <h2>No Projects Available</h2>
       <p>At this time there are no projects available for annotation in iCoast.</p>
       <p>Please check back at a later date for exciting new coastal imagery.</p>
 EOL;
+    }
 }
-
 
 
 //--------------------------------------------------------------------------------------------------
 // Determine the new Random Image for next annotation and prepare random image selection HTML
-if ($numberOfProjects >= 1) {
-    $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
-    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty') {
-        $newRandomImageId = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id']);
+if ($numberOfProjects >= 1)
+{
+    $newRandomImageId =
+        random_post_image_id_generator($DBH,
+                                       $projectId,
+                                       $filtered,
+                                       $projectMetadata['post_collection_id'],
+                                       $projectMetadata['pre_collection_id'],
+                                       $userId,
+                                       true);
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty')
+    {
+        $newRandomImageId =
+            random_post_image_id_generator($DBH,
+                                           $projectId,
+                                           $filtered,
+                                           $projectMetadata['post_collection_id'],
+                                           $projectMetadata['pre_collection_id'],
+                                           $userId);
     }
-    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty' || $newRandomImageId === FALSE) {
-        exit("An error was detected while generating a new image");
+    if ($newRandomImageId == 'allPoolAnnotated' || $newRandomImageId == 'poolEmpty' || $newRandomImageId === false)
+    {
+        exit("An error was detected while generating a new image. $newRandomImageId");
     }
-    if (!$newRandomImageMetadata = retrieve_entity_metadata($DBH, $newRandomImageId, 'image')) {
+    if (!$newRandomImageMetadata =
+        retrieve_entity_metadata($DBH,
+                                 $newRandomImageId,
+                                 'image')
+    )
+    {
         //  Placeholder for error management
         exit("New random Image $newRandomImageId not found in Database");
     }
     $newRandomImageLatitude = $newRandomImageMetadata['latitude'];
     $newRandomImageLongitude = $newRandomImageMetadata['longitude'];
-    $newRandomImageDisplayURL = "images/collections/{$newRandomImageMetadata['collection_id']}/main/{$newRandomImageMetadata['filename']}";
+    $newRandomImageDisplayURL =
+        "images/collections/{$newRandomImageMetadata['collection_id']}/main/{$newRandomImageMetadata['filename']}";
     $newRandomImageLocation = build_image_location_string($newRandomImageMetadata);
     $newRandomImageAltTag = "An oblique image of the United States coastline taken near $newRandomImageLocation.";
 
@@ -477,7 +612,9 @@ EOL;
 
         $(window).scrollTop($('#navigationBar').position().top);
 EOL;
-} else {
+}
+else
+{
     $variableContent = $projectSelectionHTML;
 }
 

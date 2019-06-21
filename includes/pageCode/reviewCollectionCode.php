@@ -14,7 +14,7 @@ $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 $pageCodeModifiedTime = filemtime(__FILE__);
-$userData = authenticate_user($DBH, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE);
+$userData = authenticate_user($DBH, true, true, true, true, false, false);
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
 
@@ -22,12 +22,17 @@ $collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
 $updateResult = filter_input(INPUT_GET, 'updateResult');
 
 $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
-if (empty($collectionMetadata)) {
+if (empty($collectionMetadata))
+{
     header('Location: collectionCreator.php?error=MissingCollectionId');
     exit;
-} else if ($collectionMetadata['creator'] != $userId) {
-    header('Location: collectionCreator.php?error=InvalidCollection');
-    exit;
+} else
+{
+    if ($collectionMetadata['creator'] != $userId)
+    {
+        header('Location: collectionCreator.php?error=InvalidCollection');
+        exit;
+    }
 }
 
 $displaySafeCollectionName = htmlspecialchars($collectionMetadata['name']);
@@ -36,13 +41,15 @@ $displaySafeCollectionDescription = restoreSafeHTMLTags(htmlspecialchars($collec
 $collectionIdParam['collectionId'] = $collectionId;
 
 $importStatus = collection_creation_stage($collectionMetadata['import_collection_id']);
-if ($importStatus != 5) {
+if ($importStatus != 5)
+{
     header('Location: collectionCreator.php?error=InvalidCollection');
     exit;
 }
 
 
-switch ($updateResult) {
+switch ($updateResult)
+{
     case 'success':
         $updateStatus = 'The requested update was completed successfully.';
         break;
@@ -100,8 +107,8 @@ $collectionGeoRangeQuery = "
 
 $collectionGeoRangeResult = run_prepared_query($DBH, $collectionGeoRangeQuery, $collectionIdParam);
 $collectionGeoRange = $collectionGeoRangeResult->fetchAll(PDO::FETCH_ASSOC);
-$startLocation = build_image_location_string($collectionGeoRange[0], TRUE);
-$endLocation = build_image_location_string($collectionGeoRange[1], TRUE);
+$startLocation = build_image_location_string($collectionGeoRange[0], true);
+$endLocation = build_image_location_string($collectionGeoRange[1], true);
 $collectionGeoRange = $startLocation . ' to ' . $endLocation;
 
 // Find the individual image positions for each distinct date
@@ -145,9 +152,11 @@ $collectionDateRangeResult = run_prepared_query($DBH, $collectionDateRangeQuery,
 $collectionDateRange = $collectionDateRangeResult->fetchAll(PDO::FETCH_ASSOC);
 $startDate = utc_to_timezone($collectionDateRange[0]['image_time'], 'd M Y', $collectionDateRange[0]['longitude']);
 $endDate = utc_to_timezone($collectionDateRange[1]['image_time'], 'd M Y', $collectionDateRange[1]['longitude']);
-if ($startDate == $endDate) {
+if ($startDate == $endDate)
+{
     $collectionDateRange = $startDate;
-} else {
+} else
+{
     $collectionDateRange = $startDate . ' to ' . $endDate;
 }
 
@@ -167,7 +176,8 @@ $collectionDates = $collectionDatesResult->fetchAll(PDO::FETCH_ASSOC);
 
 // Find the geographical region covered by each distinct date
 $collectionGeoRangeByDate = '';
-foreach ($collectionDates as $collectionDate) {
+foreach ($collectionDates as $collectionDate)
+{
     $date = $collectionDate['image_date'];
 
     $collectionGeoRangeByDateQuery = "
@@ -195,15 +205,18 @@ foreach ($collectionDates as $collectionDate) {
 
     $collectionGeoRangeByDateResult = run_prepared_query($DBH, $collectionGeoRangeByDateQuery, $collectionIdParam);
     $collectionGeoRangeByDateArray = $collectionGeoRangeByDateResult->fetchAll(PDO::FETCH_ASSOC);
-    $formattedDate = utc_to_timezone($collectionGeoRangeByDateArray[0]['image_time'], 'd M Y', $collectionGeoRangeByDateArray[0]['longitude']);
-    $startLocation = build_image_location_string($collectionGeoRangeByDateArray[0], TRUE);
-    $endLocation = build_image_location_string($collectionGeoRangeByDateArray[1], TRUE);
+    $formattedDate =
+        utc_to_timezone($collectionGeoRangeByDateArray[0]['image_time'],
+                        'd M Y',
+                        $collectionGeoRangeByDateArray[0]['longitude']);
+    $startLocation = build_image_location_string($collectionGeoRangeByDateArray[0], true);
+    $endLocation = build_image_location_string($collectionGeoRangeByDateArray[1], true);
     $collectionGeoRangeByDate .= $formattedDate . ' - ' . $startLocation . ' - ' . $endLocation . '<br>';
 }
 
 
-$javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
-$cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
+$cssLinkArray[] = 'css/leaflet.css';
 
 $embeddedCSS .= <<<EOL
             #mapReviewWrapper {
@@ -329,6 +342,8 @@ $jQueryDocumentDotReadyCode .= <<<JS
     });
 
     $('#acceptButton').click(function() {
+        $('#acceptButton').prop('disabled', true).addClass('disabledClickableButton');
         window.location.href = 'finalizeCollection.php?collectionId=' + collectionId;
+        
     });
 JS;

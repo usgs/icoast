@@ -134,6 +134,47 @@ $pageBody = <<<EOL
                         <div class="faq">
                             <div class="faqQuestion">
                                 <p>+</p>
+                                <p>Why do some pre-storm/before photos show more change and damage than the 
+                                post-storm/after photos?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>Some pre-storm photos were taken after a previous storm in that area.
+                                    This may be why the pre-storm photo shows more damage than the post-storm
+                                    one.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
+                                <p>What’s the difference between &quot;Pre-storm&quot; and &quot;Before&quot; when referring to 
+                                images? What’s the difference between &quot;Post-storm&quot; and &quot;After&quot; when referring to images?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>There may be no single event that defines a storm in iCoast. Sometimes multiple events are represented by a
+                                single image. &quot;Pre-storm/before&quot; designates the image taken earlier in time then the &quot;post-storm/after&quot;
+                                image. Thus, &quot;pre-storm&quot; and &quot;before&quot; are interchangeable, as are &quot;post-storm&quot; and &quot;after&quot;.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
+                                <p>There is no exact match to the post-storm/AFTER image. What should I do?</p>
+                            </div>
+                            <div class="faqAnswer">
+                                <p>When we survey the coast we try to fly the same flight path as previous surveys. However, it is very difficult to
+                                fly the exact same track each time we fly. Moreover, we cannot know where each photo was taken on a
+                                previous flight. Photos are taken every 2-4 seconds. The BEST match maybe one that shows the beach from a
+                                slightly different angle, a wider or narrower field of view, or only match half the photo frame. Make the best
+                                match you can, then tag the features you see in both photos.</p>
+                            </div>
+                        </div>
+                    
+                    
+                        <div class="faq">
+                            <div class="faqQuestion">
+                                <p>+</p>
                                 <p>What is the difference between selecting a photo with the
                                     <span class="italic">Random</span> button versus the <span class="italic">
                                     Map</span> button?</p>
@@ -159,18 +200,6 @@ $pageBody = <<<EOL
                                     <span class="italic">My iCoast</span> page. It provides a table and map view
                                     of your annotated photos as well as a <span class="italic">Tag</span>
                                     button to allow you to edit the tags you selected.</p>
-                            </div>
-                        </div>
-
-                        <div class="faq">
-                            <div class="faqQuestion">
-                                <p>+</p>
-                                <p>Why do some pre-storm photos show more change and damage than the post-storm photos?</p>
-                            </div>
-                            <div class="faqAnswer">
-                                <p>Some pre-storm photos were taken after a previous storm in that area.
-                                    This may be why the pre-storm photo shows more damage than the post-storm
-                                    one.</p>
                             </div>
                         </div>
 

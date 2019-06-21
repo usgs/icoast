@@ -291,6 +291,12 @@ hr {
     margin-top: 8px;
 }
 
+#deleteTaskButton,
+#deleteGroupButton,
+#deleteTagButton {
+    width : 235px !important;
+}
+
 #editGroupDetailsForm .color:hover {
     margin-top: 7px;
 }

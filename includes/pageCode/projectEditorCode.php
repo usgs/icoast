@@ -7,34 +7,47 @@ $javaScriptLinkArray = array();
 $javaScript = '';
 $jQueryDocumentDotReadyCode = '';
 
-function sortByOrderInProject($a, $b) {
+function sortByOrderInProject($a,
+                              $b)
+{
     return $a['order_in_project'] - $b['order_in_project'];
 }
 
-function buildTaskSelectOptions($DBH, $projectId, $currentParent = false) {
+function buildTaskSelectOptions($DBH,
+                                $projectId,
+                                $currentParent = false)
+{
     // FIND DATA FOR ALL TASKS IN THE PROJECT
-    $projectTaskQuery = "SELECT task_id, name, description, is_enabled FROM task_metadata WHERE project_id = :projectId ORDER BY name";
+    $projectTaskQuery =
+        "SELECT task_id, name, description, is_enabled FROM task_metadata WHERE project_id = :projectId ORDER BY name";
     $projectTaskParams['projectId'] = $projectId;
-    $projectTaskResults = run_prepared_query($DBH, $projectTaskQuery, $projectTaskParams);
+    $projectTaskResults =
+        run_prepared_query($DBH,
+                           $projectTaskQuery,
+                           $projectTaskParams);
     $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
 
     // BUILD THE TASK SELECTION HTML FORM
     $taskSelectOptionsHTML = '';
     $taskList = array();
-    foreach ($projectTasks as $individualTask) {
+    foreach ($projectTasks as $individualTask)
+    {
         $individualTaskId = $individualTask['task_id'];
         $individualTaskName = $individualTask['name'];
         $individualTaskDescription = $individualTask['description'];
         $isEnabled = $individualTask['is_enabled'];
 
         $taskSelectOptionsHTML .= "<option title=\"$individualTaskDescription\" value=\"$individualTaskId\"";
-        if ($currentParent) {
-            if ($individualTask['task_id'] == $currentParent) {
+        if ($currentParent)
+        {
+            if ($individualTask['task_id'] == $currentParent)
+            {
                 $taskSelectOptionsHTML .= ' selected="selected"';
             }
         }
         $taskSelectOptionsHTML .= ">$individualTaskName";
-        if ($isEnabled == 0) {
+        if ($isEnabled == 0)
+        {
             $taskSelectOptionsHTML .= " (Disabled)";
         }
 
@@ -46,38 +59,61 @@ function buildTaskSelectOptions($DBH, $projectId, $currentParent = false) {
         $taskList);
 }
 
-function buildGroupSelectOptions($DBH, $projectId, $currentParent = false, $onlyGroupGroups = false, $excludeGroupGroups = false) {
+function buildGroupSelectOptions($DBH,
+                                 $projectId,
+                                 $currentParent = false,
+                                 $onlyGroupGroups = false,
+                                 $excludeGroupGroups = false)
+{
     //    print $currentParent;
     // FIND DATA FOR ALL TASKS IN THE PROJECT
-    if ($excludeGroupGroups) {
-        $projectGroupQuery = "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId AND contains_groups = 0 ORDER BY name";
-    } else if (!$onlyGroupGroups) {
-        $projectGroupQuery = "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId ORDER BY name";
-    } else {
-        $projectGroupQuery = "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId AND contains_groups = 1 ORDER BY name";
+    if ($excludeGroupGroups)
+    {
+        $projectGroupQuery =
+            "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId AND contains_groups = 0 ORDER BY name";
+    }
+    else
+    {
+        if (!$onlyGroupGroups)
+        {
+            $projectGroupQuery =
+                "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId ORDER BY name";
+        }
+        else
+        {
+            $projectGroupQuery =
+                "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId AND contains_groups = 1 ORDER BY name";
+        }
     }
     $projectGroupParams['projectId'] = $projectId;
-    $projectGroupResults = run_prepared_query($DBH, $projectGroupQuery, $projectGroupParams);
+    $projectGroupResults =
+        run_prepared_query($DBH,
+                           $projectGroupQuery,
+                           $projectGroupParams);
     $projectGroups = $projectGroupResults->fetchAll(PDO::FETCH_ASSOC);
 
     // BUILD THE TASK SELECTION HTML FORM
     $groupSelectOptionsHTML = '';
     $groupIdList = array();
     $groupNameList = array();
-    foreach ($projectGroups as $individualGroup) {
+    foreach ($projectGroups as $individualGroup)
+    {
         $individualGroupId = $individualGroup['tag_group_id'];
         $individualGroupName = $individualGroup['name'];
         $individualGroupDescription = $individualGroup['description'];
         $isEnabled = $individualGroup['is_enabled'];
 
         $groupSelectOptionsHTML .= "<option title=\"$individualGroupDescription\"value=\"$individualGroupId\"";
-        if (!empty($currentParent)) {
-            if ($individualGroupId == $currentParent) {
+        if (!empty($currentParent))
+        {
+            if ($individualGroupId == $currentParent)
+            {
                 $groupSelectOptionsHTML .= ' selected="selected"';
             }
         }
         $groupSelectOptionsHTML .= ">$individualGroupName";
-        if ($isEnabled == 0) {
+        if ($isEnabled == 0)
+        {
             $groupSelectOptionsHTML .= " (Disabled)";
         }
         $groupSelectOptionsHTML .= "</option>";
@@ -91,14 +127,72 @@ function buildGroupSelectOptions($DBH, $projectId, $currentParent = false, $only
     );
 }
 
-function groupContentsCheck($DBH, $groupId) {
+function taskContentsCheck($DBH,
+                           $taskId)
+{
+    $taskHasContentsQuery = 'SELECT COUNT(*) FROM task_contents WHERE task_id = :taskId';
+    $taskHasContentsParams['taskId'] = $taskId;
+    $taskHasContentsResult =
+        run_prepared_query($DBH,
+                           $taskHasContentsQuery,
+                           $taskHasContentsParams);
+    $numberOfTaskChildren = $taskHasContentsResult->fetchColumn();
+    if ($numberOfTaskChildren > 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function groupContentsCheck($DBH,
+                            $groupId)
+{
     $groupHasContentsQuery = 'SELECT COUNT(*) FROM tag_group_contents WHERE tag_group_id = :groupId';
     $groupHasContentsParams['groupId'] = $groupId;
-    $groupHasContentsResult = run_prepared_query($DBH, $groupHasContentsQuery, $groupHasContentsParams);
+    $groupHasContentsResult =
+        run_prepared_query($DBH,
+                           $groupHasContentsQuery,
+                           $groupHasContentsParams);
     $numberOfGroupChildren = $groupHasContentsResult->fetchColumn();
-    if ($numberOfGroupChildren > 0) {
+    if ($numberOfGroupChildren > 0)
+    {
         return true;
-    } else {
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function tagHasAnnotationsCheck($DBH,
+                                $tagId)
+{
+    $tagHasAnnotationsQuery = 'SELECT COUNT(*) FROM annotation_selections WHERE tag_id = :tagId';
+    $tagHasAnnotationsParams['tagId'] = $tagId;
+    $tagHasAnnotationsResult =
+        run_prepared_query($DBH,
+                           $tagHasAnnotationsQuery,
+                           $tagHasAnnotationsParams);
+    $numberOfAnnotations = $tagHasAnnotationsResult->fetchColumn();
+    if ($numberOfAnnotations == 0)
+    {
+        $tagHasAnnotationsQuery = 'SELECT COUNT(*) FROM annotation_comments WHERE tag_id = :tagId';
+        $tagHasAnnotationsParams['tagId'] = $tagId;
+        $tagHasAnnotationsResult =
+            run_prepared_query($DBH,
+                               $tagHasAnnotationsQuery,
+                               $tagHasAnnotationsParams);
+        $numberOfAnnotations = $tagHasAnnotationsResult->fetchColumn();
+    }
+    if ($numberOfAnnotations > 0)
+    {
+        return true;
+    }
+    else
+    {
         return false;
     }
 }
@@ -114,7 +208,11 @@ $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
 $pageCodeModifiedTime = filemtime(__FILE__);
-$userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
+$userData =
+    authenticate_user($DBH,
+                      true,
+                      true,
+                      true);
 
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
@@ -130,128 +228,181 @@ $projectUpdateErrorHTML = '';
 // UPDATE CODE
 //
 //
-if (isset($_POST['editSubmitted'])) {
+if (isset($_POST['editSubmitted']))
+{
     // MUST HAVE PROJECT ID AND UPDATE PROPERTY TO PROCEED WITH THE UPDATE
-    if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate'])) {
+    if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate']))
+    {
         $projectList = find_projects($DBH);
         // CHECK USER HAS THE RIGHTS TO UPDATE THE SPECIFIED PROJECT
-        if (in_array($_POST['projectId'], $projectList)) {
-            $projectMetadata = retrieve_entity_metadata($DBH, $_POST['projectId'], 'project');
+        if (in_array($_POST['projectId'],
+                     $projectList))
+        {
+            $projectMetadata =
+                retrieve_entity_metadata($DBH,
+                                         $_POST['projectId'],
+                                         'project');
 
             // CUSTOMIZE THE UPDATE PROCESS BASED ON THE PROPERTY BEING UPDATED
-            switch ($_POST['projectPropertyToUpdate']) {
+            switch ($_POST['projectPropertyToUpdate'])
+            {
                 //
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // UPDATE DETAILS
                 //
-            //
+                //
                 case 'details':
                     // CHECK ALL REQUIRED FIELDS ARE PRESENT
                     if (isset($_POST['newProjectName']) &&
-                            isset($_POST['newProjectDescription']) &&
-                            isset($_POST['newPostStormHeader']) &&
-                            isset($_POST['newPreStormHeader']) &&
-                            isset($_POST['newProjectStatus'])) {
+                        isset($_POST['newProjectDescription']) &&
+                        isset($_POST['newPostStormHeader']) &&
+                        isset($_POST['newPreStormHeader']) &&
+                        isset($_POST['newProjectStatus'])
+                    )
+                    {
 
-                        $invalidRequiredField = FALSE;
-                        $dataChanges = FALSE;
-                        $databaseUpdateFailure = FALSE;
+                        $invalidRequiredField = false;
+                        $dataChanges = false;
+                        $databaseUpdateFailure = false;
 
-                        settype($_POST['projectId'], 'integer');
-                        if (!empty($_POST['projectId'])) {
+                        settype($_POST['projectId'],
+                                'integer');
+                        if (!empty($_POST['projectId']))
+                        {
                             $projectId = $_POST['projectId'];
-                            $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-                            if (!$projectMetadata) {
+                            $projectMetadata =
+                                retrieve_entity_metadata($DBH,
+                                                         $projectId,
+                                                         'project');
+                            if (!$projectMetadata)
+                            {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['projectId'] = $_POST['projectId'];
                         }
 
-                        if (!empty($_POST['newProjectName'])) {
+                        if (!empty($_POST['newProjectName']))
+                        {
                             $newProjectName = htmlspecialchars($_POST['newProjectName']);
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['newProjectName'] = $_POST['newProjectName'];
                         }
 
                         $newProjectDescription = htmlspecialchars($_POST['newProjectDescription']);
 
-                        if (!empty($_POST['newPostStormHeader'])) {
+                        if (!empty($_POST['newPostStormHeader']))
+                        {
                             $newPostStormHeader = htmlspecialchars($_POST['newPostStormHeader']);
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['newPostStormHeader'] = $_POST['newPostStormHeader'];
                         }
 
-                        if (!empty($_POST['newPreStormHeader'])) {
+                        if (!empty($_POST['newPreStormHeader']))
+                        {
                             $newPreStormHeader = htmlspecialchars($_POST['newPreStormHeader']);
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['newPreStormHeader'] = $_POST['newPreStormHeader'];
                         }
 
-                        if ($_POST['newProjectStatus'] == 0 || $_POST['newProjectStatus'] == 1) {
+                        if ($_POST['newProjectStatus'] == 0 || $_POST['newProjectStatus'] == 1)
+                        {
                             $currentSystemFocusQuery = '
                                     SELECT home_page_project
                                     FROM system
                                     LIMIT 1';
-                            $currentSystemFocusQuery = run_prepared_query($DBH, $currentSystemFocusQuery);
+                            $currentSystemFocusQuery =
+                                run_prepared_query($DBH,
+                                                   $currentSystemFocusQuery);
                             $currentSystemFocus = $currentSystemFocusQuery->fetchColumn();
-                            if ($currentSystemFocus == $projectMetadata['project_id'] && $_POST['newProjectStatus'] == 0) {
-                                $invalidRequiredField['newProjectStatus'] = $_POST['newProjectStatus']  . ' Project is currently in focus';
-                            } else {
+                            if ($currentSystemFocus == $projectMetadata['project_id'] &&
+                                $_POST['newProjectStatus'] == 0
+                            )
+                            {
+                                $invalidRequiredField['newProjectStatus'] =
+                                    $_POST['newProjectStatus'] . ' Project is currently in focus';
+                            }
+                            else
+                            {
                                 $newProjectStatus = $_POST['newProjectStatus'];
                             }
-                        } else {
-                            $invalidRequiredField['newProjectStatus'] = $_POST['newProjectStatus'] . ' Invalid Argument';
+                        }
+                        else
+                        {
+                            $invalidRequiredField['newProjectStatus'] =
+                                $_POST['newProjectStatus'] . ' Invalid Argument';
                         }
 
-                        if (!$invalidRequiredField) {
+                        if (!$invalidRequiredField)
+                        {
 
                             $checkForChangesQuery = "SELECT * FROM projects WHERE project_id = :projectId";
                             $checkForChangesParams['projectId'] = $projectId;
-                            $checkForChangesResult = run_prepared_query($DBH, $checkForChangesQuery, $checkForChangesParams);
+                            $checkForChangesResult =
+                                run_prepared_query($DBH,
+                                                   $checkForChangesQuery,
+                                                   $checkForChangesParams);
                             $oldProjectDetails = $checkForChangesResult->fetch(PDO::FETCH_ASSOC);
                             $taskFieldsToUpdate = array();
-                            foreach ($oldProjectDetails as $column => $oldColumnValue) {
-                                switch ($column) {
+                            foreach ($oldProjectDetails as $column => $oldColumnValue)
+                            {
+                                switch ($column)
+                                {
                                     case 'name':
-                                        if ($oldColumnValue != $newProjectName) {
+                                        if ($oldColumnValue != $newProjectName)
+                                        {
                                             $taskFieldsToUpdate['name'] = $newProjectName;
                                         }
                                         break;
                                     case 'description':
-                                        if ($oldColumnValue != $newProjectDescription) {
+                                        if ($oldColumnValue != $newProjectDescription)
+                                        {
                                             $taskFieldsToUpdate['description'] = $newProjectDescription;
                                         }
                                         break;
                                     case 'post_image_header':
-                                        if ($oldColumnValue != $newPostStormHeader) {
+                                        if ($oldColumnValue != $newPostStormHeader)
+                                        {
                                             $taskFieldsToUpdate['post_image_header'] = $newPostStormHeader;
                                         }
                                         break;
                                     case 'pre_image_header':
-                                        if ($oldColumnValue != $newPreStormHeader) {
+                                        if ($oldColumnValue != $newPreStormHeader)
+                                        {
                                             $taskFieldsToUpdate['pre_image_header'] = $newPreStormHeader;
                                         }
                                         break;
                                     case 'is_public':
-                                        if ($oldColumnValue != $newProjectStatus) {
+                                        if ($oldColumnValue != $newProjectStatus)
+                                        {
                                             $taskFieldsToUpdate['is_public'] = $newProjectStatus;
                                         }
                                         break;
                                 }
                             }
 
-                            if (count($taskFieldsToUpdate) > 0) {
+                            if (count($taskFieldsToUpdate) > 0)
+                            {
                                 $dataChanges = true;
 
                                 $updateProjectDetailsQuery = "UPDATE projects "
-                                        . "SET ";
+                                                             . "SET ";
                                 $updateProjectDetailsParams = array();
                                 $columnUpdateCount = 0;
-                                foreach ($taskFieldsToUpdate as $column => $value) {
+                                foreach ($taskFieldsToUpdate as $column => $value)
+                                {
                                     $updateProjectDetailsQuery .= "$column=:$column";
                                     $columnUpdateCount++;
-                                    if ($columnUpdateCount != count($taskFieldsToUpdate)) {
+                                    if ($columnUpdateCount != count($taskFieldsToUpdate))
+                                    {
                                         $updateProjectDetailsQuery .= ", ";
                                     }
                                     $updateProjectDetailsParams[$column] = $value;
@@ -259,70 +410,101 @@ if (isset($_POST['editSubmitted'])) {
                                 $updateProjectDetailsQuery .= " WHERE project_id = :projectToUpdate LIMIT 1";
                                 $updateProjectDetailsParams['projectToUpdate'] = $projectId;
 
-                                $updateProjectDetailsResult = run_prepared_query($DBH, $updateProjectDetailsQuery, $updateProjectDetailsParams);
+                                $updateProjectDetailsResult =
+                                    run_prepared_query($DBH,
+                                                       $updateProjectDetailsQuery,
+                                                       $updateProjectDetailsParams);
                                 $affectedRows = $updateProjectDetailsResult->rowCount();
 
-                                if (isset($affectedRows) && $affectedRows == 1) {
+                                if (isset($affectedRows) && $affectedRows == 1)
+                                {
 
-                                } else {
+                                }
+                                else
+                                {
                                     $databaseUpdateFailure['ProjectUpdateQuery'] = '$tagUpdateQuery';
                                 }
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
                         // ERROR LOGGING
                     }
 
-                    if ($invalidRequiredField) {
+                    if ($invalidRequiredField)
+                    {
                         // printArray($invalidRequiredField);
                         $actionSummaryHTML = <<<EOL
                                 <h2>Errors Detected in Input Data</h2>
                                 <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
                                 <div class="updateFormSubmissionControls"><hr>
-                                    <input type="button" class="clickableButton" id="returnToProjectDetails" title="This will return you to the project details editing screen screen for you to update this project's details again." value="Return to the Project Details Editor">
+                                    <input type="button" class="clickableButton" id="returnToProjectDetails" 
+                                    title="This will return you to the project details editing screen screen for you 
+                                    to update this project's details again." value="Edit This Project Again">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else if (!$dataChanges) {
-                        $actionSummaryHTML = <<<EOL
+                    }
+                    else
+                    {
+                        if (!$dataChanges)
+                        {
+                            $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
                                 <p>No change in the project data has been detected. The database has not been altered.</p>
 
 EOL;
-                    } else if ($databaseUpdateFailure) {
-                        $projectUpdateErrorHTML = <<<EOL
+                        }
+                        else
+                        {
+                            if ($databaseUpdateFailure)
+                            {
+                                $projectUpdateErrorHTML = <<<EOL
                                 <h2>Update Failed</h2>
-                                <p>An unknown error occured during the database update. No changes have been made.
+                                <p>An unknown error occurred during the database update. No changes have been made.
                                     If this problem persists please contact an iCoast System Administrator. </p>
                                 <div class="updateFormSubmissionControls"><hr>
-                                    <input type="button" class="clickableButton" id="returnToProjectDetails" title="This will return you to the project details editing screen screen for you to update this project's details again." value="Return to the Project Details Editor">
+                                    <input type="button" class="clickableButton" id="returnToProjectDetails" 
+                                    title="This will return you to the project details editing screen screen for you 
+                                    to update this project's details again." value="Edit This Project Again">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else {
-                        $actionSummaryHTML = <<<EOL
+                            }
+                            else
+                            {
+                                $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
                                 <p>It is recommended that you now review the project in iCoast to ensure your changes are
                                     displayed correctly.</p>
 
 EOL;
+                            }
+                        }
                     }
 
 
-
-                    if (!$databaseUpdateFailure && !$invalidRequiredField) {
+                    if (!$databaseUpdateFailure && !$invalidRequiredField)
+                    {
 
                         $summaryQuery = "SELECT * FROM projects WHERE project_id = :projectId";
                         $summaryParams['projectId'] = $projectId;
-                        $summaryResult = run_prepared_query($DBH, $summaryQuery, $summaryParams);
+                        $summaryResult =
+                            run_prepared_query($DBH,
+                                               $summaryQuery,
+                                               $summaryParams);
                         $dbProjectMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
 
-                        if ($dbProjectMetadata['is_public'] == 1) {
+                        if ($dbProjectMetadata['is_public'] == 1)
+                        {
                             $dbProjectStatusText = 'Enabled';
-                        } else {
+                        }
+                        else
+                        {
                             $dbProjectStatusText = '<span class="redHighlight">Disabled</span>';
                         }
 
@@ -353,7 +535,9 @@ EOL;
                                     </tbody>
                                 </table>
                                 <div class="updateFormSubmissionControls"><hr>
-                                    <input type="button" class="clickableButton" id="returnToProjectDetails" title="This will return you to the project details editing screen screen for you to update this project's details again." value="Return to the Project Details Editor">
+                                    <input type="button" class="clickableButton" id="returnToProjectDetails" 
+                                    title="This will return you to the project details editing screen screen for you 
+                                    to update this project's details again." value="Edit This Project Again">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
@@ -367,360 +551,616 @@ EOL;
                 //
                 //
                 case 'tasks':
-                    // CHECK THAT ALL REQUIRED FIELDS ARE PRESENT & CORRECT
-                    if (isset($_POST['projectEditSubAction']) &&
-                            isset($_POST['newTaskName']) &&
-                            isset($_POST['newTaskDescription']) &&
-                            isset($_POST['newDisplayTitle']) &&
-                            isset($_POST['newOrderInProject']) &&
-                            isset($_POST['newTaskStatus'])) {
 
 
-                        $invalidRequiredField = FALSE;
-                        $dataChanges = FALSE;
-                        $databaseUpdateFailure = FALSE;
-
-                        if ($_POST['projectEditSubAction'] == 'updateExistingTask' || $_POST['projectEditSubAction'] == 'createNewTask') {
+                    if (isset($_POST['projectEditSubAction']))
+                    {
+                        if ($_POST['projectEditSubAction'] == 'updateExistingTask' ||
+                            $_POST['projectEditSubAction'] == 'createNewTask' ||
+                            $_POST['projectEditSubAction'] == 'deleteExistingTask'
+                        )
+                        {
                             $projectEditSubAction = $_POST['projectEditSubAction'];
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                         }
-
-                        settype($_POST['projectId'], 'integer');
-                        if (!empty($_POST['projectId'])) {
+                        settype($_POST['projectId'],
+                                'integer');
+                        if (!empty($_POST['projectId']))
+                        {
                             $projectId = $_POST['projectId'];
-                            $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-                            if (!$projectMetadata) {
+                            $projectMetadata =
+                                retrieve_entity_metadata($DBH,
+                                                         $projectId,
+                                                         'project');
+                            if (!$projectMetadata)
+                            {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['projectId'] = $_POST['projectId'];
                         }
 
-                        if (!empty($_POST['newTaskName'])) {
-                            $newTaskName = htmlspecialchars($_POST['newTaskName']);
-                        } else {
-                            $invalidRequiredField['newTaskName'] = $_POST['newTaskName'];
-                        }
 
-                        $newTaskDescription = htmlspecialchars($_POST['newTaskDescription']);
+                        if ($projectEditSubAction == 'deleteExistingTask' && empty($invalidRequiredField))
+                        {
+                            $invalidDeletionRequest = false;
+                            $taskId = filter_input(INPUT_POST,
+                                                   'taskId',
+                                                   FILTER_VALIDATE_INT);
+                            if (!taskContentsCheck($DBH,
+                                                   $taskId)
+                            )
+                            {
+                                $taskDeletionQuery = <<<MySQL
+                                DELETE 
+                                FROM task_metadata 
+                                WHERE task_id = :taskId
+                                LIMIT 1
+MySQL;
+                                $taskDeletionParams['taskId'] = $taskId;
+                                run_prepared_query($DBH,
+                                                   $taskDeletionQuery,
+                                                   $taskDeletionParams);
 
-                        if (!empty($_POST['newDisplayTitle'])) {
-                            $newDisplayTitle = htmlspecialchars($_POST['newDisplayTitle']);
-                        } else {
-                            $invalidRequiredField['newDisplayTitle'] = $_POST['newDisplayTitle'];
-                        }
+                                $projectTaskQuery =
+                                    "SELECT * FROM task_metadata WHERE project_id = :projectId ORDER BY order_in_project ASC";
+                                $projectTaskParams['projectId'] = $projectId;
+                                $projectTaskResults =
+                                    run_prepared_query($DBH,
+                                                       $projectTaskQuery,
+                                                       $projectTaskParams);
+                                $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
+                                $numberOfTasks = count($projectTasks);
 
-                        settype($_POST['newOrderInProject'], 'integer');
-                        if (!empty($_POST['newOrderInProject'])) {
-                            $newOrderInProject = $_POST['newOrderInProject'];
-                        } else {
-                            $invalidRequiredField['newOrderInProject'] = $_POST['newOrderInProject'];
-                        }
-
-                        if ($_POST['newTaskStatus'] == 0 || $_POST['newTaskStatus'] == 1) {
-                            $newTaskStatus = $_POST['newTaskStatus'];
-                        } else {
-                            $invalidRequiredField['newTaskStatus'] = $_POST['newTaskStatus'];
-                        }
-
-                        if (!$invalidRequiredField) {
-
-
-
-
-                            $projectTaskQuery = "SELECT * FROM task_metadata WHERE project_id = :projectId ORDER BY order_in_project ASC";
-                            $projectTaskParams['projectId'] = $projectId;
-                            $projectTaskResults = run_prepared_query($DBH, $projectTaskQuery, $projectTaskParams);
-                            $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
-                            $numberOfTasks = count($projectTasks);
-
-
-
-                            // IF A TASK_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingTask
-                            if (isset($_POST['taskId']) &&
-                                    $projectEditSubAction == 'updateExistingTask') {
-
-                                settype($_POST['taskId'], 'integer');
-                                if (!empty($_POST['taskId'])) {
-                                    $taskId = $_POST['taskId'];
-                                } else {
-                                    $invalidRequiredField['taskId'] = $_POST['taskId'];
-                                }
-
-                                if (!$invalidRequiredField) {
-                                    // REWRITE THE 'ORDER_IN_PROJECT' FIELDS TO BE SEQUENTIAL IF NOT ALREADY. ORDER IS UNCHANGED
-                                    $orderResequenced = FALSE;
-                                    $selectedProjectOrderToBeChanged = FALSE;
-                                    $taskFieldsToUpdate = array();
-                                    // LOOP THROUGH THE TASKS
-                                    for ($i = 0; $i < $numberOfTasks; $i++) {
-                                        // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
-                                        if ($projectTasks[$i]['order_in_project'] != ($i + 1)) {
-                                            $projectTasks[$i]['order_in_project'] = ($i + 1);
-                                            $projectTasks[$i]['is_altered'] = true;
-                                            $orderResequenced = TRUE;
-                                        } else {
-                                            $projectTasks[$i]['is_altered'] = false;
-                                        }
-                                        // IF THE CURRENT TASK IS THE ONE THE USER IS EDITING AND A CHANGE IN ORDER IS DETECTED THEN SET THE FLAG
-                                        // AND DETECT IF THE TASK WILL MOVE UP OR DOWN THE ORDER. ALSO RECORD THE TASKS OLD POSITION
-                                        if ($projectTasks[$i]['task_id'] == $taskId) {
-                                            foreach ($projectTasks[$i] as $column => $oldColumnValue) {
-                                                switch ($column) {
-                                                    case 'is_enabled':
-                                                        if ($oldColumnValue != $newTaskStatus) {
-                                                            $taskFieldsToUpdate['is_enabled'] = $newTaskStatus;
-                                                        }
-                                                        break;
-                                                    case 'name':
-                                                        if ($oldColumnValue != $newTaskName) {
-                                                            $taskFieldsToUpdate['name'] = $newTaskName;
-                                                        }
-                                                        break;
-                                                    case 'description':
-                                                        if ($oldColumnValue != $newTaskDescription) {
-                                                            $taskFieldsToUpdate['description'] = $newTaskDescription;
-                                                        }
-                                                        break;
-                                                    case 'order_in_project':
-                                                        if ($oldColumnValue != $newOrderInProject) {
-                                                            $taskFieldsToUpdate['order_in_project'] = $newOrderInProject;
-                                                            $selectedProjectOrderToBeChanged = TRUE;
-                                                            $selectedTaskOldOrderInProject = $projectTasks[$i]['order_in_project'];
-                                                            if ($newOrderInProject < $oldColumnValue) {
-                                                                $directionOfProjectMovement = 'down';
-                                                            } else {
-                                                                $directionOfProjectMovement = 'up';
-                                                            }
-                                                        }
-                                                        break;
-                                                    case 'display_title':
-                                                        if ($oldColumnValue != $newDisplayTitle) {
-                                                            $taskFieldsToUpdate['display_title'] = $newDisplayTitle;
-                                                        }
-                                                        break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    // CHANGE THE ORDER OF THE TASKS IF NECESSARY (FLAG WAS SET)
-                                    if ($selectedProjectOrderToBeChanged) {
-                                        // LOOP THROUGH THE TASKS
-                                        for ($i = 0; $i < $numberOfTasks; $i++) {
-                                            // IF THE CURRENT TASK IN THE LOOP IS NOT THE TASK BEING EDITED AND IT WILL BE AFFECTED BY
-                                            // THE CHANGE OF ORDER OF THE EDITED TASK THEN MOVE IT UP OR DOWN THE ORDER IN THE PROJECT BY
-                                            // 1 PLACE TO MAKE ROOM FOR THE NEW LOCATION OF THE EDITED TASK.
-                                            if ($projectTasks[$i]['task_id'] != $taskId) {
-                                                if ($directionOfProjectMovement == 'up' &&
-                                                        ($projectTasks[$i]['order_in_project'] > $selectedTaskOldOrderInProject) &&
-                                                        ($projectTasks[$i]['order_in_project'] <= $newOrderInProject)) {
-                                                    $projectTasks[$i]['order_in_project'] --;
-                                                    $projectTasks[$i]['is_altered'] = true;
-                                                } else if ($directionOfProjectMovement == 'down' &&
-                                                        ($projectTasks[$i]['order_in_project'] < $selectedTaskOldOrderInProject) &&
-                                                        ($projectTasks[$i]['order_in_project'] >= $newOrderInProject)) {
-                                                    $projectTasks[$i]['order_in_project'] ++;
-                                                    $projectTasks[$i]['is_altered'] = true;
-                                                }
-                                            } else {
-                                                // IF THE TASK IS THE ONE BEING EDITED THE REPLACE ITS ORDER IN PROJECT WITH THE NEW POSITION
-                                                $projectTasks[$i]['order_in_project'] = $newOrderInProject;
-                                                $projectTasks[$i]['is_altered'] = true;
-                                            }
-                                        }
-                                        $orderResequenced = TRUE;
-                                    }
-
-                                    // PREPARE UPDATE BASED ON CHANGES ONLY TO THE SELECTED TASK
-                                    // IF NO RESEQUENCING WAS NEEDED AND THE ORDER OF THE EDITED TASK IN THE PROJECT IS UNCHANGED
-                                    // THEN JUST UPDATE THE EDITED TASK INFORMATION.
-                                    if (count($taskFieldsToUpdate) > 0) {
-
-                                        $dataChanges = true;
-
-                                        $updateTaskQuery = "UPDATE task_metadata "
-                                                . "SET ";
-                                        $updateTaskParams = array();
-                                        $columnUpdateCount = 0;
-                                        foreach ($taskFieldsToUpdate as $column => $value) {
-                                            $updateTaskQuery .= "$column=:$column";
-                                            $columnUpdateCount++;
-                                            if ($columnUpdateCount != count($taskFieldsToUpdate)) {
-                                                $updateTaskQuery .= ", ";
-                                            }
-                                            $updateTaskParams[$column] = $value;
-                                        }
-                                        $updateTaskQuery .= " WHERE task_id = :taskToUpdate LIMIT 1";
-                                        $updateTaskParams['taskToUpdate'] = $taskId;
-
-                                        $updateTaskResult = run_prepared_query($DBH, $updateTaskQuery, $updateTaskParams);
-                                        $affectedRows = $updateTaskResult->rowCount();
-
-                                        if (isset($affectedRows) && $affectedRows == 1) {
-
-                                        } else {
-                                            $databaseUpdateFailure['TaskMetadataUpdateQuery'] = '$updateTaskQuery';
-                                        }
-                                    } // END FIELD CHANGES - if ($fieldChanges)
-
-                                    if ($orderResequenced) {
-                                        // EITHER THE ORDER WAS RESEQUENCED OR CHANGED AND ALL TASKS MUST BE UPDATED
-                                        foreach ($projectTasks as $individualTask) { // LOOP THROUGH THE TASKS
-                                            // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND ANY PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
-                                            // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
-                                            if (!$databaseUpdateFailure &&
-                                                    $individualTask['is_altered'] == true &&
-                                                    ($individualTask['task_id'] != $taskId ||
-                                                    ($individualTask['task_id'] == $taskId && !$dataChanges))) {
-                                                $updateTaskOrderQuery = "UPDATE task_metadata "
-                                                        . "SET order_in_project = :orderInProject "
-                                                        . "WHERE task_id = :taskId LIMIT 1";
-                                                $updateTaskOrderParams = array(
-                                                    'orderInProject' => $individualTask['order_in_project'],
-                                                    'taskId' => $individualTask['task_id']
-                                                );
-                                                $updateTaskOrderResult = run_prepared_query($DBH, $updateTaskOrderQuery, $updateTaskOrderParams);
-                                                $affectedRows = $updateTaskOrderResult->rowCount();
-
-                                                if (isset($affectedRows) && $affectedRows == 1) {
-
-                                                } else {
-                                                    $databaseUpdateFailure['TaskOrderUpdate'] = '$updateTaskOrderQuery';
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
-                                }
-                            } // END TASK UPDATE
-                            else if ($projectEditSubAction == 'createNewTask') {
-                                // IF THE UPDATE REQUEST IS TO CREATE NEW TASK THEN CREATE A NEW TASK
-                                // REWRITE THE 'ORDER_IN_PROJECT' FIELDS TO BE SEQUENTIAL IF NOT ALREADY. ORDER IS UNCHANGED
-                                $dataChanges = TRUE;
                                 $sequentialOrderInProjectNumber = 1;
-                                // LOOP THROUGH THE TASKS
-                                for ($i = 0; $i < $numberOfTasks; $i++) {
+
+                                for ($i = 0; $i < $numberOfTasks; $i++)
+                                {
                                     // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
-                                    if ($projectTasks[$i]['order_in_project'] != $sequentialOrderInProjectNumber) {
+                                    if ($projectTasks[$i]['order_in_project'] != $sequentialOrderInProjectNumber)
+                                    {
                                         $projectTasks[$i]['order_in_project'] = $sequentialOrderInProjectNumber;
+                                    }
+                                    else
+                                    {
+                                        $projectTasks[$i] = null;
                                     }
                                     $sequentialOrderInProjectNumber++;
                                 }
-
-                                // CHANGE THE ORDER OF THE TASKS TO MAKE SPACE FOR NEW TASK
-                                // LOOP THROUGH THE TASKS
-                                for ($i = 0; $i < $numberOfTasks; $i++) {
-                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE TASK BEING EDITED AND IT WILL BE AFFECTED BY
-                                    // THE CHANGE OF ORDER OF THE EDITED TASK THEN MOVE IT UP OR DOWN THE ORDER IN THE PROJECT BY
-                                    // 1 PLACE TO MAKE ROOM FOR THE NEW LOCATION OF THE EDITED TASK.
-
-                                    if ($projectTasks[$i]['order_in_project'] >= $newOrderInProject) {
-                                        $projectTasks[$i]['order_in_project'] ++;
+                                foreach ($projectTasks as $individualTask)
+                                { // LOOP THROUGH THE TASKS
+                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                    // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                    if (is_null($individualTask))
+                                    {
+                                        continue;
                                     }
+                                    $updateTaskQuery = "UPDATE task_metadata "
+                                                       . "SET order_in_project = :orderInProject "
+                                                       . "WHERE task_id = :taskId LIMIT 1";
+                                    $updateTaskParams = array(
+                                        'orderInProject' => $individualTask['order_in_project'],
+                                        'taskId'         => $individualTask['task_id']
+                                    );
+                                    $updateTaskResult =
+                                        run_prepared_query($DBH,
+                                                           $updateTaskQuery,
+                                                           $updateTaskParams);
                                 }
 
-                                foreach ($projectTasks as $individualTask) { // LOOP THROUGH THE TASKS
-                                    if (!$databaseUpdateFailure) {
-                                        // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
-                                        // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
-                                        $updateTaskQuery = "UPDATE task_metadata "
-                                                . "SET order_in_project = :orderInProject "
-                                                . "WHERE task_id = :taskId LIMIT 1";
-                                        $updateTaskParams = array(
-                                            'orderInProject' => $individualTask['order_in_project'],
-                                            'taskId' => $individualTask['task_id']
-                                        );
-                                        $updateTaskResult = run_prepared_query($DBH, $updateTaskQuery, $updateTaskParams);
-                                        if (!isset($updateTaskResult) || $updateTaskResult->rowCount === 0) {
-                                            $databaseUpdateFailure['TaskReorderingForNewTask'] = $updateTaskQuery;
+                                $actionSummaryHTML .= <<<EOL
+                                    <h3>Deletion Successful</h3>
+                                    <p>The requested task has been deleted.</p>
+                                   <div class="updateFormSubmissionControls"><hr>
+                                        <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                    </div>     
+
+EOL;
+                            }
+                            else
+                            {
+                                $projectUpdateErrorHTML = <<<EOL
+                                    <h3>Deletion Failed</h3>
+                                    <p>Deletion request could not be completed as the requested task to delete contains one or 
+                                    more groups.</p>
+                                    <div class="updateFormSubmissionControls"><hr>
+                                   <div class="updateFormSubmissionControls"><hr>
+                                        <input type="button" class="clickableButton" id="editTaskAgain" title="This will 
+                                            return you to the current task for further changes and updates" value="Edit This Task Again">
+                                        <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                    </div>
+
+EOL;
+                            }
+                        }
+                        else
+                        {
+
+                            // CHECK THAT ALL REQUIRED FIELDS ARE PRESENT & CORRECT
+                            if (isset($projectEditSubAction) &&
+                                isset($_POST['newTaskName']) &&
+                                isset($_POST['newTaskDescription']) &&
+                                isset($_POST['newDisplayTitle']) &&
+                                isset($_POST['newOrderInProject']) &&
+                                isset($_POST['newTaskStatus'])
+                            )
+                            {
+
+                                $dataChanges = false;
+                                $invalidRequiredField = false;
+                                $databaseUpdateFailure = false;
+
+                                if (!empty($_POST['newTaskName']))
+                                {
+                                    $newTaskName = htmlspecialchars($_POST['newTaskName']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTaskName'] = $_POST['newTaskName'];
+                                }
+
+                                $newTaskDescription = htmlspecialchars($_POST['newTaskDescription']);
+
+                                if (!empty($_POST['newDisplayTitle']))
+                                {
+                                    $newDisplayTitle = htmlspecialchars($_POST['newDisplayTitle']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newDisplayTitle'] = $_POST['newDisplayTitle'];
+                                }
+
+                                settype($_POST['newOrderInProject'],
+                                        'integer');
+                                if (!empty($_POST['newOrderInProject']))
+                                {
+                                    $newOrderInProject = $_POST['newOrderInProject'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newOrderInProject'] = $_POST['newOrderInProject'];
+                                }
+
+                                if ($_POST['newTaskStatus'] == 0 || $_POST['newTaskStatus'] == 1)
+                                {
+                                    $newTaskStatus = $_POST['newTaskStatus'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTaskStatus'] = $_POST['newTaskStatus'];
+                                }
+
+                                if (!$invalidRequiredField)
+                                {
+
+
+                                    $projectTaskQuery =
+                                        "SELECT * FROM task_metadata WHERE project_id = :projectId ORDER BY order_in_project ASC";
+                                    $projectTaskParams['projectId'] = $projectId;
+                                    $projectTaskResults =
+                                        run_prepared_query($DBH,
+                                                           $projectTaskQuery,
+                                                           $projectTaskParams);
+                                    $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
+                                    $numberOfTasks = count($projectTasks);
+
+
+                                    // IF A TASK_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingTask
+                                    if (isset($_POST['taskId']) &&
+                                        $projectEditSubAction == 'updateExistingTask'
+                                    )
+                                    {
+
+                                        settype($_POST['taskId'],
+                                                'integer');
+                                        if (!empty($_POST['taskId']))
+                                        {
+                                            $taskId = $_POST['taskId'];
+                                        }
+                                        else
+                                        {
+                                            $invalidRequiredField['taskId'] = $_POST['taskId'];
+                                        }
+
+                                        if (!$invalidRequiredField)
+                                        {
+                                            // REWRITE THE 'ORDER_IN_PROJECT' FIELDS TO BE SEQUENTIAL IF NOT ALREADY. ORDER IS UNCHANGED
+                                            $orderResequenced = false;
+                                            $selectedProjectOrderToBeChanged = false;
+                                            $taskFieldsToUpdate = array();
+                                            // LOOP THROUGH THE TASKS
+                                            for ($i = 0; $i < $numberOfTasks; $i++)
+                                            {
+                                                // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
+                                                if ($projectTasks[$i]['order_in_project'] != ($i + 1))
+                                                {
+                                                    $projectTasks[$i]['order_in_project'] = ($i + 1);
+                                                    $projectTasks[$i]['is_altered'] = true;
+                                                    $orderResequenced = true;
+                                                }
+                                                else
+                                                {
+                                                    $projectTasks[$i]['is_altered'] = false;
+                                                }
+                                                // IF THE CURRENT TASK IS THE ONE THE USER IS EDITING AND A CHANGE IN ORDER IS DETECTED THEN SET THE FLAG
+                                                // AND DETECT IF THE TASK WILL MOVE UP OR DOWN THE ORDER. ALSO RECORD THE TASKS OLD POSITION
+                                                if ($projectTasks[$i]['task_id'] == $taskId)
+                                                {
+                                                    foreach ($projectTasks[$i] as $column => $oldColumnValue)
+                                                    {
+                                                        switch ($column)
+                                                        {
+                                                            case 'is_enabled':
+                                                                if ($oldColumnValue != $newTaskStatus)
+                                                                {
+                                                                    $taskFieldsToUpdate['is_enabled'] = $newTaskStatus;
+                                                                }
+                                                                break;
+                                                            case 'name':
+                                                                if ($oldColumnValue != $newTaskName)
+                                                                {
+                                                                    $taskFieldsToUpdate['name'] = $newTaskName;
+                                                                }
+                                                                break;
+                                                            case 'description':
+                                                                if ($oldColumnValue != $newTaskDescription)
+                                                                {
+                                                                    $taskFieldsToUpdate['description'] =
+                                                                        $newTaskDescription;
+                                                                }
+                                                                break;
+                                                            case 'order_in_project':
+                                                                if ($oldColumnValue != $newOrderInProject)
+                                                                {
+                                                                    $taskFieldsToUpdate['order_in_project'] =
+                                                                        $newOrderInProject;
+                                                                    $selectedProjectOrderToBeChanged = true;
+                                                                    $selectedTaskOldOrderInProject =
+                                                                        $projectTasks[$i]['order_in_project'];
+                                                                    if ($newOrderInProject < $oldColumnValue)
+                                                                    {
+                                                                        $directionOfProjectMovement = 'down';
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        $directionOfProjectMovement = 'up';
+                                                                    }
+                                                                }
+                                                                break;
+                                                            case 'display_title':
+                                                                if ($oldColumnValue != $newDisplayTitle)
+                                                                {
+                                                                    $taskFieldsToUpdate['display_title'] =
+                                                                        $newDisplayTitle;
+                                                                }
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // CHANGE THE ORDER OF THE TASKS IF NECESSARY (FLAG WAS SET)
+                                            if ($selectedProjectOrderToBeChanged)
+                                            {
+                                                // LOOP THROUGH THE TASKS
+                                                for ($i = 0; $i < $numberOfTasks; $i++)
+                                                {
+                                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE TASK BEING EDITED AND IT WILL BE AFFECTED BY
+                                                    // THE CHANGE OF ORDER OF THE EDITED TASK THEN MOVE IT UP OR DOWN THE ORDER IN THE PROJECT BY
+                                                    // 1 PLACE TO MAKE ROOM FOR THE NEW LOCATION OF THE EDITED TASK.
+                                                    if ($projectTasks[$i]['task_id'] != $taskId)
+                                                    {
+                                                        if ($directionOfProjectMovement == 'up' &&
+                                                            ($projectTasks[$i]['order_in_project'] >
+                                                             $selectedTaskOldOrderInProject) &&
+                                                            ($projectTasks[$i]['order_in_project'] <=
+                                                             $newOrderInProject)
+                                                        )
+                                                        {
+                                                            $projectTasks[$i]['order_in_project']--;
+                                                            $projectTasks[$i]['is_altered'] = true;
+                                                        }
+                                                        else
+                                                        {
+                                                            if ($directionOfProjectMovement == 'down' &&
+                                                                ($projectTasks[$i]['order_in_project'] <
+                                                                 $selectedTaskOldOrderInProject) &&
+                                                                ($projectTasks[$i]['order_in_project'] >=
+                                                                 $newOrderInProject)
+                                                            )
+                                                            {
+                                                                $projectTasks[$i]['order_in_project']++;
+                                                                $projectTasks[$i]['is_altered'] = true;
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        // IF THE TASK IS THE ONE BEING EDITED THE REPLACE ITS ORDER IN PROJECT WITH THE NEW POSITION
+                                                        $projectTasks[$i]['order_in_project'] = $newOrderInProject;
+                                                        $projectTasks[$i]['is_altered'] = true;
+                                                    }
+                                                }
+                                                $orderResequenced = true;
+                                            }
+
+                                            // PREPARE UPDATE BASED ON CHANGES ONLY TO THE SELECTED TASK
+                                            // IF NO RESEQUENCING WAS NEEDED AND THE ORDER OF THE EDITED TASK IN THE PROJECT IS UNCHANGED
+                                            // THEN JUST UPDATE THE EDITED TASK INFORMATION.
+                                            if (count($taskFieldsToUpdate) > 0)
+                                            {
+
+                                                $dataChanges = true;
+
+                                                $updateTaskQuery = "UPDATE task_metadata "
+                                                                   . "SET ";
+                                                $updateTaskParams = array();
+                                                $columnUpdateCount = 0;
+                                                foreach ($taskFieldsToUpdate as $column => $value)
+                                                {
+                                                    $updateTaskQuery .= "$column=:$column";
+                                                    $columnUpdateCount++;
+                                                    if ($columnUpdateCount != count($taskFieldsToUpdate))
+                                                    {
+                                                        $updateTaskQuery .= ", ";
+                                                    }
+                                                    $updateTaskParams[$column] = $value;
+                                                }
+                                                $updateTaskQuery .= " WHERE task_id = :taskToUpdate LIMIT 1";
+                                                $updateTaskParams['taskToUpdate'] = $taskId;
+
+                                                $updateTaskResult =
+                                                    run_prepared_query($DBH,
+                                                                       $updateTaskQuery,
+                                                                       $updateTaskParams);
+                                                $affectedRows = $updateTaskResult->rowCount();
+
+                                                if (isset($affectedRows) && $affectedRows == 1)
+                                                {
+
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['TaskMetadataUpdateQuery'] =
+                                                        '$updateTaskQuery';
+                                                }
+                                            } // END FIELD CHANGES - if ($fieldChanges)
+
+                                            if ($orderResequenced)
+                                            {
+                                                // EITHER THE ORDER WAS RESEQUENCED OR CHANGED AND ALL TASKS MUST BE UPDATED
+                                                foreach ($projectTasks as $individualTask)
+                                                { // LOOP THROUGH THE TASKS
+                                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND ANY PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                                    // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                                    if (!$databaseUpdateFailure &&
+                                                        $individualTask['is_altered'] == true &&
+                                                        ($individualTask['task_id'] != $taskId ||
+                                                         ($individualTask['task_id'] == $taskId && !$dataChanges))
+                                                    )
+                                                    {
+                                                        $updateTaskOrderQuery = "UPDATE task_metadata "
+                                                                                .
+                                                                                "SET order_in_project = :orderInProject "
+                                                                                .
+                                                                                "WHERE task_id = :taskId LIMIT 1";
+                                                        $updateTaskOrderParams = array(
+                                                            'orderInProject' => $individualTask['order_in_project'],
+                                                            'taskId'         => $individualTask['task_id']
+                                                        );
+                                                        $updateTaskOrderResult =
+                                                            run_prepared_query($DBH,
+                                                                               $updateTaskOrderQuery,
+                                                                               $updateTaskOrderParams);
+                                                        $affectedRows = $updateTaskOrderResult->rowCount();
+
+                                                        if (isset($affectedRows) && $affectedRows == 1)
+                                                        {
+
+                                                        }
+                                                        else
+                                                        {
+                                                            $databaseUpdateFailure['TaskOrderUpdate'] =
+                                                                '$updateTaskOrderQuery';
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $invalidRequiredField['Unknown'] =
+                                                "Core fields are missing from supplied data.";
+                                        }
+                                    } // END TASK UPDATE
+                                    else
+                                    {
+                                        if ($projectEditSubAction == 'createNewTask')
+                                        {
+                                            // IF THE UPDATE REQUEST IS TO CREATE NEW TASK THEN CREATE A NEW TASK
+                                            // REWRITE THE 'ORDER_IN_PROJECT' FIELDS TO BE SEQUENTIAL IF NOT ALREADY. ORDER IS UNCHANGED
+                                            $dataChanges = true;
+                                            $sequentialOrderInProjectNumber = 1;
+                                            // LOOP THROUGH THE TASKS
+                                            for ($i = 0; $i < $numberOfTasks; $i++)
+                                            {
+                                                // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
+                                                if ($projectTasks[$i]['order_in_project'] !=
+                                                    $sequentialOrderInProjectNumber
+                                                )
+                                                {
+                                                    $projectTasks[$i]['order_in_project'] =
+                                                        $sequentialOrderInProjectNumber;
+                                                }
+                                                $sequentialOrderInProjectNumber++;
+                                            }
+                                            if ($numberOfTasks > 0)
+                                            {
+                                                // CHANGE THE ORDER OF THE TASKS TO MAKE SPACE FOR NEW TASK
+                                                // LOOP THROUGH THE TASKS
+                                                for ($i = 0; $i < $numberOfTasks; $i++)
+                                                {
+                                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE TASK BEING EDITED AND IT WILL BE AFFECTED BY
+                                                    // THE CHANGE OF ORDER OF THE EDITED TASK THEN MOVE IT UP OR DOWN THE ORDER IN THE PROJECT BY
+                                                    // 1 PLACE TO MAKE ROOM FOR THE NEW LOCATION OF THE EDITED TASK.
+
+                                                    if ($projectTasks[$i]['order_in_project'] >= $newOrderInProject)
+                                                    {
+                                                        $projectTasks[$i]['order_in_project']++;
+                                                    }
+                                                }
+
+                                                foreach ($projectTasks as $individualTask)
+                                                { // LOOP THROUGH THE TASKS
+                                                    if (!$databaseUpdateFailure)
+                                                    {
+                                                        // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                                        // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                                        $updateTaskQuery = "UPDATE task_metadata "
+                                                                           . "SET order_in_project = :orderInProject "
+                                                                           . "WHERE task_id = :taskId LIMIT 1";
+                                                        $updateTaskParams = array(
+                                                            'orderInProject' => $individualTask['order_in_project'],
+                                                            'taskId'         => $individualTask['task_id']
+                                                        );
+                                                        $updateTaskResult =
+                                                            run_prepared_query($DBH,
+                                                                               $updateTaskQuery,
+                                                                               $updateTaskParams);
+                                                        if (!isset($updateTaskResult) ||
+                                                            $updateTaskResult->rowCount === 0
+                                                        )
+                                                        {
+                                                            $databaseUpdateFailure['TaskReorderingForNewTask'] =
+                                                                $updateTaskQuery;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // IF THE CURRENT TASK IN THE LOOP IS THE ONE BEING EDITED AND UPDATES TO
+                                            // PREVIOUS TASKS HAVE BEEN SUCESSFUL THEN PERFORM AN UPDATE OF ALL FIELDS ON THE CURRENT TASK
+                                            if (!$databaseUpdateFailure)
+                                            {
+                                                $updateTaskQuery = "INSERT INTO task_metadata " .
+                                                                   "(project_id, name, description, is_enabled, order_in_project, display_title) " .
+                                                                   "VALUES (:projectId, :newTaskName, :newTaskDescription, :newTaskStatus, :newOrderInProject, :newDisplayTitle )";
+                                                $updateTaskParams = array(
+                                                    'projectId'          => $projectId,
+                                                    'newTaskName'        => $newTaskName,
+                                                    'newTaskDescription' => $newTaskDescription,
+                                                    'newTaskStatus'      => $newTaskStatus,
+                                                    'newOrderInProject'  => $newOrderInProject,
+                                                    'newDisplayTitle'    => $newDisplayTitle
+                                                );
+                                                $updateTaskResult =
+                                                    run_prepared_query($DBH,
+                                                                       $updateTaskQuery,
+                                                                       $updateTaskParams);
+                                                if (!isset($updateTaskResult) || $updateTaskResult->rowCount === 0)
+                                                {
+                                                    $databaseUpdateFailure['InsertNewTask'] = $updateTaskQuery;
+                                                }
+                                                else
+                                                {
+                                                    $taskId = $DBH->lastInsertID();
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                                // IF THE CURRENT TASK IN THE LOOP IS THE ONE BEING EDITED AND UPDATES TO
-                                // PREVIOUS TASKS HAVE BEEN SUCESSFUL THEN PERFORM AN UPDATE OF ALL FIELDS ON THE CURRENT TASK
-                                if (!$databaseUpdateFailure) {
-                                    $updateTaskQuery = "INSERT INTO task_metadata " .
-                                            "(project_id, name, description, is_enabled, order_in_project, display_title) " .
-                                            "VALUES (:projectId, :newTaskName, :newTaskDescription, :newTaskStatus, :newOrderInProject, :newDisplayTitle )";
-                                    $updateTaskParams = array(
-                                        'projectId' => $projectId,
-                                        'newTaskName' => $newTaskName,
-                                        'newTaskDescription' => $newTaskDescription,
-                                        'newTaskStatus' => $newTaskStatus,
-                                        'newOrderInProject' => $newOrderInProject,
-                                        'newDisplayTitle' => $newDisplayTitle
-                                    );
-                                    $updateTaskResult = run_prepared_query($DBH, $updateTaskQuery, $updateTaskParams);
-                                    if (!isset($updateTaskResult) || $updateTaskResult->rowCount === 0) {
-                                        $databaseUpdateFailure['InsertNewTask'] = $updateTaskQuery;
-                                    } else {
-                                        $taskId = $DBH->lastInsertID();
-                                    }
-                                }
                             }
-                        }
-                    } else {
-                        // END ISSET REQUIRED FIELDS
-                        $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
-                    }
+                            else
+                            {
+                                // END ISSET REQUIRED FIELDS
+                                $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
+                            }
 
-                    // IF THERE WERE NO UPDATE ERRORS THEN UPDATE THE USER AND SHOW THE NEW TASK METADATA.
-                    if ($invalidRequiredField) {
-                        $actionSummaryHTML = <<<EOL
+
+                            // IF THERE WERE NO UPDATE ERRORS THEN UPDATE THE USER AND SHOW THE NEW TASK METADATA.
+                            if ($invalidRequiredField)
+                            {
+                                $taskId = $_POST['taskId'];
+                                $actionSummaryHTML = <<<EOL
                                 <h2>Errors Detected in Input Data</h2>
                                 <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
                                 <div class="updateFormSubmissionControls"><hr>
+                                <input type="button" class="clickableButton" id="editTaskAgain" title="This will 
+                                    return you to the current task for further changes and updates" value="Edit This Task Again">
                                     <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else if (!$dataChanges) {
-                        $actionSummaryHTML = <<<EOL
+                            }
+                            else
+                            {
+                                if (!$dataChanges)
+                                {
+                                    $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
                                 <p>No change in the task data has been detected. The database has not been altered.</p>
 
 EOL;
-                    } else if ($databaseUpdateFailure) {
-                        $projectUpdateErrorHTML = <<<EOL
+                                }
+                                else
+                                {
+                                    if ($databaseUpdateFailure)
+                                    {
+                                        $projectUpdateErrorHTML = <<<EOL
                                 <h2>Update Failed</h2>
-                                <p>An unknown error occured during the database update. No changes have been made.
+                                <p>An unknown error occurred during the database update. No changes have been made.
                                     If this problem persists please contact an iCoast System Administrator. </p>
                                 <div class="updateFormSubmissionControls"><hr>
+                                <input type="button" class="clickableButton" id="editTaskAgain" title="This will 
+                                    return you to the current task for further changes and updates" value="Edit This Task Again">
                                     <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else {
-                        $actionSummaryHTML = <<<EOL
+                                    }
+                                    else
+                                    {
+                                        $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
                                 <p>It is recommended that you now review the project in iCoast to ensure your changes are
                                     displayed correctly.</p>
 
 EOL;
-                    }
+                                    }
+                                }
+                            }
 
 
+                            if (!$databaseUpdateFailure && !$invalidRequiredField)
+                            {
 
-                    if (!$databaseUpdateFailure && !$invalidRequiredField) {
+                                $summaryQuery = "SELECT * FROM task_metadata WHERE task_id = :taskId";
+                                $summaryParams['taskId'] = $taskId;
+                                $summaryResult =
+                                    run_prepared_query($DBH,
+                                                       $summaryQuery,
+                                                       $summaryParams);
+                                $dbTaskMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
 
-                        $summaryQuery = "SELECT * FROM task_metadata WHERE task_id = :taskId";
-                        $summaryParams['taskId'] = $taskId;
-                        $summaryResult = run_prepared_query($DBH, $summaryQuery, $summaryParams);
-                        $dbTaskMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
+                                if ($dbTaskMetadata['is_enabled'] == 1)
+                                {
+                                    $dbTaskStatusText = 'Enabled';
+                                }
+                                else
+                                {
+                                    $dbTaskStatusText = '<span class="redHighlight">Disabled</span>';
+                                }
 
-                        if ($dbTaskMetadata['is_enabled'] == 1) {
-                            $dbTaskStatusText = 'Enabled';
-                        } else {
-                            $dbTaskStatusText = '<span class="redHighlight">Disabled</span>';
-                        }
+                                $ordinalPositionInParent = ordinal_suffix($dbTaskMetadata['order_in_project']);
 
-                        $ordinalPositionInParent = ordinal_suffix($dbTaskMetadata['order_in_project']);
-
-                        $actionSummaryHTML .= <<<EOL
+                                $actionSummaryHTML .= <<<EOL
                                 <h3>Task Details Summary</h3>
                                 <table id="updateSummaryTable">
                                     <tbody>
@@ -753,19 +1193,37 @@ EOL;
                                     </button>
                                 </div>
                                 <div class="updateFormSubmissionControls"><hr>
+                                    <input type="button" class="clickableButton" id="editTaskAgain" title="This will 
+                                    return you to the current task for further changes and updates" value="Edit This Task Again">
                                     <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                        $jQueryDocumentDotReadyCode .= <<<EOL
+                                $jQueryDocumentDotReadyCode .= <<<EOL
                             $('#previewQuestionSetButton').click(function () {
                                 window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
                             });
 
 EOL;
+                            }
+                        }
                     }
+                    else
+                    {
+                        $taskId = $_POST['taskId'];
+                        $actionSummaryHTML = <<<EOL
+                                <h2>Errors Detected in Input Data</h2>
+                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                                <div class="updateFormSubmissionControls"><hr>
+                                <input type="button" class="clickableButton" id="editTaskAgain" title="This will 
+                                    return you to the current task for further changes and updates" value="Edit This Task Again">
+                                    <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
+                                    <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                </div>
 
+EOL;
+                    }
 
 
                     break;
@@ -775,707 +1233,1350 @@ EOL;
                 //
                 //
                 case 'groups':
-                    // Check that all required fields are present.
-                    if (isset($_POST['projectEditSubAction']) &&
-                            isset($_POST['newGroupName']) &&
-                            isset($_POST['newGroupDescription']) &&
-                            isset($_POST['newDisplayText']) &&
-                            isset($_POST['newGroupContainsGroupsStatus']) &&
-                            isset($_POST['newGroupWidth']) &&
-                            isset($_POST['newGroupBorderStatus']) &&
-                            isset($_POST['newGroupColorStatus']) &&
-                            ($_POST['newGroupColorStatus'] == 0 || ($_POST['newGroupColorStatus'] == 1 && isset($_POST['newGroupColor']))) &&
-                            isset($_POST['newGroupOrder']) &&
-                            isset($_POST['newGroupStatus']) &&
-                            (isset($_POST['newParentGroupId']) || isset($_POST['newParentTaskId']))) {
 
+                    if (isset($_POST['projectEditSubAction']))
+                    {
 
-                        $invalidRequiredField = FALSE;
-                        $dataChanges = FALSE;
-                        $databaseUpdateFailure = FALSE;
-
-                        if ($_POST['projectEditSubAction'] == 'updateExistingGroup' || $_POST['projectEditSubAction'] == 'createNewGroup') {
+                        if ($_POST['projectEditSubAction'] == 'updateExistingGroup' ||
+                            $_POST['projectEditSubAction'] == 'createNewGroup' ||
+                            $_POST['projectEditSubAction'] == 'deleteExistingGroup'
+                        )
+                        {
                             $projectEditSubAction = $_POST['projectEditSubAction'];
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                         }
-
-                        if ($_POST['newGroupStatus'] == 0 || $_POST['newGroupStatus'] == 1) {
-                            $newGroupStatus = $_POST['newGroupStatus'];
-                        } else {
-                            $invalidRequiredField['newGroupStatus'] = $_POST['newGroupStatus'];
-                        }
-
-                        if ($_POST['newGroupContainsGroupsStatus'] == 0 || $_POST['newGroupContainsGroupsStatus'] == 1) {
-                            $newGroupContainsGroupsStatus = $_POST['newGroupContainsGroupsStatus'];
-                        } else {
-                            $invalidRequiredField['newGroupContainsGroupsStatus'] = $_POST['newGroupContainsGroupsStatus'];
-                        }
-
-                        if (!empty($_POST['newGroupName'])) {
-                            $newGroupName = htmlspecialchars($_POST['newGroupName']);
-                        } else {
-                            $invalidRequiredField['newGroupName'] = $_POST['newGroupName'];
-                        }
-
-                        $newGroupDescription = htmlspecialchars($_POST['newGroupDescription']);
-
-                        if (!empty($_POST['newDisplayText'])) {
-                            $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
-                            $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
-                        } else {
-                            $invalidRequiredField['newDisplayText'] = $_POST['newDisplayText'];
-                        }
-
-                        settype($_POST['newGroupWidth'], 'integer');
-                        if (empty($_POST['newGroupWidth'])) {
-                            $newGroupWidth = 0;
-                        } else {
-                            $newGroupWidth = $_POST['newGroupWidth'];
-                        }
-
-                        if ($_POST['newGroupBorderStatus'] == 0 || $_POST['newGroupBorderStatus'] == 1) {
-                            $newGroupBorderStatus = $_POST['newGroupBorderStatus'];
-                        } else {
-                            $invalidRequiredField['newGroupBorderStatus'] = $_POST['newGroupBorderStatus'];
-                        }
-
-                        if ($_POST['newGroupColorStatus'] == 1) {
-                            $newGroupColor = trim($_POST['newGroupColor'], "#");
-                            $hexPattern = '/^([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3})?$/';
-                            if (!preg_match($hexPattern, $newGroupColor)) {
-                                $invalidRequiredField['newGroupColor'] = $newGroupColor;
-                                $newGroupColor = '';
-                            }
-                        } else if ($_POST['newGroupColorStatus'] == 0) {
-                            $newGroupColor = '';
-                        } else {
-                            $invalidRequiredField['newGroupColorStatus'] = $_POST['newGroupColorStatus'];
-                        }
-
-                        settype($_POST['newGroupOrder'], 'integer');
-                        if (!empty($_POST['newGroupOrder'])) {
-                            $newGroupOrderInParent = $_POST['newGroupOrder'];
-                        } else {
-                            $invalidRequiredField['newGroupOrder'] = $_POST['newGroupOrder'];
-                        }
-
-                        if (isset($_POST['newParentTaskId'])) {
-                            $newGroupParentType = 'task';
-                            settype($_POST['newParentTaskId'], 'integer');
-                            if (!empty($_POST['newParentTaskId'])) {
-                                $newGroupParentId = $_POST['newParentTaskId'];
-                            } else {
-                                $invalidRequiredField['newParentTaskId'] = $_POST['newParentTaskId'];
-                            }
-                        } else {
-                            $newGroupParentType = 'group';
-                            settype($_POST['newParentGroupId'], 'integer');
-                            if (!empty($_POST['newParentGroupId'])) {
-                                $newGroupParentId = $_POST['newParentGroupId'];
-                            } else {
-                                $invalidRequiredField['newParentGroupId'] = $_POST['newParentGroupId'];
-                            }
-                        }
-
-
-
-// IF A GROUP_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingGroup
-                        if (isset($_POST['groupId']) &&
-                                isset($_POST['oldGroupParentType']) &&
-                                isset($_POST['oldGroupParentId']) &&
-                                isset($_POST['oldGroupOrderInParent']) &&
-                                $projectEditSubAction == 'updateExistingGroup') {
-
-                            settype($_POST['groupId'], 'integer');
-                            if (!empty($_POST['groupId'])) {
-                                $groupId = $_POST['groupId'];
-                            } else {
-                                $invalidRequiredField['groupId'] = $_POST['groupId'];
-                            }
-
-                            if ($_POST['oldGroupParentType'] == 'group' || $_POST['oldGroupParentType'] == 'task') {
-                                $oldGroupParentType = $_POST['oldGroupParentType'];
-                            } else {
-                                $invalidRequiredField['oldGroupParentType'] = $_POST['oldGroupParentType'];
-                            }
-
-                            settype($_POST['oldGroupParentId'], 'integer');
-                            if (!empty($_POST['oldGroupParentId'])) {
-                                $oldGroupParentId = $_POST['oldGroupParentId'];
-                            } else {
-                                $invalidRequiredField['oldGroupParentId'] = $_POST['oldGroupParentId'];
-                            }
-
-                            settype($_POST['oldGroupOrderInParent'], 'integer');
-                            if (!empty($_POST['oldGroupOrderInParent'])) {
-                                $oldGroupOrderInParent = $_POST['oldGroupOrderInParent'];
-                            } else {
-                                $invalidRequiredField['oldGroupOrderInParent'] = $_POST['oldGroupOrderInParent'];
-                            }
-
-                            $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'group');
-
-                            $oldGroupStatus = $groupMetadata['is_enabled'];
-                            $oldGroupContainsGroupsStatus = $groupMetadata['contains_groups'];
-                            $oldGroupName = $groupMetadata['name'];
-                            $oldGroupDescription = $groupMetadata['description'];
-                            $oldGroupDisplayText = $groupMetadata['display_text'];
-                            $oldGroupWidth = $groupMetadata['force_width'];
-                            $oldGroupBorderStatus = $groupMetadata['has_border'];
-                            $oldGroupColor = $groupMetadata['has_color'];
-
-
-                            if (!$invalidRequiredField) {
-                                $groupFieldsToUpdate = array();
-                                if ($oldGroupStatus != $newGroupStatus) {
-                                    $groupFieldsToUpdate['is_enabled'] = $newGroupStatus;
-                                }
-
-                                if ($oldGroupContainsGroupsStatus != $newGroupContainsGroupsStatus) {
-                                    $groupHasContents = groupContentsCheck($DBH, $groupId);
-                                    if (!$groupHasContents) {
-                                        $groupFieldsToUpdate['contains_groups'] = $newGroupContainsGroupsStatus;
-                                    } else {
-                                        $updateError = "You cannot change the type of contents a groups can hold unless it is already empty. "
-                                                . "Move all the contents of the group to another group or task and then try to change the content type again.";
-                                    }
-                                }
-
-                                if ($oldGroupName != $newGroupName) {
-                                    $groupFieldsToUpdate['name'] = $newGroupName;
-                                }
-
-                                if ($oldGroupDescription != $newGroupDescription) {
-                                    $groupFieldsToUpdate['description'] = $newGroupDescription;
-                                }
-
-                                if ($oldGroupDisplayText != $newGroupDisplayText) {
-                                    $groupFieldsToUpdate['display_text'] = $newGroupDisplayText;
-                                }
-
-                                if ($oldGroupWidth != $newGroupWidth) {
-                                    $groupFieldsToUpdate['force_width'] = $newGroupWidth;
-                                }
-
-                                if ($oldGroupBorderStatus != $newGroupBorderStatus) {
-                                    $groupFieldsToUpdate['has_border'] = $newGroupBorderStatus;
-                                }
-
-                                if ((empty($oldGroupColor) && !empty($newGroupColor)) ||
-                                        (!empty($oldGroupColor) && empty($newGroupColor)) ||
-                                        (!empty($oldGroupColor) && $oldGroupColor != $newGroupColor)) {
-                                    $groupFieldsToUpdate['has_color'] = $newGroupColor;
-                                }
-
-                                if (count($groupFieldsToUpdate) > 0) {
-                                    $dataChanges = TRUE;
-                                    $groupUpdateFieldsQuery = "UPDATE tag_group_metadata "
-                                            . "SET ";
-                                    $groupUpdateFieldsParams = array();
-                                    $columnUpdateCount = 0;
-                                    foreach ($groupFieldsToUpdate as $column => $value) {
-                                        $groupUpdateFieldsQuery .= "$column=:$column";
-                                        $columnUpdateCount++;
-                                        if ($columnUpdateCount != count($groupFieldsToUpdate)) {
-                                            $groupUpdateFieldsQuery .= ", ";
-                                        }
-                                        $groupUpdateFieldsParams[$column] = $value;
-                                    }
-                                    $groupUpdateFieldsQuery .= " WHERE tag_group_id = $groupId LIMIT 1";
-                                    $groupUpdateResult = run_prepared_query($DBH, $groupUpdateFieldsQuery, $groupUpdateFieldsParams);
-                                    if ($groupUpdateResult->rowCount() == 1) {
-
-                                    } else {
-                                        $databaseUpdateFailure['Column Updates'] = 'Failed';
-                                    }
-                                }
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Moving to a new container
-                                if (($newGroupParentType != $oldGroupParentType) || ($newGroupParentId != $oldGroupParentId)) {
-                                    $dataChanges = TRUE;
-//////////////////////////////////////////////////////////////////////////////
-// New Container Reordering
-                                    $newContainer = true;
-                                    if ($newGroupParentType == 'task') {
-                                        $newParentContainerOrderQuery = "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
-                                    } else {
-                                        $newParentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
-                                    }
-
-                                    $newParentContainerOrderParams['parentId'] = $newGroupParentId;
-                                    $newParentContainerOrderResult = run_prepared_query($DBH, $newParentContainerOrderQuery, $newParentContainerOrderParams);
-                                    $newParentContainerOrder = $newParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                    $numberOfSiblings = count($newParentContainerOrder);
-
-                                    $resequencingNumber = 1;
-                                    foreach ($newParentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] != $resequencingNumber) {
-                                            $individualGroup['order_number'] = $resequencingNumber;
-                                        }
-                                        $resequencingNumber++;
-                                    }
-
-                                    foreach ($newParentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] >= $newGroupOrderInParent) {
-
-                                        }
-                                    }
-
-                                    /////////////////////////////////////////////////////////////////////////////
-                                    // Old Container Reordering
-                                    $newContainer = true;
-                                    if ($oldGroupParentType == 'task') {
-                                        $oldParentContainerOrderQuery = "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
-                                    } else {
-                                        $oldParentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
-                                    }
-
-                                    $oldParentContainerOrderParams['parentId'] = $oldGroupParentId;
-                                    $oldParentContainerOrderResult = run_prepared_query($DBH, $oldParentContainerOrderQuery, $oldParentContainerOrderParams);
-                                    $oldParentContainerOrder = $oldParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                    $numberOfSiblings = count($oldParentContainerOrder);
-
-                                    for ($i = 0; $i < count($oldParentContainerOrder); $i++) {
-                                        if ($oldParentContainerOrder[$i]['child_id'] == $groupId) {
-                                            unset($oldParentContainerOrder[$i]);
-                                        }
-                                    }
-
-                                    $resequencingNumber = 1;
-                                    foreach ($oldParentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] != $resequencingNumber) {
-                                            $individualGroup['order_number'] = $resequencingNumber;
-                                        }
-                                        $resequencingNumber++;
-                                    }
-
-                                    //////////////////////////////////////////////////////////////////////////////
-                                    // Update the database - New container
-                                    if ($newGroupParentType == 'task') {
-                                        $newParentContainerUpdateQuery = "UPDATE task_contents SET order_in_task = CASE id ";
-                                    } else {
-                                        $newParentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-                                    }
-                                    foreach ($newParentContainerOrder as $group) {
-                                        $newParentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
-                                        $newIdsToUpdate[] = $group['db_id'];
-                                    }
-                                    $newWhereInIdsToUpdate = where_in_string_builder($newIdsToUpdate);
-                                    $newLimitAmount = count($newIdsToUpdate);
-                                    $newParentContainerUpdateQuery .= "END WHERE id IN ($newWhereInIdsToUpdate) LIMIT $newLimitAmount";
-                                    $newParentContainerOrderResult = $DBH->query($newParentContainerUpdateQuery);
-                                    if ($newParentContainerOrderResult) {
-                                        //////////////////////////////////////////////////////////////////////////////
-                                        // Update the database. Old Container
-                                        if ($oldGroupParentType == 'task') {
-                                            $oldParentContainerUpdateQuery = "UPDATE task_contents SET order_in_task = CASE id ";
-                                        } else {
-                                            $oldParentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-                                        }
-                                        foreach ($oldParentContainerOrder as $group) {
-                                            $oldParentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
-                                            $oldIdsToUpdate[] = $group['db_id'];
-                                        }
-                                        $oldWhereInIdsToUpdate = where_in_string_builder($oldIdsToUpdate);
-                                        $oldLimitAmount = count($oldIdsToUpdate);
-                                        $oldParentContainerUpdateQuery .= "END WHERE id IN ($oldWhereInIdsToUpdate) LIMIT $oldLimitAmount";
-                                        $oldparentContainerOrderResult = $DBH->query($oldParentContainerUpdateQuery);
-                                        if ($oldparentContainerOrderResult) {
-                                            if ($oldGroupParentType == 'task' && $newGroupParentType == 'task') {
-                                                $groupUpdateQuery = "UPDATE task_contents SET "
-                                                        . "task_id = :newParentId, "
-                                                        . "order_in_task = :newGroupOrderInParent "
-                                                        . "WHERE tag_group_id = $groupId "
-                                                        . "LIMIT 1";
-                                                $groupUpdateParams = array(
-                                                    'newParentId' => $newGroupParentId,
-                                                    'newGroupOrderInParent' => $newGroupOrderInParent
-                                                );
-                                                $groupUpdateResults = run_prepared_query($DBH, $groupUpdateQuery, $groupUpdateParams);
-                                                if (!$groupUpdateResults || ($groupUpdateResults && $groupUpdateResults->rowCount() != 1)) {
-                                                    $databaseUpdateFailure['UpdateGroupsParentTaskIdAndPosition'] = '$groupUpdateQuery';
-                                                }
-                                            } else if ($oldGroupParentType == 'group' && $newGroupParentType == 'group') {
-                                                $groupUpdateQuery = "UPDATE tag_group_contents SET "
-                                                        . "tag_group_id = :newParentId, "
-                                                        . "order_in_group = :newGroupOrderInParent "
-                                                        . "WHERE tag_id = :groupId AND tag_group_id = :oldGroupParentId "
-                                                        . "LIMIT 1";
-                                                $groupUpdateParams = array(
-                                                    'newParentId' => $newGroupParentId,
-                                                    'newGroupOrderInParent' => $newGroupOrderInParent,
-                                                    'groupId' => $groupId,
-                                                    'oldGroupParentId' => $oldGroupParentId
-                                                );
-                                                $groupUpdateResults = run_prepared_query($DBH, $groupUpdateQuery, $groupUpdateParams);
-                                                if (!$groupUpdateResults || ($groupUpdateResults && $groupUpdateResults->rowCount() != 1)) {
-                                                    $databaseUpdateFailure['UpdateGroupsParentGroupIdAndPosition'] = '$groupUpdateQuery';
-                                                }
-                                            } else if ($oldGroupParentType == 'task' && $newGroupParentType == 'group') {
-                                                $groupInsertQuery = "INSERT INTO tag_group_contents "
-                                                        . "(tag_group_id, tag_id, order_in_group) "
-                                                        . "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
-                                                $groupInsertParams = array(
-                                                    'newGroupParentId' => $newGroupParentId,
-                                                    'groupId' => $groupId,
-                                                    'newGroupOrderInParent' => $newGroupOrderInParent
-                                                );
-                                                $groupInsertResult = run_prepared_query($DBH, $groupInsertQuery, $groupInsertParams);
-                                                if ($groupInsertResult->rowCount() == 1) {
-                                                    $groupDeleteQuery = "DELETE FROM task_contents "
-                                                            . "WHERE tag_group_id = :groupId "
-                                                            . "LIMIT 1";
-                                                    $groupDeleteParams['groupId'] = $groupId;
-                                                    $groupDeleteResult = run_prepared_query($DBH, $groupDeleteQuery, $groupDeleteParams);
-                                                    if (!$groupDeleteResult || ($groupDeleteResult && $groupDeleteResult->rowCount() != 1)) {
-                                                        $databaseUpdateFailure['DeleteGroupFromTaskBeforeInsertInNewParentGroup'] = '$groupDeleteQuery';
-                                                    }
-                                                } else {
-                                                    $databaseUpdateFailure['InsertGroupIntoGroupContentsTableAfterRemovalFromOldParentTask'] = '$groupInsertQuery';
-                                                }
-                                            } else if ($oldGroupParentType == 'group' && $newGroupParentType == 'task') {
-                                                $groupInsertQuery = "INSERT INTO task_contents "
-                                                        . "(task_id, tag_group_id, order_in_task) "
-                                                        . "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
-                                                $groupInsertParams = array(
-                                                    'newGroupParentId' => $newGroupParentId,
-                                                    'groupId' => $groupId,
-                                                    'newGroupOrderInParent' => $newGroupOrderInParent
-                                                );
-                                                $groupInsertResult = run_prepared_query($DBH, $groupInsertQuery, $groupInsertParams);
-                                                if ($groupInsertResult->rowCount() == 1) {
-                                                    $groupDeleteQuery = "DELETE FROM tag_group_contents "
-                                                            . "WHERE tag_id = :groupId AND tag_group_id = :oldGroupParentId "
-                                                            . "LIMIT 1";
-                                                    $groupDeleteParams = array(
-                                                        'groupId' => $groupId,
-                                                        'oldGroupParentId' => $oldGroupParentId
-                                                    );
-                                                    $groupDeleteResult = run_prepared_query($DBH, $groupDeleteQuery, $groupDeleteParams);
-                                                    if (!$groupDeleteResult || ($groupDeleteResult && $groupDeleteResult->rowCount() != 1)) {
-                                                        $databaseUpdateFailure['DeleteGroupFromGroupBeforeInsertInNewParentTask'] = '$groupDeleteQuery';
-                                                    }
-                                                } else {
-                                                    $databaseUpdateFailure['InsertGroupIntoTaskContentsTableAfterRemovalFromOldParentGroup'] = '$groupInsertQuery';
-                                                }
-                                            }
-                                        } else {
-                                            $databaseUpdateFailure['OldParentContainerOrderUpdate'] = '$oldParentContainerUpdateQuery';
-                                        }
-                                    } else {
-                                        $databaseUpdateFailure['NewParentContainerOrderUpdate'] = '$newParentContainerUpdateQuery';
-                                    }
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Staying in the old container
-                                } else {
-                                    $newContainer = false;
-                                    if ($oldGroupParentType == 'task') {
-                                        $parentContainerOrderQuery = "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
-                                    } else {
-                                        $parentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
-                                    }
-                                    $parentContainerOrderParams['parentId'] = $oldGroupParentId;
-                                    $parentContainerOrderResult = run_prepared_query($DBH, $parentContainerOrderQuery, $parentContainerOrderParams);
-                                    $parentContainerOrder = $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                    $numberOfSiblings = count($parentContainerOrder);
-
-                                    $resequencingNumber = 1;
-                                    $newParentResequenced = false;
-                                    $groupOrderChanged = false;
-                                    foreach ($parentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] != $resequencingNumber) {
-                                            $dataChanges = TRUE;
-                                            $individualGroup['order_number'] = $resequencingNumber;
-                                            $newParentResequenced = true;
-                                        }
-                                        if ($individualGroup['child_id'] == $groupId && $individualGroup['order_number'] != $newGroupOrderInParent) {
-                                            $dataChanges = TRUE;
-                                            if ($newGroupOrderInParent > $oldGroupOrderInParent) {
-                                                $groupOrderChanged = 'up';
-                                            } else {
-                                                $groupOrderChanged = 'down';
-                                            }
-                                        }
-                                        $resequencingNumber++;
-                                    }
-
-                                    if ($groupOrderChanged) {
-                                        foreach ($parentContainerOrder as &$individualGroup) {
-                                            if ($groupOrderChanged == 'up' && $individualGroup['child_id'] != $groupId) {
-                                                if ($individualGroup['order_number'] > $oldGroupOrderInParent && $individualGroup['order_number'] <= $newGroupOrderInParent) {
-                                                    $individualGroup['order_number'] --;
-                                                }
-                                            } elseif ($groupOrderChanged == 'down' && $individualGroup['child_id'] != $groupId) {
-                                                if ($individualGroup['order_number'] < $oldGroupOrderInParent && $individualGroup['order_number'] >= $newGroupOrderInParent) {
-                                                    $individualGroup['order_number'] ++;
-                                                }
-                                            }
-                                            if ($individualGroup['child_id'] == $groupId) {
-                                                $individualGroup['order_number'] = $newGroupOrderInParent;
-                                                $newParentResequenced = true;
-                                            }
-                                        }
-                                    }
-
-                                    if ($newParentResequenced) {
-                                        if ($newGroupParentType == 'task') {
-                                            $parentContainerUpdateQuery = "UPDATE task_contents SET order_in_task = CASE id ";
-                                        } else {
-                                            $parentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-                                        }
-                                        foreach ($parentContainerOrder as $group) {
-                                            $parentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
-                                            $idsToUpdate[] = $group['db_id'];
-                                        }
-                                        $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
-                                        $limitAmount = count($idsToUpdate);
-                                        $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
-                                        $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
-                                        if ($parentContainerOrderResult) {
-
-                                        } else {
-                                            $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] = '$parentContainerUpdateQuery';
-                                        }
-                                    } else {
-
-                                    }
-                                }
-                            } // End !InvalidRequiredField
-                            else {
-                                $updateError = "One or more of the required fields necessary to update the group contained invalid or non-existant data.";
-                            } // End !InvalidRequiredField ELSE
-                        } else if ($projectEditSubAction == 'createNewGroup') {
-                            $dataChanges = TRUE;
-
-                            settype($_POST['projectId'], 'integer');
-                            if (!empty($_POST['projectId'])) {
-                                $projectId = $_POST['projectId'];
-                                $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-                                if (!$projectMetadata) {
-                                    $invalidRequiredField['projectId'] = $_POST['projectId'];
-                                }
-                            } else {
+                        settype($_POST['projectId'],
+                                'integer');
+                        if (!empty($_POST['projectId']))
+                        {
+                            $projectId = $_POST['projectId'];
+                            $projectMetadata =
+                                retrieve_entity_metadata($DBH,
+                                                         $projectId,
+                                                         'project');
+                            if (!$projectMetadata)
+                            {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
-
-                            if (!$invalidRequiredField) {
-
-                                //////////////////////////////////////////////////////////////////////////////
-                                // Insert new group into tag_group_metadata
-                                $newGroupInsertQuery = "INSERT INTO tag_group_metadata "
-                                        . "(project_id, is_enabled, contains_groups, name, description, display_text, force_width, has_border, has_color) "
-                                        . "VALUES (:projectId, :isEnabled, :containsGroups, :name, :description, :displayText, :forceWidth, :hasBorder, :hasColor)";
-                                $newGroupInsertParams = array(
-                                    'projectId' => $projectId,
-                                    'isEnabled' => $newGroupStatus,
-                                    'containsGroups' => $newGroupContainsGroupsStatus,
-                                    'name' => $newGroupName,
-                                    'description' => $newGroupDescription,
-                                    'displayText' => $newGroupDisplayText,
-                                    'forceWidth' => $newGroupWidth,
-                                    'hasBorder' => $newGroupBorderStatus,
-                                    'hasColor' => $newGroupColor,
-                                );
-                                $newGroupInsertResult = run_prepared_query($DBH, $newGroupInsertQuery, $newGroupInsertParams);
-
-                                //////////////////////////////////////////////////////////////////////////////
-                                // If the insert was successful then reorder the parent container content list
-                                // to make room for the new group and insert it in the parent container content list.
-                                if ($newGroupInsertResult->rowCount() == 1) {
-                                    $groupId = $DBH->lastInsertID();
-
-
-
-                                    // Find the current contents of the parent container.
-                                    if ($newGroupParentType == 'task') {
-                                        $parentContainerOrderQuery = "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
-                                    } else {
-                                        $parentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
-                                    }
-
-                                    $parentContainerOrderParams['parentId'] = $newGroupParentId;
-                                    $parentContainerOrderResult = run_prepared_query($DBH, $parentContainerOrderQuery, $parentContainerOrderParams);
-                                    $parentContainerOrder = $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                    $numberOfSiblings = count($parentContainerOrder);
-
-                                    // Check for sequential numbering of the existing contents. Resequence sequentially if necessary.
-                                    $resequencingNumber = 1;
-                                    foreach ($parentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] != $resequencingNumber) {
-                                            $individualGroup['order_number'] = $resequencingNumber;
-                                        }
-                                        $resequencingNumber++;
-                                    }
-
-                                    // Increment parent contents of equal or higher order than the new group by one number to make room.
-                                    foreach ($parentContainerOrder as &$individualGroup) {
-                                        if ($individualGroup['order_number'] >= $newGroupOrderInParent) {
-                                            $individualGroup['order_number'] ++;
-                                        }
-                                    }
-
-                                    // Update the database with the new order sequence.
-                                    if ($newGroupParentType == 'task') {
-                                        $parentContainerUpdateQuery = "UPDATE task_contents SET order_in_task = CASE id ";
-                                    } else {
-                                        $parentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-                                    }
-                                    foreach ($parentContainerOrder as $group) {
-                                        $parentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
-                                        $idsToUpdate[] = $group['db_id'];
-                                    }
-                                    $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
-                                    $limitAmount = count($idsToUpdate);
-                                    $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
-                                    $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
-                                    if ($parentContainerOrderResult) {
-                                        // If the update of the parent contents order was successfull then insert the new
-                                        // group into the parent content list
-                                        if ($newGroupParentType == 'task') {
-                                            $groupInsertQuery = "INSERT INTO task_contents "
-                                                    . "(task_id, tag_group_id, order_in_task) "
-                                                    . "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
-                                            $groupInsertParams = array(
-                                                'newGroupParentId' => $newGroupParentId,
-                                                'groupId' => $groupId,
-                                                'newGroupOrderInParent' => $newGroupOrderInParent
-                                            );
-                                            $groupInsertResult = run_prepared_query($DBH, $groupInsertQuery, $groupInsertParams);
-                                        } else {
-                                            $groupInsertQuery = "INSERT INTO tag_group_contents "
-                                                    . "(tag_group_id, tag_id, order_in_group) "
-                                                    . "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
-                                            $groupInsertParams = array(
-                                                'newGroupParentId' => $newGroupParentId,
-                                                'groupId' => $groupId,
-                                                'newGroupOrderInParent' => $newGroupOrderInParent
-                                            );
-                                            $groupInsertResult = run_prepared_query($DBH, $groupInsertQuery, $groupInsertParams);
-                                        }
-                                        if ($groupInsertResult->rowCount() != 1) {
-                                            $databaseUpdateFailure['NewGroupParentContainerOrderGroupInsertion'] = $groupInsertQuery;
-                                        }
-                                    } else {
-                                        $databaseUpdateFailure['NewGroupParentReordering'] = $parentContainerUpdateQuery;
-                                    }
-                                } else {
-                                    $databaseUpdateFailure['InsertNewGroupMetaData'] = $newGroupInsertQuery;
-                                }
-                            }
                         }
-                    } else {
-                        $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
-                    }
+                        else
+                        {
+                            $invalidRequiredField['projectId'] = $_POST['projectId'];
+                        }
 
-                    if ($invalidRequiredField) {
-                        $actionSummaryHTML = <<<EOL
-                                <h2>Errors Detected in Input Data</h2>
-                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                        if ($projectEditSubAction == 'deleteExistingGroup' && empty($invalidRequiredField))
+                        {
+                            $invalidDeletionRequest = false;
+                            $groupId = filter_input(INPUT_POST,
+                                                    'groupId',
+                                                    FILTER_VALIDATE_INT);
+                            if (!groupContentsCheck($DBH,
+                                                    $groupId)
+                            )
+                            {
+                                $groupDeletionQuery = <<<MySQL
+                        DELETE 
+                        FROM tag_group_metadata 
+                        WHERE tag_group_id = :groupId
+                        LIMIT 1
+MySQL;
+                                $groupDeletionParams['groupId'] = $groupId;
+                                run_prepared_query($DBH,
+                                                   $groupDeletionQuery,
+                                                   $groupDeletionParams);
+
+                                $taskContentsQuery =
+                                    "SELECT * FROM task_contents WHERE tag_group_id = :groupId";
+                                $taskContentsParams['groupId'] = $groupId;
+                                $taskContentsResult = run_prepared_query($DBH,
+                                                                         $taskContentsQuery,
+                                                                         $taskContentsParams);
+                                $taskContents = $taskContentsResult->fetch(PDO::FETCH_ASSOC);
+                                if ($taskContents)
+                                {
+                                    $taskContentsDeletionQuery = <<<MySQL
+                        DELETE 
+                        FROM task_contents
+                        WHERE tag_group_id = :groupId
+                        LIMIT 1
+MySQL;
+                                    $taskContentsDeletionParams['groupId'] = $groupId;
+                                    run_prepared_query($DBH,
+                                                       $taskContentsDeletionQuery,
+                                                       $taskContentsDeletionParams);
+
+                                    $taskChildrenQuery =
+                                        "SELECT * FROM task_contents WHERE task_id = :taskId ORDER BY order_in_task ASC";
+                                    $taskChildrenParams['taskId'] = $taskContents['task_id'];
+                                    $taskChildrenResults =
+                                        run_prepared_query($DBH,
+                                                           $taskChildrenQuery,
+                                                           $taskChildrenParams);
+                                    $taskChildren = $taskChildrenResults->fetchAll(PDO::FETCH_ASSOC);
+                                    $numberOfChildren = count($taskChildren);
+
+                                    $sequentialOrderInProjectNumber = 1;
+
+                                    for ($i = 0; $i < $numberOfChildren; $i++)
+                                    {
+                                        // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
+                                        if ($taskChildren[$i]['order_in_task'] != $sequentialOrderInProjectNumber)
+                                        {
+                                            $taskChildren[$i]['order_in_task'] = $sequentialOrderInProjectNumber;
+                                        }
+                                        else
+                                        {
+                                            $taskChildren[$i] = null;
+                                        }
+                                        $sequentialOrderInProjectNumber++;
+                                    }
+                                    foreach ($taskChildren as $child)
+                                    { // LOOP THROUGH THE TASKS
+                                        // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                        // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                        if (is_null($child))
+                                        {
+                                            continue;
+                                        }
+                                        $updateTaskContentsQuery = "UPDATE task_contents "
+                                                                   . "SET order_in_task = :orderInTask "
+                                                                   . "WHERE tag_group_id = :groupId LIMIT 1";
+                                        $updateTaskContentsParams = array(
+                                            'orderInTask' => $child['order_in_task'],
+                                            'groupId'     => $child['tag_group_id']
+                                        );
+                                        $updateTaskContentsResult =
+                                            run_prepared_query($DBH,
+                                                               $updateTaskContentsQuery,
+                                                               $updateTaskContentsParams);
+                                    }
+
+                                }
+                                else
+                                {
+                                    $parentGroupChildrenQuery = <<<MySQL
+                                        SELECT * 
+                                        FROM tag_group_contents
+                                        WHERE tag_group_id = 
+                                        (
+                                            SELECT tgc.tag_group_id FROM tag_group_contents tgc
+                                            INNER JOIN tag_group_metadata tgm ON tgm.tag_group_id = tgc.tag_group_id 
+                                            WHERE tgc.tag_id = :groupId AND tgm.contains_groups = 1
+                                        )
+                                        ORDER BY order_in_group ASC
+MySQL;
+                                    $parentGroupChildrenParams['groupId'] = $groupId;
+                                    $parentGroupChildrenResults = run_prepared_query($DBH,
+                                                                                     $parentGroupChildrenQuery,
+                                                                                     $parentGroupChildrenParams);
+                                    $parentGroupChildren = $parentGroupChildrenResults->fetchAll(PDO::FETCH_ASSOC);
+                                    $numberOfChildren = count($parentGroupChildren);
+
+                                    $sequentialOrderInProjectNumber = 1;
+                                    for ($i = 0; $i < $numberOfChildren; $i++)
+                                    {
+                                        // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
+                                        if ($parentGroupChildren[$i]['tag_id'] == $groupId)
+                                        {
+                                            $idToDelete = $parentGroupChildren[$i]['id'];
+                                            $parentGroupChildren[$i] = null;
+                                            continue;
+                                        }
+                                        elseif ($parentGroupChildren[$i]['order_in_group'] !=
+                                                $sequentialOrderInProjectNumber
+                                        )
+                                        {
+                                            $parentGroupChildren[$i]['order_in_group'] =
+                                                $sequentialOrderInProjectNumber;
+                                        }
+                                        else
+                                        {
+                                            $parentGroupChildren[$i] = null;
+                                        }
+                                        $sequentialOrderInProjectNumber++;
+                                    }
+                                    $tagGroupContentsDeletionQuery = <<<MySQL
+                                        DELETE 
+                                        FROM tag_group_contents
+                                        WHERE id = :databaseRowId
+                                        LIMIT 1
+MySQL;
+                                    $tagGroupContentsDeletionParams['databaseRowId'] = $idToDelete;
+                                    run_prepared_query($DBH,
+                                                       $tagGroupContentsDeletionQuery,
+                                                       $tagGroupContentsDeletionParams);
+
+                                    foreach ($parentGroupChildren as $child)
+                                    { // LOOP THROUGH THE TASKS
+                                        // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                        // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                        if (is_null($child))
+                                        {
+                                            continue;
+                                        }
+                                        $updateTagGroupContentsQuery = "UPDATE tag_group_contents "
+                                                                       . "SET order_in_group = :orderInGroup "
+                                                                       . "WHERE id = :databaseId LIMIT 1";
+                                        $updateTagGroupContentsParams = array(
+                                            'orderInGroup' => $child['order_in_group'],
+                                            'databaseId'   => $child['id']
+                                        );
+                                        $updateTaskContentsResult =
+                                            run_prepared_query($DBH,
+                                                               $updateTagGroupContentsQuery,
+                                                               $updateTagGroupContentsParams);
+                                    }
+                                }
+                                $actionSummaryHTML .= <<<EOL
+                                    <h3>Deletion Successful</h3>
+                                    <p>The requested tag group has been deleted.</p>
+                                    <div class="updateFormSubmissionControls"><hr>
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+
+                                    </div>    
 
 EOL;
-                    } else if (!$dataChanges) {
-                        $actionSummaryHTML = <<<EOL
+                            }
+                            else
+                            {
+                                $projectUpdateErrorHTML = <<<EOL
+                                    <h3>Deletion Failed</h3>
+                                    <p>Deletion request could not be completed as the requested tag group to delete contains one or 
+                                    more child groups or tags.</p>
+                                    <div class="updateFormSubmissionControls"><hr>
+                                        <input type="button" class="clickableButton" id="editGroupAgain" title="This 
+                                        will return you to the current group for further changes and updates" 
+                                        value="Edit This Task Again">
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                    </div>
+
+EOL;
+                            }
+
+                        }
+                        else
+                        {
+                            // Check that all required fields are present.
+                            if (isset($projectEditSubAction) &&
+                                isset($_POST['newGroupName']) &&
+                                isset($_POST['newGroupDescription']) &&
+                                isset($_POST['newDisplayText']) &&
+                                isset($_POST['newGroupContainsGroupsStatus']) &&
+                                isset($_POST['newGroupWidth']) &&
+                                isset($_POST['newGroupBorderStatus']) &&
+                                isset($_POST['newGroupColorStatus']) &&
+                                ($_POST['newGroupColorStatus'] == 0 ||
+                                 ($_POST['newGroupColorStatus'] == 1 && isset($_POST['newGroupColor']))) &&
+                                isset($_POST['newGroupOrder']) &&
+                                isset($_POST['newGroupStatus']) &&
+                                (isset($_POST['newParentGroupId']) || isset($_POST['newParentTaskId']))
+                            )
+                            {
+
+
+                                $invalidRequiredField = false;
+                                $dataChanges = false;
+                                $databaseUpdateFailure = false;
+
+                                if ($_POST['projectEditSubAction'] == 'updateExistingGroup' ||
+                                    $_POST['projectEditSubAction'] == 'createNewGroup'
+                                )
+                                {
+                                    $projectEditSubAction = $_POST['projectEditSubAction'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
+                                }
+
+                                if ($_POST['newGroupStatus'] == 0 || $_POST['newGroupStatus'] == 1)
+                                {
+                                    $newGroupStatus = $_POST['newGroupStatus'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newGroupStatus'] = $_POST['newGroupStatus'];
+                                }
+
+                                if ($_POST['newGroupContainsGroupsStatus'] == 0 ||
+                                    $_POST['newGroupContainsGroupsStatus'] == 1
+                                )
+                                {
+                                    $newGroupContainsGroupsStatus = $_POST['newGroupContainsGroupsStatus'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newGroupContainsGroupsStatus'] =
+                                        $_POST['newGroupContainsGroupsStatus'];
+                                }
+
+                                if (!empty($_POST['newGroupName']))
+                                {
+                                    $newGroupName = htmlspecialchars($_POST['newGroupName']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newGroupName'] = $_POST['newGroupName'];
+                                }
+
+                                $newGroupDescription = htmlspecialchars($_POST['newGroupDescription']);
+
+                                if (!empty($_POST['newDisplayText']))
+                                {
+                                    $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
+                                    $newGroupDisplayText = htmlspecialchars($_POST['newDisplayText']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newDisplayText'] = $_POST['newDisplayText'];
+                                }
+
+                                settype($_POST['newGroupWidth'],
+                                        'integer');
+                                if (empty($_POST['newGroupWidth']))
+                                {
+                                    $newGroupWidth = 0;
+                                }
+                                else
+                                {
+                                    $newGroupWidth = $_POST['newGroupWidth'];
+                                }
+
+                                if ($_POST['newGroupBorderStatus'] == 0 || $_POST['newGroupBorderStatus'] == 1)
+                                {
+                                    $newGroupBorderStatus = $_POST['newGroupBorderStatus'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newGroupBorderStatus'] = $_POST['newGroupBorderStatus'];
+                                }
+
+                                if ($_POST['newGroupColorStatus'] == 1)
+                                {
+                                    $newGroupColor =
+                                        trim($_POST['newGroupColor'],
+                                             "#");
+                                    $hexPattern = '/^([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3})?$/';
+                                    if (!preg_match($hexPattern,
+                                                    $newGroupColor)
+                                    )
+                                    {
+                                        $invalidRequiredField['newGroupColor'] = $newGroupColor;
+                                        $newGroupColor = '';
+                                    }
+                                }
+                                else
+                                {
+                                    if ($_POST['newGroupColorStatus'] == 0)
+                                    {
+                                        $newGroupColor = '';
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['newGroupColorStatus'] = $_POST['newGroupColorStatus'];
+                                    }
+                                }
+
+                                settype($_POST['newGroupOrder'],
+                                        'integer');
+                                if (!empty($_POST['newGroupOrder']))
+                                {
+                                    $newGroupOrderInParent = $_POST['newGroupOrder'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newGroupOrder'] = $_POST['newGroupOrder'];
+                                }
+
+                                if (isset($_POST['newParentTaskId']))
+                                {
+                                    $newGroupParentType = 'task';
+                                    settype($_POST['newParentTaskId'],
+                                            'integer');
+                                    if (!empty($_POST['newParentTaskId']))
+                                    {
+                                        $newGroupParentId = $_POST['newParentTaskId'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['newParentTaskId'] = $_POST['newParentTaskId'];
+                                    }
+                                }
+                                else
+                                {
+                                    $newGroupParentType = 'group';
+                                    settype($_POST['newParentGroupId'],
+                                            'integer');
+                                    if (!empty($_POST['newParentGroupId']))
+                                    {
+                                        $newGroupParentId = $_POST['newParentGroupId'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['newParentGroupId'] = $_POST['newParentGroupId'];
+                                    }
+                                }
+
+
+                                // IF A GROUP_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingGroup
+                                if (isset($_POST['groupId']) &&
+                                    isset($_POST['oldGroupParentType']) &&
+                                    isset($_POST['oldGroupParentId']) &&
+                                    isset($_POST['oldGroupOrderInParent']) &&
+                                    $projectEditSubAction == 'updateExistingGroup'
+                                )
+                                {
+
+                                    settype($_POST['groupId'],
+                                            'integer');
+                                    if (!empty($_POST['groupId']))
+                                    {
+                                        $groupId = $_POST['groupId'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['groupId'] = $_POST['groupId'];
+                                    }
+
+                                    if ($_POST['oldGroupParentType'] == 'group' ||
+                                        $_POST['oldGroupParentType'] == 'task'
+                                    )
+                                    {
+                                        $oldGroupParentType = $_POST['oldGroupParentType'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['oldGroupParentType'] = $_POST['oldGroupParentType'];
+                                    }
+
+                                    settype($_POST['oldGroupParentId'],
+                                            'integer');
+                                    if (!empty($_POST['oldGroupParentId']))
+                                    {
+                                        $oldGroupParentId = $_POST['oldGroupParentId'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['oldGroupParentId'] = $_POST['oldGroupParentId'];
+                                    }
+
+                                    settype($_POST['oldGroupOrderInParent'],
+                                            'integer');
+                                    if (!empty($_POST['oldGroupOrderInParent']))
+                                    {
+                                        $oldGroupOrderInParent = $_POST['oldGroupOrderInParent'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['oldGroupOrderInParent'] =
+                                            $_POST['oldGroupOrderInParent'];
+                                    }
+
+                                    $groupMetadata =
+                                        retrieve_entity_metadata($DBH,
+                                                                 $groupId,
+                                                                 'group');
+
+                                    $oldGroupStatus = $groupMetadata['is_enabled'];
+                                    $oldGroupContainsGroupsStatus = $groupMetadata['contains_groups'];
+                                    $oldGroupName = $groupMetadata['name'];
+                                    $oldGroupDescription = $groupMetadata['description'];
+                                    $oldGroupDisplayText = $groupMetadata['display_text'];
+                                    $oldGroupWidth = $groupMetadata['force_width'];
+                                    $oldGroupBorderStatus = $groupMetadata['has_border'];
+                                    $oldGroupColor = $groupMetadata['has_color'];
+
+
+                                    if (!$invalidRequiredField)
+                                    {
+                                        $groupFieldsToUpdate = array();
+                                        if ($oldGroupStatus != $newGroupStatus)
+                                        {
+                                            $groupFieldsToUpdate['is_enabled'] = $newGroupStatus;
+                                        }
+
+                                        if ($oldGroupContainsGroupsStatus != $newGroupContainsGroupsStatus)
+                                        {
+                                            $groupHasContents =
+                                                groupContentsCheck($DBH,
+                                                                   $groupId);
+                                            if (!$groupHasContents)
+                                            {
+                                                $groupFieldsToUpdate['contains_groups'] = $newGroupContainsGroupsStatus;
+                                            }
+                                            else
+                                            {
+                                                $updateError =
+                                                    "You cannot change the type of contents a groups can hold unless it is already empty. "
+                                                    .
+                                                    "Move all the contents of the group to another group or task and then try to change the content type again.";
+                                            }
+                                        }
+
+                                        if ($oldGroupName != $newGroupName)
+                                        {
+                                            $groupFieldsToUpdate['name'] = $newGroupName;
+                                        }
+
+                                        if ($oldGroupDescription != $newGroupDescription)
+                                        {
+                                            $groupFieldsToUpdate['description'] = $newGroupDescription;
+                                        }
+
+                                        if ($oldGroupDisplayText != $newGroupDisplayText)
+                                        {
+                                            $groupFieldsToUpdate['display_text'] = $newGroupDisplayText;
+                                        }
+
+                                        if ($oldGroupWidth != $newGroupWidth)
+                                        {
+                                            $groupFieldsToUpdate['force_width'] = $newGroupWidth;
+                                        }
+
+                                        if ($oldGroupBorderStatus != $newGroupBorderStatus)
+                                        {
+                                            $groupFieldsToUpdate['has_border'] = $newGroupBorderStatus;
+                                        }
+
+                                        if ((empty($oldGroupColor) && !empty($newGroupColor)) ||
+                                            (!empty($oldGroupColor) && empty($newGroupColor)) ||
+                                            (!empty($oldGroupColor) && $oldGroupColor != $newGroupColor)
+                                        )
+                                        {
+                                            $groupFieldsToUpdate['has_color'] = $newGroupColor;
+                                        }
+
+                                        if (count($groupFieldsToUpdate) > 0)
+                                        {
+                                            $dataChanges = true;
+                                            $groupUpdateFieldsQuery = "UPDATE tag_group_metadata "
+                                                                      . "SET ";
+                                            $groupUpdateFieldsParams = array();
+                                            $columnUpdateCount = 0;
+                                            foreach ($groupFieldsToUpdate as $column => $value)
+                                            {
+                                                $groupUpdateFieldsQuery .= "$column=:$column";
+                                                $columnUpdateCount++;
+                                                if ($columnUpdateCount != count($groupFieldsToUpdate))
+                                                {
+                                                    $groupUpdateFieldsQuery .= ", ";
+                                                }
+                                                $groupUpdateFieldsParams[$column] = $value;
+                                            }
+                                            $groupUpdateFieldsQuery .= " WHERE tag_group_id = $groupId LIMIT 1";
+                                            $groupUpdateResult =
+                                                run_prepared_query($DBH,
+                                                                   $groupUpdateFieldsQuery,
+                                                                   $groupUpdateFieldsParams);
+                                            if ($groupUpdateResult->rowCount() == 1)
+                                            {
+
+                                            }
+                                            else
+                                            {
+                                                $databaseUpdateFailure['Column Updates'] = 'Failed';
+                                            }
+                                        }
+
+
+                                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                                        // Moving to a new container
+                                        if (($newGroupParentType != $oldGroupParentType) ||
+                                            ($newGroupParentId != $oldGroupParentId)
+                                        )
+                                        {
+                                            $dataChanges = true;
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // New Container Reordering
+                                            $newContainer = true;
+                                            if ($newGroupParentType == 'task')
+                                            {
+                                                $newParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
+                                            }
+                                            else
+                                            {
+                                                $newParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
+                                            }
+
+                                            $newParentContainerOrderParams['parentId'] = $newGroupParentId;
+                                            $newParentContainerOrderResult =
+                                                run_prepared_query($DBH,
+                                                                   $newParentContainerOrderQuery,
+                                                                   $newParentContainerOrderParams);
+                                            $newParentContainerOrder =
+                                                $newParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                            $numberOfSiblings = count($newParentContainerOrder);
+
+                                            $resequencingNumber = 1;
+                                            foreach ($newParentContainerOrder as &$individualGroup)
+                                            {
+                                                if ($individualGroup['order_number'] != $resequencingNumber)
+                                                {
+                                                    $individualGroup['order_number'] = $resequencingNumber;
+                                                }
+                                                $resequencingNumber++;
+                                            }
+
+                                            foreach ($newParentContainerOrder as &$individualGroup)
+                                            {
+                                                if ($individualGroup['order_number'] >= $newGroupOrderInParent)
+                                                {
+
+                                                }
+                                            }
+
+                                            /////////////////////////////////////////////////////////////////////////////
+                                            // Old Container Reordering
+                                            $newContainer = true;
+                                            if ($oldGroupParentType == 'task')
+                                            {
+                                                $oldParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
+                                            }
+                                            else
+                                            {
+                                                $oldParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
+                                            }
+
+                                            $oldParentContainerOrderParams['parentId'] = $oldGroupParentId;
+                                            $oldParentContainerOrderResult =
+                                                run_prepared_query($DBH,
+                                                                   $oldParentContainerOrderQuery,
+                                                                   $oldParentContainerOrderParams);
+                                            $oldParentContainerOrder =
+                                                $oldParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                            $numberOfSiblings = count($oldParentContainerOrder);
+
+                                            for ($i = 0; $i < count($oldParentContainerOrder); $i++)
+                                            {
+                                                if ($oldParentContainerOrder[$i]['child_id'] == $groupId)
+                                                {
+                                                    unset($oldParentContainerOrder[$i]);
+                                                }
+                                            }
+
+                                            $resequencingNumber = 1;
+                                            foreach ($oldParentContainerOrder as &$individualGroup)
+                                            {
+                                                if ($individualGroup['order_number'] != $resequencingNumber)
+                                                {
+                                                    $individualGroup['order_number'] = $resequencingNumber;
+                                                }
+                                                $resequencingNumber++;
+                                            }
+
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // Update the database - New container
+                                            if ($newGroupParentType == 'task')
+                                            {
+                                                $newParentContainerUpdateQuery =
+                                                    "UPDATE task_contents SET order_in_task = CASE id ";
+                                            }
+                                            else
+                                            {
+                                                $newParentContainerUpdateQuery =
+                                                    "UPDATE tag_group_contents SET order_in_group = CASE id ";
+                                            }
+                                            foreach ($newParentContainerOrder as $group)
+                                            {
+                                                $newParentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
+                                                $newIdsToUpdate[] = $group['db_id'];
+                                            }
+                                            $newWhereInIdsToUpdate = where_in_string_builder($newIdsToUpdate);
+                                            $newLimitAmount = count($newIdsToUpdate);
+                                            $newParentContainerUpdateQuery .= "END WHERE id IN ($newWhereInIdsToUpdate) LIMIT $newLimitAmount";
+                                            $newParentContainerOrderResult =
+                                                $DBH->query($newParentContainerUpdateQuery);
+                                            if ($newParentContainerOrderResult)
+                                            {
+                                                //////////////////////////////////////////////////////////////////////////////
+                                                // Update the database. Old Container
+                                                if ($oldGroupParentType == 'task')
+                                                {
+                                                    $oldParentContainerUpdateQuery =
+                                                        "UPDATE task_contents SET order_in_task = CASE id ";
+                                                }
+                                                else
+                                                {
+                                                    $oldParentContainerUpdateQuery =
+                                                        "UPDATE tag_group_contents SET order_in_group = CASE id ";
+                                                }
+                                                foreach ($oldParentContainerOrder as $group)
+                                                {
+                                                    $oldParentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
+                                                    $oldIdsToUpdate[] = $group['db_id'];
+                                                }
+                                                $oldWhereInIdsToUpdate = where_in_string_builder($oldIdsToUpdate);
+                                                $oldLimitAmount = count($oldIdsToUpdate);
+                                                $oldParentContainerUpdateQuery .= "END WHERE id IN ($oldWhereInIdsToUpdate) LIMIT $oldLimitAmount";
+                                                $oldparentContainerOrderResult =
+                                                    $DBH->query($oldParentContainerUpdateQuery);
+                                                if ($oldparentContainerOrderResult)
+                                                {
+                                                    if ($oldGroupParentType == 'task' && $newGroupParentType == 'task')
+                                                    {
+                                                        $groupUpdateQuery = "UPDATE task_contents SET "
+                                                                            . "task_id = :newParentId, "
+                                                                            . "order_in_task = :newGroupOrderInParent "
+                                                                            . "WHERE tag_group_id = $groupId "
+                                                                            . "LIMIT 1";
+                                                        $groupUpdateParams = array(
+                                                            'newParentId'           => $newGroupParentId,
+                                                            'newGroupOrderInParent' => $newGroupOrderInParent
+                                                        );
+                                                        $groupUpdateResults =
+                                                            run_prepared_query($DBH,
+                                                                               $groupUpdateQuery,
+                                                                               $groupUpdateParams);
+                                                        if (!$groupUpdateResults ||
+                                                            ($groupUpdateResults &&
+                                                             $groupUpdateResults->rowCount() != 1)
+                                                        )
+                                                        {
+                                                            $databaseUpdateFailure['UpdateGroupsParentTaskIdAndPosition'] =
+                                                                '$groupUpdateQuery';
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if ($oldGroupParentType == 'group' &&
+                                                            $newGroupParentType == 'group'
+                                                        )
+                                                        {
+                                                            $groupUpdateQuery = "UPDATE tag_group_contents SET "
+                                                                                .
+                                                                                "tag_group_id = :newParentId, "
+                                                                                .
+                                                                                "order_in_group = :newGroupOrderInParent "
+                                                                                .
+                                                                                "WHERE tag_id = :groupId AND tag_group_id = :oldGroupParentId "
+                                                                                .
+                                                                                "LIMIT 1";
+                                                            $groupUpdateParams = array(
+                                                                'newParentId'           => $newGroupParentId,
+                                                                'newGroupOrderInParent' => $newGroupOrderInParent,
+                                                                'groupId'               => $groupId,
+                                                                'oldGroupParentId'      => $oldGroupParentId
+                                                            );
+                                                            $groupUpdateResults =
+                                                                run_prepared_query($DBH,
+                                                                                   $groupUpdateQuery,
+                                                                                   $groupUpdateParams);
+                                                            if (!$groupUpdateResults ||
+                                                                ($groupUpdateResults &&
+                                                                 $groupUpdateResults->rowCount() != 1)
+                                                            )
+                                                            {
+                                                                $databaseUpdateFailure['UpdateGroupsParentGroupIdAndPosition'] =
+                                                                    '$groupUpdateQuery';
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            if ($oldGroupParentType == 'task' &&
+                                                                $newGroupParentType == 'group'
+                                                            )
+                                                            {
+                                                                $groupInsertQuery = "INSERT INTO tag_group_contents "
+                                                                                    .
+                                                                                    "(tag_group_id, tag_id, order_in_group) "
+                                                                                    .
+                                                                                    "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
+                                                                $groupInsertParams = array(
+                                                                    'newGroupParentId'      => $newGroupParentId,
+                                                                    'groupId'               => $groupId,
+                                                                    'newGroupOrderInParent' => $newGroupOrderInParent
+                                                                );
+                                                                $groupInsertResult =
+                                                                    run_prepared_query($DBH,
+                                                                                       $groupInsertQuery,
+                                                                                       $groupInsertParams);
+                                                                if ($groupInsertResult->rowCount() == 1)
+                                                                {
+                                                                    $groupDeleteQuery = "DELETE FROM task_contents "
+                                                                                        .
+                                                                                        "WHERE tag_group_id = :groupId "
+                                                                                        .
+                                                                                        "LIMIT 1";
+                                                                    $groupDeleteParams['groupId'] = $groupId;
+                                                                    $groupDeleteResult =
+                                                                        run_prepared_query($DBH,
+                                                                                           $groupDeleteQuery,
+                                                                                           $groupDeleteParams);
+                                                                    if (!$groupDeleteResult ||
+                                                                        ($groupDeleteResult &&
+                                                                         $groupDeleteResult->rowCount() != 1)
+                                                                    )
+                                                                    {
+                                                                        $databaseUpdateFailure['DeleteGroupFromTaskBeforeInsertInNewParentGroup'] =
+                                                                            '$groupDeleteQuery';
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    $databaseUpdateFailure['InsertGroupIntoGroupContentsTableAfterRemovalFromOldParentTask'] =
+                                                                        '$groupInsertQuery';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                if ($oldGroupParentType == 'group' &&
+                                                                    $newGroupParentType == 'task'
+                                                                )
+                                                                {
+                                                                    $groupInsertQuery = "INSERT INTO task_contents "
+                                                                                        .
+                                                                                        "(task_id, tag_group_id, order_in_task) "
+                                                                                        .
+                                                                                        "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
+                                                                    $groupInsertParams = array(
+                                                                        'newGroupParentId'      => $newGroupParentId,
+                                                                        'groupId'               => $groupId,
+                                                                        'newGroupOrderInParent' => $newGroupOrderInParent
+                                                                    );
+                                                                    $groupInsertResult =
+                                                                        run_prepared_query($DBH,
+                                                                                           $groupInsertQuery,
+                                                                                           $groupInsertParams);
+                                                                    if ($groupInsertResult->rowCount() == 1)
+                                                                    {
+                                                                        $groupDeleteQuery =
+                                                                            "DELETE FROM tag_group_contents "
+                                                                            .
+                                                                            "WHERE tag_id = :groupId AND tag_group_id = :oldGroupParentId "
+                                                                            .
+                                                                            "LIMIT 1";
+                                                                        $groupDeleteParams = array(
+                                                                            'groupId'          => $groupId,
+                                                                            'oldGroupParentId' => $oldGroupParentId
+                                                                        );
+                                                                        $groupDeleteResult =
+                                                                            run_prepared_query($DBH,
+                                                                                               $groupDeleteQuery,
+                                                                                               $groupDeleteParams);
+                                                                        if (!$groupDeleteResult ||
+                                                                            ($groupDeleteResult &&
+                                                                             $groupDeleteResult->rowCount() != 1)
+                                                                        )
+                                                                        {
+                                                                            $databaseUpdateFailure['DeleteGroupFromGroupBeforeInsertInNewParentTask'] =
+                                                                                '$groupDeleteQuery';
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        $databaseUpdateFailure['InsertGroupIntoTaskContentsTableAfterRemovalFromOldParentGroup'] =
+                                                                            '$groupInsertQuery';
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['OldParentContainerOrderUpdate'] =
+                                                        '$oldParentContainerUpdateQuery';
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $databaseUpdateFailure['NewParentContainerOrderUpdate'] =
+                                                    '$newParentContainerUpdateQuery';
+                                            }
+
+
+                                            ////////////////////////////////////////////////////////////////////////////////////////////////
+                                            ////////////////////////////////////////////////////////////////////////////////////////////////
+                                            // Staying in the old container
+                                        }
+                                        else
+                                        {
+                                            $newContainer = false;
+                                            if ($oldGroupParentType == 'task')
+                                            {
+                                                $parentContainerOrderQuery =
+                                                    "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
+                                            }
+                                            else
+                                            {
+                                                $parentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
+                                            }
+                                            $parentContainerOrderParams['parentId'] = $oldGroupParentId;
+                                            $parentContainerOrderResult =
+                                                run_prepared_query($DBH,
+                                                                   $parentContainerOrderQuery,
+                                                                   $parentContainerOrderParams);
+                                            $parentContainerOrder =
+                                                $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                            $numberOfSiblings = count($parentContainerOrder);
+
+                                            $resequencingNumber = 1;
+                                            $newParentResequenced = false;
+                                            $groupOrderChanged = false;
+                                            foreach ($parentContainerOrder as &$individualGroup)
+                                            {
+                                                if ($individualGroup['order_number'] != $resequencingNumber)
+                                                {
+                                                    $dataChanges = true;
+                                                    $individualGroup['order_number'] = $resequencingNumber;
+                                                    $newParentResequenced = true;
+                                                }
+                                                if ($individualGroup['child_id'] == $groupId &&
+                                                    $individualGroup['order_number'] != $newGroupOrderInParent
+                                                )
+                                                {
+                                                    $dataChanges = true;
+                                                    if ($newGroupOrderInParent > $oldGroupOrderInParent)
+                                                    {
+                                                        $groupOrderChanged = 'up';
+                                                    }
+                                                    else
+                                                    {
+                                                        $groupOrderChanged = 'down';
+                                                    }
+                                                }
+                                                $resequencingNumber++;
+                                            }
+
+                                            if ($groupOrderChanged)
+                                            {
+                                                foreach ($parentContainerOrder as &$individualGroup)
+                                                {
+                                                    if ($groupOrderChanged == 'up' &&
+                                                        $individualGroup['child_id'] != $groupId
+                                                    )
+                                                    {
+                                                        if ($individualGroup['order_number'] > $oldGroupOrderInParent &&
+                                                            $individualGroup['order_number'] <= $newGroupOrderInParent
+                                                        )
+                                                        {
+                                                            $individualGroup['order_number']--;
+                                                        }
+                                                    }
+                                                    elseif ($groupOrderChanged == 'down' &&
+                                                            $individualGroup['child_id'] != $groupId
+                                                    )
+                                                    {
+                                                        if ($individualGroup['order_number'] < $oldGroupOrderInParent &&
+                                                            $individualGroup['order_number'] >= $newGroupOrderInParent
+                                                        )
+                                                        {
+                                                            $individualGroup['order_number']++;
+                                                        }
+                                                    }
+                                                    if ($individualGroup['child_id'] == $groupId)
+                                                    {
+                                                        $individualGroup['order_number'] = $newGroupOrderInParent;
+                                                        $newParentResequenced = true;
+                                                    }
+                                                }
+                                            }
+
+                                            if ($newParentResequenced)
+                                            {
+                                                if ($newGroupParentType == 'task')
+                                                {
+                                                    $parentContainerUpdateQuery =
+                                                        "UPDATE task_contents SET order_in_task = CASE id ";
+                                                }
+                                                else
+                                                {
+                                                    $parentContainerUpdateQuery =
+                                                        "UPDATE tag_group_contents SET order_in_group = CASE id ";
+                                                }
+                                                foreach ($parentContainerOrder as $group)
+                                                {
+                                                    $parentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
+                                                    $idsToUpdate[] = $group['db_id'];
+                                                }
+                                                $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
+                                                $limitAmount = count($idsToUpdate);
+                                                $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
+                                                $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
+                                                if ($parentContainerOrderResult)
+                                                {
+
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] =
+                                                        '$parentContainerUpdateQuery';
+                                                }
+                                            }
+                                            else
+                                            {
+
+                                            }
+                                        }
+                                    } // End !InvalidRequiredField
+                                    else
+                                    {
+                                        $updateError =
+                                            "One or more of the required fields necessary to update the group contained invalid or non-existant data.";
+                                    } // End !InvalidRequiredField ELSE
+                                }
+                                else
+                                {
+                                    if ($projectEditSubAction == 'createNewGroup')
+                                    {
+                                        $dataChanges = true;
+
+                                        settype($_POST['projectId'],
+                                                'integer');
+                                        if (!empty($_POST['projectId']))
+                                        {
+                                            $projectId = $_POST['projectId'];
+                                            $projectMetadata =
+                                                retrieve_entity_metadata($DBH,
+                                                                         $projectId,
+                                                                         'project');
+                                            if (!$projectMetadata)
+                                            {
+                                                $invalidRequiredField['projectId'] = $_POST['projectId'];
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $invalidRequiredField['projectId'] = $_POST['projectId'];
+                                        }
+
+                                        if (!$invalidRequiredField)
+                                        {
+
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // Insert new group into tag_group_metadata
+                                            $newGroupInsertQuery = "INSERT INTO tag_group_metadata "
+                                                                   .
+                                                                   "(project_id, is_enabled, contains_groups, name, description, display_text, force_width, has_border, has_color) "
+                                                                   .
+                                                                   "VALUES (:projectId, :isEnabled, :containsGroups, :name, :description, :displayText, :forceWidth, :hasBorder, :hasColor)";
+                                            $newGroupInsertParams = array(
+                                                'projectId'      => $projectId,
+                                                'isEnabled'      => $newGroupStatus,
+                                                'containsGroups' => $newGroupContainsGroupsStatus,
+                                                'name'           => $newGroupName,
+                                                'description'    => $newGroupDescription,
+                                                'displayText'    => $newGroupDisplayText,
+                                                'forceWidth'     => $newGroupWidth,
+                                                'hasBorder'      => $newGroupBorderStatus,
+                                                'hasColor'       => $newGroupColor,
+                                            );
+                                            $newGroupInsertResult =
+                                                run_prepared_query($DBH,
+                                                                   $newGroupInsertQuery,
+                                                                   $newGroupInsertParams);
+
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // If the insert was successful then reorder the parent container content list
+                                            // to make room for the new group and insert it in the parent container content list.
+                                            if ($newGroupInsertResult->rowCount() == 1)
+                                            {
+                                                $groupId = $DBH->lastInsertID();
+
+
+                                                // Find the current contents of the parent container.
+                                                if ($newGroupParentType == 'task')
+                                                {
+                                                    $parentContainerOrderQuery =
+                                                        "SELECT id AS db_id, task_id AS parent_id, tag_group_id AS child_id, order_in_task AS order_number FROM task_contents WHERE task_id = :parentId ORDER BY order_number";
+                                                }
+                                                else
+                                                {
+                                                    $parentContainerOrderQuery =
+                                                        "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number FROM tag_group_contents WHERE tag_group_id = :parentId ORDER BY order_number";
+                                                }
+
+                                                $parentContainerOrderParams['parentId'] = $newGroupParentId;
+                                                $parentContainerOrderResult =
+                                                    run_prepared_query($DBH,
+                                                                       $parentContainerOrderQuery,
+                                                                       $parentContainerOrderParams);
+                                                $parentContainerOrder =
+                                                    $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                                $numberOfSiblings = count($parentContainerOrder);
+                                                if ($numberOfSiblings > 0)
+                                                {
+                                                    // Check for sequential numbering of the existing contents. Resequence sequentially if necessary.
+                                                    $resequencingNumber = 1;
+                                                    foreach ($parentContainerOrder as &$individualGroup)
+                                                    {
+                                                        if ($individualGroup['order_number'] != $resequencingNumber)
+                                                        {
+                                                            $individualGroup['order_number'] = $resequencingNumber;
+                                                        }
+                                                        $resequencingNumber++;
+                                                    }
+
+                                                    // Increment parent contents of equal or higher order than the new group by one number to make room.
+                                                    foreach ($parentContainerOrder as &$individualGroup)
+                                                    {
+                                                        if ($individualGroup['order_number'] >= $newGroupOrderInParent)
+                                                        {
+                                                            $individualGroup['order_number']++;
+                                                        }
+                                                    }
+
+                                                    // Update the database with the new order sequence.
+                                                    if ($newGroupParentType == 'task')
+                                                    {
+                                                        $parentContainerUpdateQuery =
+                                                            "UPDATE task_contents SET order_in_task = CASE id ";
+                                                    }
+                                                    else
+                                                    {
+                                                        $parentContainerUpdateQuery =
+                                                            "UPDATE tag_group_contents SET order_in_group = CASE id ";
+                                                    }
+                                                    foreach ($parentContainerOrder as $group)
+                                                    {
+                                                        $parentContainerUpdateQuery .= "WHEN {$group['db_id']} THEN {$group['order_number']} ";
+                                                        $idsToUpdate[] = $group['db_id'];
+                                                    }
+                                                    $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
+                                                    $limitAmount = count($idsToUpdate);
+                                                    $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
+                                                    $parentContainerOrderResult =
+                                                        $DBH->query($parentContainerUpdateQuery);
+                                                } else {
+                                                    $parentContainerOrderResult = true;
+                                                }
+                                                if ($parentContainerOrderResult)
+                                                {
+                                                    // If the update of the parent contents order was successfull then insert the new
+                                                    // group into the parent content list
+                                                    if ($newGroupParentType == 'task')
+                                                    {
+                                                        $groupInsertQuery = "INSERT INTO task_contents "
+                                                                            .
+                                                                            "(task_id, tag_group_id, order_in_task) "
+                                                                            .
+                                                                            "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
+                                                        $groupInsertParams = array(
+                                                            'newGroupParentId'      => $newGroupParentId,
+                                                            'groupId'               => $groupId,
+                                                            'newGroupOrderInParent' => $newGroupOrderInParent
+                                                        );
+                                                        $groupInsertResult =
+                                                            run_prepared_query($DBH,
+                                                                               $groupInsertQuery,
+                                                                               $groupInsertParams);
+                                                    }
+                                                    else
+                                                    {
+                                                        $groupInsertQuery = "INSERT INTO tag_group_contents "
+                                                                            .
+                                                                            "(tag_group_id, tag_id, order_in_group) "
+                                                                            .
+                                                                            "VALUES (:newGroupParentId, :groupId, :newGroupOrderInParent)";
+                                                        $groupInsertParams = array(
+                                                            'newGroupParentId'      => $newGroupParentId,
+                                                            'groupId'               => $groupId,
+                                                            'newGroupOrderInParent' => $newGroupOrderInParent
+                                                        );
+                                                        $groupInsertResult =
+                                                            run_prepared_query($DBH,
+                                                                               $groupInsertQuery,
+                                                                               $groupInsertParams);
+                                                    }
+                                                    if ($groupInsertResult->rowCount() != 1)
+                                                    {
+                                                        $databaseUpdateFailure['NewGroupParentContainerOrderGroupInsertion'] =
+                                                            $groupInsertQuery;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['NewGroupParentReordering'] =
+                                                        $parentContainerUpdateQuery;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $databaseUpdateFailure['InsertNewGroupMetaData'] = $newGroupInsertQuery;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
+                            }
+
+                            if ($invalidRequiredField)
+                            {
+                                $actionSummaryHTML = <<<EOL
+                                <h2>Errors Detected in Input Data</h2>
+                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                                <div class="updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editGroupAgain" 
+                                        title="This will return you to the current group for further changes and updates" 
+                                        value="Edit This Group Again"
+                                    >
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
+                                    <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                </div>
+EOL;
+                            }
+                            else
+                            {
+                                if (!$dataChanges)
+                                {
+                                    $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
                                 <p>No change in the tag detail data has been detected. The database has not been altered.</p>
 
 EOL;
-                    } else if ($databaseUpdateFailure) {
-                        $projectUpdateErrorHTML = <<<EOL
+                                }
+                                else
+                                {
+                                    if ($databaseUpdateFailure)
+                                    {
+                                        $projectUpdateErrorHTML = <<<EOL
                                 <h2>Update Failed</h2>
-                                <p>An unknown error occured during the database update. No changes have been made.
+                                <p>An unknown error occurred during the database update. No changes have been made.
                                     If this problem persists please contact an iCoast System Administrator. </p>
                                 <div class="updateFormSubmissionControls"><hr>
-                                    <input type="button" class="clickableButton" id="returnToGroupDetails" title="This will return you to the group details editing screen screen for you to update this group's details again." value="Return to the Tag Details Editor">
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editGroupAgain" 
+                                        title="This will return you to the current group for further changes and updates" 
+                                        value="Edit This Group Again"
+                                    >
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else {
-                        $actionSummaryHTML = <<<EOL
+                                    }
+                                    else
+                                    {
+                                        $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
                                 <p>It is recommended that you now review the project in iCoast to ensure your changes are
                                     displayed correctly.</p>
 
 EOL;
-                    }
-
-                    if (!$databaseUpdateFailure && !$invalidRequiredField) {
-                        // CREATE HTML TO SHOW THE NEW TASK STATUS
-
-                        $parentIsTask = TRUE;
-                        $summaryQuery = "SELECT * FROM tag_group_metadata WHERE tag_group_id = :groupId";
-                        $summaryParams['groupId'] = $groupId;
-                        $summaryResult = run_prepared_query($DBH, $summaryQuery, $summaryParams);
-                        $dbGroupMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
-
-                        $summaryParentQuery = "SELECT tm.name, tc.order_in_task as position_in_parent "
-                                . "FROM task_contents tc "
-                                . "LEFT JOIN task_metadata tm ON tc.task_id = tm.task_id "
-                                . "WHERE tc.tag_group_id = :groupId";
-                        $summaryParentResults = run_prepared_query($DBH, $summaryParentQuery, $summaryParams);
-                        $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
-                        if (!$dbParentMetadata) {
-                            $summaryParentQuery = "SELECT tgm.name, tgc.order_in_group as position_in_parent "
-                                    . "FROM tag_group_contents tgc "
-                                    . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
-                                    . "WHERE tgc.tag_id = :groupId AND tgm.contains_groups = 1";
-                            $summaryParentResults = run_prepared_query($DBH, $summaryParentQuery, $summaryParams);
-                            $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
-                            if ($dbParentMetadata) {
-                                $parentIsTask = FALSE;
+                                    }
+                                }
                             }
-                        }
+
+                            if (!$databaseUpdateFailure && !$invalidRequiredField)
+                            {
+                                // CREATE HTML TO SHOW THE NEW TASK STATUS
+
+                                $parentIsTask = true;
+                                $summaryQuery = "SELECT * FROM tag_group_metadata WHERE tag_group_id = :groupId";
+                                $summaryParams['groupId'] = $groupId;
+                                $summaryResult =
+                                    run_prepared_query($DBH,
+                                                       $summaryQuery,
+                                                       $summaryParams);
+                                $dbGroupMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
+
+                                $summaryParentQuery = "SELECT tm.name, tc.order_in_task as position_in_parent "
+                                                      . "FROM task_contents tc "
+                                                      . "LEFT JOIN task_metadata tm ON tc.task_id = tm.task_id "
+                                                      . "WHERE tc.tag_group_id = :groupId";
+                                $summaryParentResults =
+                                    run_prepared_query($DBH,
+                                                       $summaryParentQuery,
+                                                       $summaryParams);
+                                $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
+                                if (!$dbParentMetadata)
+                                {
+                                    $summaryParentQuery = "SELECT tgm.name, tgc.order_in_group as position_in_parent "
+                                                          .
+                                                          "FROM tag_group_contents tgc "
+                                                          .
+                                                          "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
+                                                          .
+                                                          "WHERE tgc.tag_id = :groupId AND tgm.contains_groups = 1";
+                                    $summaryParentResults =
+                                        run_prepared_query($DBH,
+                                                           $summaryParentQuery,
+                                                           $summaryParams);
+                                    $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
+                                    if ($dbParentMetadata)
+                                    {
+                                        $parentIsTask = false;
+                                    }
+                                }
 
 
-                        if ($dbGroupMetadata['contains_groups'] == 0) {
-                            $dbGroupContents = "Tags";
-                        } else {
-                            $dbGroupContents = "Groups";
-                        }
+                                if ($dbGroupMetadata['contains_groups'] == 0)
+                                {
+                                    $dbGroupContents = "Tags";
+                                }
+                                else
+                                {
+                                    $dbGroupContents = "Groups";
+                                }
 
-                        if ($dbGroupMetadata['force_width'] == 0) {
-                            $dbGroupWidth = "Set Automatically";
-                        } else {
-                            $dbGroupWidth = $dbGroupMetadata['force_width'] . ' px';
-                        }
+                                if ($dbGroupMetadata['force_width'] == 0)
+                                {
+                                    $dbGroupWidth = "Set Automatically";
+                                }
+                                else
+                                {
+                                    $dbGroupWidth = $dbGroupMetadata['force_width'] . ' px';
+                                }
 
-                        if ($dbGroupMetadata['has_border'] == 0) {
-                            $dbBorderStatus = "No";
-                        } else {
-                            $dbBorderStatus = "Yes";
-                        }
+                                if ($dbGroupMetadata['has_border'] == 0)
+                                {
+                                    $dbBorderStatus = "No";
+                                }
+                                else
+                                {
+                                    $dbBorderStatus = "Yes";
+                                }
 
-                        if (empty($dbGroupMetadata['has_color'])) {
-                            $dbBackgroundColor = "No";
-                        } else {
-                            $dbBackgroundColor = "Yes <span style=\"width: 50px; border: 1px solid black; background-color: #{$dbGroupMetadata['has_color']}; border-radius: 5px;\">&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;</span>";
-                        }
+                                if (empty($dbGroupMetadata['has_color']))
+                                {
+                                    $dbBackgroundColor = "No";
+                                }
+                                else
+                                {
+                                    $dbBackgroundColor =
+                                        "Yes <span style=\"width: 50px; border: 1px solid black; background-color: #{$dbGroupMetadata['has_color']}; border-radius: 5px;\">&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;</span>";
+                                }
 
-                        if ($parentIsTask) {
-                            $dbParentType = "Task";
-                        } else {
-                            $dbParentType = "Group";
-                        }
+                                if ($parentIsTask)
+                                {
+                                    $dbParentType = "Task";
+                                }
+                                else
+                                {
+                                    $dbParentType = "Group";
+                                }
 
-                        $ordinalPositionInParent = ordinal_suffix($dbParentMetadata['position_in_parent']);
+                                $ordinalPositionInParent = ordinal_suffix($dbParentMetadata['position_in_parent']);
 
-                        if ($dbGroupMetadata['is_enabled'] == 1) {
-                            $dbGroupStatusText = 'Enabled';
-                        } else {
-                            $dbGroupStatusText = '<span class="redHighlight">Disabled</span>';
-                        }
+                                if ($dbGroupMetadata['is_enabled'] == 1)
+                                {
+                                    $dbGroupStatusText = 'Enabled';
+                                }
+                                else
+                                {
+                                    $dbGroupStatusText = '<span class="redHighlight">Disabled</span>';
+                                }
 
-                        $actionSummaryHTML .= <<<EOL
+                                $actionSummaryHTML .= <<<EOL
                                 <h3>Group Summary</h3>
                                 <table id="updateSummaryTable">
                                     <tbody>
@@ -1532,15 +2633,44 @@ EOL;
                                     </button>
                                 </div>
                                 <div class = "updateFormSubmissionControls"><hr>
-                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editGroupAgain" 
+                                        title="This will return you to the current group for further changes and updates" 
+                                        value="Edit This Group Again"
+                                    >
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another group to edit or create." value = "Return to the Group Selection Screen">
                                     <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                        $jQueryDocumentDotReadyCode .= <<<EOL
+                                $jQueryDocumentDotReadyCode .= <<<EOL
                             $('#previewQuestionSetButton').click(function () {
                                 window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
                             });
+
+EOL;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $groupId = $_POST['groupId'];
+                        $actionSummaryHTML = <<<EOL
+                                <h2>Errors Detected in Input Data</h2>
+                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                                <div class = "updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editGroupAgain" 
+                                        title="This will return you to the current group for further changes and updates" 
+                                        value="Edit This Group Again"
+                                    >
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another group to edit or create." value = "Return to the Group Selection Screen">
+                                    <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
+                                </div>
 
 EOL;
                     }
@@ -1553,637 +2683,1077 @@ EOL;
                 //
                 //
                 case 'tags':
-                    // Check that all required fields are present.
-                    if (isset($_POST['projectEditSubAction']) &&
-                            isset($_POST['newTagName']) &&
-                            isset($_POST['newTagDescription']) &&
-                            isset($_POST['newTagDisplayText']) &&
-                            isset($_POST['newTagToolTipText']) &&
-                            isset($_POST['newTagToolTipImage']) &&
-                            isset($_POST['newTagType']) &&
-                            ($_POST['newTagType'] == 0 || $_POST['newTagType'] == 2 || ($_POST['newTagType'] == 1 && isset($_POST['newTagRadioGroupName']))) &&
-                            isset($_POST['newParentId']) &&
-                            isset($_POST['newTagOrder']) &&
-                            isset($_POST['newTagStatus'])) {
 
-                        $invalidRequiredField = FALSE;
-                        $dataChanges = FALSE;
-                        $databaseUpdateFailure = FALSE;
-
-                        if ($_POST['projectEditSubAction'] == 'updateExistingTag' || $_POST['projectEditSubAction'] == 'createNewTag') {
+                    if (isset($_POST['projectEditSubAction']))
+                    {
+                        if ($_POST['projectEditSubAction'] == 'updateExistingTag' ||
+                            $_POST['projectEditSubAction'] == 'createNewTag' ||
+                            $_POST['projectEditSubAction'] == 'deleteExistingTag'
+                        )
+                        {
                             $projectEditSubAction = $_POST['projectEditSubAction'];
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                         }
 
-                        if (!empty($_POST['newTagName'])) {
-                            $newTagName = htmlspecialchars($_POST['newTagName']);
-                        } else {
-                            $invalidRequiredField['newTagName'] = $_POST['newTagName'];
-                        }
-
-                        $newTagDescription = htmlspecialchars($_POST['newTagDescription']);
-
-                        if (!empty($_POST['newTagDisplayText'])) {
-                            $newTagDisplayText = htmlspecialchars($_POST['newTagDisplayText']);
-                        } else {
-                            $invalidRequiredField['newTagDisplayText'] = $_POST['newTagDisplayText'];
-                        }
-
-                        $newTagToolTipText = htmlspecialchars($_POST['newTagToolTipText']);
-                        $newTagToolTipImage = htmlspecialchars($_POST['newTagToolTipImage']);
-
-                        switch ($_POST['newTagType']) {
-                            case 0:
-                                $newCommentBoxFlag = 0;
-                                $newRadioButtonFlag = 0;
-                                $newRadioButtonGroupName = "";
-                                break;
-                            case 1:
-                                if (isset($_POST['newTagRadioGroupName']) && !empty($_POST['newTagRadioGroupName'])) {
-                                    $newCommentBoxFlag = 0;
-                                    $newRadioButtonFlag = 1;
-                                    $newRadioButtonGroupName = htmlspecialchars($_POST['newTagRadioGroupName']);
-                                } else {
-                                    if (!isset($_POST['newTagRadioGroupName'])) {
-                                        $invalidRequiredField['newTagRadioGroupName'] = "Field doesn't exist!";
-                                    } else {
-                                        $invalidRequiredField['newTagRadioGroupName'] = "Field Empty!";
-                                    }
-                                }
-                                break;
-                            case 2:
-                                $newCommentBoxFlag = 1;
-                                $newRadioButtonFlag = 0;
-                                $newRadioButtonGroupName = "";
-                                break;
-                            default:
-                                $invalidRequiredField['newTagType'] = $_POST['newTagType'];
-                                break;
-                        }
-
-                        settype($_POST['newParentId'], 'integer');
-                        if (!empty($_POST['newParentId'])) {
-                            $newParentId = $_POST['newParentId'];
-                        } else {
-                            $invalidRequiredField['newParentId'] = $_POST['newParentId'];
-                        }
-
-                        settype($_POST['newTagOrder'], 'integer');
-                        if (!empty($_POST['newTagOrder'])) {
-                            $newTagPosition = $_POST['newTagOrder'];
-                        } else {
-                            $invalidRequiredField['newTagOrder'] = $_POST['newTagOrder'];
-                        }
-
-                        if ($_POST['newTagStatus'] == 0 || $_POST['newTagStatus'] == 1) {
-                            $newTagStatus = $_POST['newTagStatus'];
-                        } else {
-                            $invalidRequiredField['newTagStatus'] = $_POST['newTagStatus'];
-                        }
-
-
-                        // IF A TAG_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingTag
-                        if (isset($_POST['tagId']) &&
-                                isset($_POST['oldParentId']) &&
-                                isset($_POST['oldTagOrder']) &&
-                                $projectEditSubAction == 'updateExistingTag') {
-
-                            settype($_POST['tagId'], 'integer');
-                            if (!empty($_POST['tagId'])) {
-                                $tagId = $_POST['tagId'];
-                            } else {
-                                $updateError = "The supplied tag Id is invalid.";
-                                $invalidRequiredField['tagId'] = $_POST['tagId'];
-                            }
-
-
-                            settype($_POST['oldParentId'], 'integer');
-                            if (!empty($_POST['oldParentId'])) {
-                                $oldParentId = $_POST['oldParentId'];
-                            } else {
-                                $invalidRequiredField['oldParentId'] = $_POST['oldParentId'];
-                            }
-
-                            settype($_POST['oldTagOrder'], 'integer');
-                            if (!empty($_POST['oldTagOrder'])) {
-                                $oldTagPosition = $_POST['oldTagOrder'];
-                            } else {
-                                $invalidRequiredField['oldTagOrder'] = $_POST['oldTagOrder'];
-                            }
-
-                            if (!$invalidRequiredField) {
-                                $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tag');
-
-                                $oldTagStatus = $tagMetadata['is_enabled'];
-                                $oldCommentBoxFlag = $tagMetadata['is_comment_box'];
-                                $oldRadioButtonFlag = $tagMetadata['is_radio_button'];
-                                $oldRadioButtonGroupName = $tagMetadata['radio_button_group'];
-                                $oldTagName = $tagMetadata['name'];
-                                $oldTagDescription = $tagMetadata['description'];
-                                $oldTagDisplayText = $tagMetadata['display_text'];
-                                $oldTagTooltipText = $tagMetadata['tooltip_text'];
-                                $oldTagTooltipImage = $tagMetadata['tooltip_image'];
-
-                                $tagFieldsToUpdate = array();
-
-                                if ($oldTagStatus != $newTagStatus) {
-                                    $tagFieldsToUpdate['is_enabled'] = $newTagStatus;
-                                }
-
-                                if ($oldTagName != $newTagName) {
-                                    $tagFieldsToUpdate['name'] = $newTagName;
-                                }
-
-                                if ($oldTagDescription != $newTagDescription) {
-                                    $tagFieldsToUpdate['description'] = $newTagDescription;
-                                }
-
-                                if ($oldTagDisplayText != $newTagDisplayText) {
-                                    $tagFieldsToUpdate['display_text'] = $newTagDisplayText;
-                                }
-
-                                if ($oldTagTooltipText != $newTagToolTipText) {
-                                    $tagFieldsToUpdate['tooltip_text'] = $newTagToolTipText;
-                                }
-
-                                if ($oldTagTooltipImage != $newTagToolTipImage) {
-                                    if (!empty($newTagToolTipImage)) {
-                                        $toolTipImagesPath = "images/projects/$projectId/tooltips/";
-                                        if (file_exists($toolTipImagesPath . $newTagToolTipImage)) {
-                                            $imageMetadata = getimagesize($toolTipImagesPath . $newTagToolTipImage);
-                                            if ($imageMetadata) {
-                                                $tagFieldsToUpdate['tooltip_image'] = $newTagToolTipImage;
-                                                $tagFieldsToUpdate['tooltip_image_width'] = $imageMetadata[0];
-                                                $tagFieldsToUpdate['tooltip_image_height'] = $imageMetadata[1];
-                                            } else {
-                                                $invalidRequiredField['newTagToolTipImage'] = 'The image dimensions could not be read.';
-                                            }
-                                        } else {
-                                            $invalidRequiredField['newTagToolTipImage'] = "The image could not be found.";
-                                        }
-                                    } else {
-                                        $tagFieldsToUpdate['tooltip_image'] = '';
-                                        $tagFieldsToUpdate['tooltip_image_width'] = 0;
-                                        $tagFieldsToUpdate['tooltip_image_height'] = 0;
-                                    }
-                                }
-
-                                if ($oldCommentBoxFlag != $newCommentBoxFlag) {
-                                    $tagFieldsToUpdate['is_comment_box'] = $newCommentBoxFlag;
-                                }
-
-                                if ($oldRadioButtonFlag != $newRadioButtonFlag) {
-                                    $tagFieldsToUpdate['is_radio_button'] = $newRadioButtonFlag;
-                                }
-
-                                if ($oldRadioButtonGroupName != $newRadioButtonGroupName) {
-                                    $tagFieldsToUpdate['radio_button_group'] = $newRadioButtonGroupName;
-                                }
-
-
-                                if (!$invalidRequiredField) {
-
-                                    if (count($tagFieldsToUpdate) > 0) {
-                                        $dataChanges = TRUE;
-                                        $tagUpdateFieldsQuery = "UPDATE tags "
-                                                . "SET ";
-                                        $tagUpdateFieldsParams = array();
-                                        $columnUpdateCount = 0;
-                                        foreach ($tagFieldsToUpdate as $column => $value) {
-                                            $tagUpdateFieldsQuery .= "$column=:$column";
-                                            $columnUpdateCount++;
-                                            if ($columnUpdateCount != count($tagFieldsToUpdate)) {
-                                                $tagUpdateFieldsQuery .= ", ";
-                                            }
-                                            $tagUpdateFieldsParams[$column] = $value;
-                                        }
-                                        $tagUpdateFieldsQuery .= " WHERE tag_id = $tagId LIMIT 1";
-
-                                        $tagUpdateResult = run_prepared_query($DBH, $tagUpdateFieldsQuery, $tagUpdateFieldsParams);
-                                        if ($tagUpdateResult->rowCount() == 1) {
-
-                                        } else {
-                                            $databaseUpdateFailure['Column Updates'] = 'Failed';
-                                        }
-                                    } else {
-
-                                    }
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Moving to a new container
-                                    if ($newParentId != $oldParentId) {
-                                        $dataChanges = TRUE;
-//////////////////////////////////////////////////////////////////////////////
-// New Container Reordering
-                                        $newContainer = true;
-                                        $resequencing = FALSE;
-                                        $reordering = FALSE;
-                                        $newParentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
-                                                . "FROM tag_group_contents "
-                                                . "WHERE tag_group_id = :parentId "
-                                                . "ORDER BY order_number";
-                                        $newParentContainerOrderParams['parentId'] = $newParentId;
-                                        $newParentContainerOrderResult = run_prepared_query($DBH, $newParentContainerOrderQuery, $newParentContainerOrderParams);
-                                        $newParentContainerOrder = $newParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                        $numberOfSiblings = count($newParentContainerOrder);
-
-                                        $resequencingNumber = 1;
-                                        foreach ($newParentContainerOrder as &$individualTag) {
-                                            if ($individualTag['order_number'] != $resequencingNumber) {
-                                                $individualTag['order_number'] = $resequencingNumber;
-                                                $resequencing = TRUE;
-                                            }
-                                            $resequencingNumber++;
-                                        }
-
-                                        foreach ($newParentContainerOrder as &$individualTag) {
-                                            if ($individualTag['order_number'] >= $newTagPosition) {
-                                                $individualTag['order_number'] ++;
-                                                $reordering = TRUE;
-                                            }
-                                        }
-
-                                        /////////////////////////////////////////////////////////////////////////////
-                                        // Old Container Reordering
-
-                                        $oldParentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
-                                                . "FROM tag_group_contents "
-                                                . "WHERE tag_group_id = :parentId "
-                                                . "ORDER BY order_number";
-                                        $oldParentContainerOrderParams['parentId'] = $oldParentId;
-                                        $oldParentContainerOrderResult = run_prepared_query($DBH, $oldParentContainerOrderQuery, $oldParentContainerOrderParams);
-                                        $oldParentContainerOrder = $oldParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                        $numberOfSiblings = count($oldParentContainerOrder);
-
-                                        for ($i = 0; $i < $numberOfSiblings; $i++) {
-                                            if ($oldParentContainerOrder[$i]['child_id'] == $tagId) {
-                                                unset($oldParentContainerOrder[$i]);
-                                            }
-                                        }
-
-                                        $resequencingNumber = 1;
-                                        foreach ($oldParentContainerOrder as &$individualTag) {
-                                            if ($individualTag['order_number'] != $resequencingNumber) {
-                                                $individualTag['order_number'] = $resequencingNumber;
-                                            }
-                                            $resequencingNumber++;
-                                        }
-
-                                        //////////////////////////////////////////////////////////////////////////////
-                                        // Update the database - New container
-
-                                        $newParentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-
-                                        foreach ($newParentContainerOrder as $tag) {
-                                            $newParentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
-                                            $newIdsToUpdate[] = $tag['db_id'];
-                                        }
-                                        $newWhereInIdsToUpdate = where_in_string_builder($newIdsToUpdate);
-                                        $newLimitAmount = count($newIdsToUpdate);
-                                        $newParentContainerUpdateQuery .= "END WHERE id IN ($newWhereInIdsToUpdate) LIMIT $newLimitAmount";
-                                        $newParentContainerOrderResult = $DBH->query($newParentContainerUpdateQuery);
-                                        if ($newParentContainerOrderResult) {
-                                            //////////////////////////////////////////////////////////////////////////////
-                                            // Update the database. Old Container
-
-                                            $oldParentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-                                            foreach ($oldParentContainerOrder as $tag) {
-                                                $oldParentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
-                                                $oldIdsToUpdate[] = $tag['db_id'];
-                                            }
-                                            $oldWhereInIdsToUpdate = where_in_string_builder($oldIdsToUpdate);
-                                            $oldLimitAmount = count($oldIdsToUpdate);
-                                            $oldParentContainerUpdateQuery .= "END WHERE id IN ($oldWhereInIdsToUpdate) LIMIT $oldLimitAmount";
-                                            $oldparentContainerOrderResult = $DBH->query($oldParentContainerUpdateQuery);
-                                            if ($oldparentContainerOrderResult) {
-
-                                                $tagUpdateQuery = "UPDATE tag_group_contents SET "
-                                                        . "tag_group_id = :newParentId, "
-                                                        . "order_in_group = :newTagPosition "
-                                                        . "WHERE tag_id = :tagId AND tag_group_id = :oldParentId "
-                                                        . "LIMIT 1";
-                                                $tagUpdateParams = array(
-                                                    'newParentId' => $newParentId,
-                                                    'newTagPosition' => $newTagPosition,
-                                                    'tagId' => $tagId,
-                                                    'oldParentId' => $oldParentId
-                                                );
-                                                $tagUpdateResults = run_prepared_query($DBH, $tagUpdateQuery, $tagUpdateParams);
-                                                $affectedRows = $tagUpdateResults->rowCount();
-
-                                                if (isset($affectedRows) && $affectedRows == 1) {
-
-                                                } else {
-                                                    $databaseUpdateFailure['TagGroupMembershipAndOrder'] = '$tagUpdateQuery';
-                                                }
-                                            } else {
-                                                $databaseUpdateFailure['OldParentContainerOrderUpdate'] = '$oldParentContainerUpdateQuery';
-                                            }
-                                        } else {
-                                            $databaseUpdateFailure['NewParentContainerOrderUpdate'] = '$newParentContainerUpdateQuery';
-                                        }
-
-
-                                        ////////////////////////////////////////////////////////////////////////////////////////////////
-                                        ////////////////////////////////////////////////////////////////////////////////////////////////
-                                        // Staying in the old container
-                                    } else {
-                                        $newContainer = false;
-                                        $resequencing = FALSE;
-                                        $reordering = FALSE;
-
-                                        $parentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
-                                                . "FROM tag_group_contents "
-                                                . "WHERE tag_group_id = :parentId "
-                                                . "ORDER BY order_number";
-
-                                        $parentContainerOrderParams['parentId'] = $oldParentId;
-                                        $parentContainerOrderResult = run_prepared_query($DBH, $parentContainerOrderQuery, $parentContainerOrderParams);
-                                        $parentContainerOrder = $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                        $numberOfSiblings = count($parentContainerOrder);
-
-                                        $resequencingNumber = 1;
-                                        $newParentResequenced = false;
-                                        $groupOrderChanged = false;
-                                        foreach ($parentContainerOrder as &$individualTag) {
-                                            if ($individualTag['order_number'] != $resequencingNumber) {
-                                                $dataChanges = TRUE;
-//                                                print $individualTag['order_number'] . ' becomes ' . $resequencingNumber;
-                                                $individualTag['order_number'] = $resequencingNumber;
-                                                $resequencing = true;
-                                            }
-                                            if ($individualTag['child_id'] == $tagId && $individualTag['order_number'] != $newTagPosition) {
-                                                $dataChanges = TRUE;
-                                                if ($newTagPosition > $oldTagPosition) {
-                                                    $groupOrderChanged = 'up';
-                                                } else {
-                                                    $groupOrderChanged = 'down';
-                                                }
-                                            }
-                                            $resequencingNumber++;
-                                        }
-
-                                        if ($groupOrderChanged) {
-                                            foreach ($parentContainerOrder as &$individualTag) {
-                                                if ($groupOrderChanged == 'up' && $individualTag['child_id'] != $tagId) {
-                                                    if ($individualTag['order_number'] > $oldTagPosition && $individualTag['order_number'] <= $newTagPosition) {
-                                                        $individualTag['order_number'] --;
-                                                    }
-                                                } elseif ($groupOrderChanged == 'down' && $individualTag['child_id'] != $tagId) {
-                                                    if ($individualTag['order_number'] < $oldTagPosition && $individualTag['order_number'] >= $newTagPosition) {
-                                                        $individualTag['order_number'] ++;
-                                                    }
-                                                }
-                                                if ($individualTag['child_id'] == $tagId) {
-                                                    $individualTag['order_number'] = $newTagPosition;
-                                                }
-                                            }
-                                            $reordering = true;
-                                        }
-
-
-                                        if ($resequencing || $reordering) {
-
-                                            $parentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-
-                                            foreach ($parentContainerOrder as $tag) {
-                                                $parentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
-                                                $idsToUpdate[] = $tag['db_id'];
-                                            }
-                                            $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
-                                            $limitAmount = count($idsToUpdate);
-                                            $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
-                                            $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
-                                            if ($parentContainerOrderResult) {
-//                                                print "Success updating same group order";
-                                            } else {
-                                                $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] = '$parentContainerUpdateQuery';
-                                            }
-                                        } else {
-
-                                        }
-                                    }
-                                } // End !InvalidRequiredField
-                            } // End !InvalidRequiredField
-                            if ($invalidRequiredField) {
-                                $updateError = "One or more of the required fields necessary to update the group contained invalid or non-existant data.";
-                            } // End invalidRequiredField IF
-                            //////////////////////////////////////////////////////////////////////////////////
-                            //////////////////////////////////////////////////////////////////////////////////
-                            //////////////////////////////////////////////////////////////////////////////////
-                            //////////////////////////////////////////////////////////////////////////////////
-                            //////////////////////////////////////////////////////////////////////////////////
-                            //////////////////////////////////////////////////////////////////////////////////
-                        } else if ($projectEditSubAction == 'createNewTag') {
-                            $dataChanges = TRUE;
-
-                            settype($_POST['projectId'], 'integer');
-                            if (!empty($_POST['projectId'])) {
-                                $projectId = $_POST['projectId'];
-                                $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-                                if (!$projectMetadata) {
-                                    $invalidRequiredField['projectId'] = $_POST['projectId'];
-                                }
-                            } else {
+                        settype($_POST['projectId'],
+                                'integer');
+                        if (!empty($_POST['projectId']))
+                        {
+                            $projectId = $_POST['projectId'];
+                            $projectMetadata =
+                                retrieve_entity_metadata($DBH,
+                                                         $projectId,
+                                                         'project');
+                            if (!$projectMetadata)
+                            {
                                 $invalidRequiredField['projectId'] = $_POST['projectId'];
                             }
-
-                            if (!empty($newTagToolTipImage)) {
-                                $toolTipImagesPath = "images/projects/$projectId/tooltips/";
-                                if (file_exists($toolTipImagesPath . $newTagToolTipImage)) {
-                                    $imageMetadata = getimagesize($toolTipImagesPath . $newTagToolTipImage);
-                                    if ($imageMetadata) {
-                                        $newTooltipImageWidth = $imageMetadata[0];
-                                        $newTooltipImageHeight = $imageMetadata[1];
-                                    } else {
-                                        $invalidRequiredField['newTagToolTipImage'] = 'The image dimensions could not be read.';
-                                    }
-                                } else {
-                                    $invalidRequiredField['newTagToolTipImage'] = "The image could not be found. {$toolTipImagesPath}{$newTagToolTipImage}";
-                                }
-                            } else {
-                                $newTooltipImageWidth = 0;
-                                $newTooltipImageHeight = 0;
-                            }
-
-
-                            if (!$invalidRequiredField) {
-
-                                //////////////////////////////////////////////////////////////////////////////
-                                // Insert new group into tag_group_metadata
-                                $newTagInsertQuery = "INSERT INTO tags "
-                                        . "(project_id, is_enabled, is_comment_box, is_radio_button, radio_button_group, name, description, display_text, display_image, tooltip_text, tooltip_image, tooltip_image_width, tooltip_image_height) "
-                                        . "VALUES (:projectId, :isEnabled, :commentBoxFlag, :radioButtonFlag, :radioButtonGroup, :name, :description, :displayText, :displayImage, :tooltipText, :tooltipImage, :tooltipImageWidth, :tooltipImageHeight)";
-                                $newTagInsertParams = array(
-                                    'projectId' => $projectId,
-                                    'isEnabled' => $newTagStatus,
-                                    'commentBoxFlag' => $newCommentBoxFlag,
-                                    'radioButtonFlag' => $newRadioButtonFlag,
-                                    'radioButtonGroup' => $newRadioButtonGroupName,
-                                    'name' => $newTagName,
-                                    'description' => $newTagDescription,
-                                    'displayText' => $newTagDisplayText,
-                                    'displayImage' => '',
-                                    'tooltipText' => $newTagToolTipText,
-                                    'tooltipImage' => $newTagToolTipImage,
-                                    'tooltipImageWidth' => $newTooltipImageWidth,
-                                    'tooltipImageHeight' => $newTooltipImageHeight
-                                );
-                                $newTagInsertResult = run_prepared_query($DBH, $newTagInsertQuery, $newTagInsertParams);
-
-                                //////////////////////////////////////////////////////////////////////////////
-                                // If the insert was successful then reorder the parent container content list
-                                // to make room for the new group and insert it in the parent container content list.
-                                if ($newTagInsertResult->rowCount() == 1) {
-                                    $tagId = $DBH->lastInsertID();
-
-                                    $resequenced = false;
-
-                                    // Find the current contents of the parent container.
-
-                                    $parentContainerOrderQuery = "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
-                                            . "FROM tag_group_contents "
-                                            . "WHERE tag_group_id = :parentId "
-                                            . "ORDER BY order_number";
-                                    $parentContainerOrderParams['parentId'] = $newParentId;
-                                    $parentContainerOrderResult = run_prepared_query($DBH, $parentContainerOrderQuery, $parentContainerOrderParams);
-                                    $parentContainerOrder = $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
-                                    $numberOfSiblings = count($parentContainerOrder);
-                                    // Check for sequential numbering of the existing contents. Resequence sequentially if necessary.
-                                    $resequencingNumber = 1;
-                                    foreach ($parentContainerOrder as &$individualTag) {
-                                        if ($individualTag['order_number'] != $resequencingNumber) {
-                                            $individualTag['order_number'] = $resequencingNumber;
-                                            $resequenced = true;
-                                        }
-                                        $resequencingNumber++;
-                                    }
-
-                                    // Increment parent contents of equal or higher order than the new group by one number to make room.
-                                    foreach ($parentContainerOrder as &$individualTag) {
-                                        if ($individualTag['order_number'] >= $newTagPosition) {
-                                            $individualTag['order_number'] ++;
-                                        }
-                                    }
-
-                                    // Update the database with the new order sequence.
-
-                                    $parentContainerUpdateQuery = "UPDATE tag_group_contents SET order_in_group = CASE id ";
-
-                                    foreach ($parentContainerOrder as $tag) {
-                                        $parentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
-                                        $idsToUpdate[] = $tag['db_id'];
-                                    }
-                                    $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
-                                    $limitAmount = count($idsToUpdate);
-                                    $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
-                                    $parentContainerOrderResult = $DBH->query($parentContainerUpdateQuery);
-                                    if ($parentContainerOrderResult) {
-                                        // If the update of the parent contents order was successfull then insert the new
-                                        // group into the parent content list
-                                        $tagInsertQuery = "INSERT INTO tag_group_contents "
-                                                . "(tag_group_id, tag_id, order_in_group) "
-                                                . "VALUES (:newParentId, :tagId, :newTagPosition)";
-                                        $tagInsertParams = array(
-                                            'newParentId' => $newParentId,
-                                            'tagId' => $tagId,
-                                            'newTagPosition' => $newTagPosition
-                                        );
-                                        $tagInsertResult = run_prepared_query($DBH, $tagInsertQuery, $tagInsertParams);
-
-                                        if ($tagInsertResult->rowCount() == 1) {
-
-                                        } else {
-                                            $databaseUpdateFailure['NewTagParentGroupOrderTagInsertion'] = $tagInsertQuery;
-                                        }
-                                    } else {
-                                        $databaseUpdateFailure['NewTagParentGroupReordering'] = $parentContainerUpdateQuery;
-                                    }
-                                } else {
-                                    $databaseUpdateFailure['InsertNewTagMetaData'] = $newTagInsertQuery;
-                                }
-                            }
                         }
-                    } else {
-                        $invalidRequiredField['Unknown'] = "Core fields are missing from supplied data.";
-                    }
-                    if ($invalidRequiredField) {
-                        $actionSummaryHTML = <<<EOL
-                                <h2>Errors Detected in Input Data</h2>
-                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                        else
+                        {
+                            $invalidRequiredField['projectId'] = $_POST['projectId'];
+                        }
+
+                        if ($projectEditSubAction == 'deleteExistingTag' && empty($invalidRequiredField))
+                        {
+                            $invalidDeletionRequest = false;
+                            $tagId = filter_input(INPUT_POST,
+                                                  'tagId',
+                                                  FILTER_VALIDATE_INT);
+                            if (!tagHasAnnotationsCheck($DBH,
+                                                        $tagId)
+                            )
+                            {
+                                $tagDeletionQuery = <<<MySQL
+                                    DELETE 
+                                    FROM tags 
+                                    WHERE tag_id = :tagId
+                                    LIMIT 1
+MySQL;
+                                $tagDeletionParams['tagId'] = $tagId;
+                                run_prepared_query($DBH,
+                                                   $tagDeletionQuery,
+                                                   $tagDeletionParams);
+
+
+                                $parentGroupChildrenQuery = <<<MySQL
+                                        SELECT * 
+                                        FROM tag_group_contents
+                                        WHERE tag_group_id = 
+                                        (
+                                            SELECT tgc.tag_group_id FROM tag_group_contents tgc
+                                            INNER JOIN tag_group_metadata tgm ON tgm.tag_group_id = tgc.tag_group_id 
+                                            WHERE tgc.tag_id = :tagId AND tgm.contains_groups = 0
+                                        )
+                                        ORDER BY order_in_group ASC
+MySQL;
+                                $parentGroupChildrenParams['tagId'] = $tagId;
+                                $parentGroupChildrenResults = run_prepared_query($DBH,
+                                                                                 $parentGroupChildrenQuery,
+                                                                                 $parentGroupChildrenParams);
+                                $parentGroupChildren = $parentGroupChildrenResults->fetchAll(PDO::FETCH_ASSOC);
+                                $numberOfChildren = count($parentGroupChildren);
+
+                                $sequentialOrderInProjectNumber = 1;
+                                for ($i = 0; $i < $numberOfChildren; $i++)
+                                {
+                                    // IF THE DATABASE ORDER NUMBER ISN'T SEQUENTIAL THEN CHANGE IT AND FLAG THAT A CHANGE WAS MADE
+                                    if ($parentGroupChildren[$i]['tag_id'] == $tagId)
+                                    {
+                                        $idToDelete = $parentGroupChildren[$i]['id'];
+                                        $parentGroupChildren[$i] = null;
+                                        continue;
+                                    }
+                                    elseif ($parentGroupChildren[$i]['order_in_group'] !=
+                                            $sequentialOrderInProjectNumber
+                                    )
+                                    {
+                                        $parentGroupChildren[$i]['order_in_group'] =
+                                            $sequentialOrderInProjectNumber;
+                                    }
+                                    else
+                                    {
+                                        $parentGroupChildren[$i] = null;
+                                    }
+                                    $sequentialOrderInProjectNumber++;
+                                }
+                                $tagGroupContentsDeletionQuery = <<<MySQL
+                                        DELETE 
+                                        FROM tag_group_contents
+                                        WHERE id = :databaseRowId
+                                        LIMIT 1
+MySQL;
+                                $tagGroupContentsDeletionParams['databaseRowId'] = $idToDelete;
+                                run_prepared_query($DBH,
+                                                   $tagGroupContentsDeletionQuery,
+                                                   $tagGroupContentsDeletionParams);
+
+                                foreach ($parentGroupChildren as $child)
+                                { // LOOP THROUGH THE TASKS
+                                    // IF THE CURRENT TASK IN THE LOOP IS NOT THE EDITED TASK AND PREVIOUS TASK UPDATES HAVE BEEN SUCESSFUL
+                                    // THEN JUST UPDATE THE ORDER_IN_PROJECT COLUMN FOR THE CURRENT TASK
+                                    if (is_null($child))
+                                    {
+                                        continue;
+                                    }
+                                    $updateTagGroupContentsQuery = "UPDATE tag_group_contents "
+                                                                   . "SET order_in_group = :orderInGroup "
+                                                                   . "WHERE id = :databaseId LIMIT 1";
+                                    $updateTagGroupContentsParams = array(
+                                        'orderInGroup' => $child['order_in_group'],
+                                        'databaseId'   => $child['id']
+                                    );
+                                    $updateTaskContentsResult =
+                                        run_prepared_query($DBH,
+                                                           $updateTagGroupContentsQuery,
+                                                           $updateTagGroupContentsParams);
+                                }
+                                $actionSummaryHTML .= <<<EOL
+                                    <h3>Deletion Successful</h3>
+                                    <p>The requested tag has been deleted.</p>
+                                    <div class="updateFormSubmissionControls"><hr>
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Tag Selection Screen">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+
+                                    </div>    
 
 EOL;
-                    } else if (!$dataChanges) {
-                        $actionSummaryHTML = <<<EOL
+                            }
+                            else
+                            {
+                                $projectUpdateErrorHTML = <<<EOL
+                                    <h3>Deletion Failed</h3>
+                                    <p>Deletion request could not be completed as the requested tag already has associated annotations.</p>
+                                    <div class="updateFormSubmissionControls"><hr>
+                                        <input type="button" class="clickableButton" id="editTagAgain" title="This 
+                                        will return you to the current tag for further changes and updates" 
+                                        value="Edit This Tag Again">
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Tag Selection Screen">
+                                        <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                    </div>
+
+EOL;
+                            }
+
+                        }
+                        else
+                        {
+
+                            // Check that all required fields are present.
+                            if (isset($_POST['projectEditSubAction']) &&
+                                isset($_POST['newTagName']) &&
+                                isset($_POST['newTagDescription']) &&
+                                isset($_POST['newTagDisplayText']) &&
+                                isset($_POST['newTagToolTipText']) &&
+                                isset($_POST['newTagToolTipImage']) &&
+                                isset($_POST['newTagType']) &&
+                                ($_POST['newTagType'] == 0 ||
+                                 $_POST['newTagType'] == 2 ||
+                                 ($_POST['newTagType'] == 1 && isset($_POST['newTagRadioGroupName']))) &&
+                                isset($_POST['newParentId']) &&
+                                isset($_POST['newTagOrder']) &&
+                                isset($_POST['newTagStatus'])
+                            )
+                            {
+
+                                $invalidRequiredField = false;
+                                $dataChanges = false;
+                                $databaseUpdateFailure = false;
+
+
+                                if (!empty($_POST['newTagName']))
+                                {
+                                    $newTagName = htmlspecialchars($_POST['newTagName']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTagName'] = $_POST['newTagName'];
+                                }
+
+                                $newTagDescription = htmlspecialchars($_POST['newTagDescription']);
+
+                                if (!empty($_POST['newTagDisplayText']))
+                                {
+                                    $newTagDisplayText = htmlspecialchars($_POST['newTagDisplayText']);
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTagDisplayText'] = $_POST['newTagDisplayText'];
+                                }
+
+                                $newTagToolTipText = htmlspecialchars($_POST['newTagToolTipText']);
+                                $newTagToolTipImage = htmlspecialchars($_POST['newTagToolTipImage']);
+
+                                switch ($_POST['newTagType'])
+                                {
+                                    case 0:
+                                        $newCommentBoxFlag = 0;
+                                        $newRadioButtonFlag = 0;
+                                        $newRadioButtonGroupName = "";
+                                        break;
+                                    case 1:
+                                        if (isset($_POST['newTagRadioGroupName']) &&
+                                            !empty($_POST['newTagRadioGroupName'])
+                                        )
+                                        {
+                                            $newCommentBoxFlag = 0;
+                                            $newRadioButtonFlag = 1;
+                                            $newRadioButtonGroupName =
+                                                htmlspecialchars($_POST['newTagRadioGroupName']);
+                                        }
+                                        else
+                                        {
+                                            if (!isset($_POST['newTagRadioGroupName']))
+                                            {
+                                                $invalidRequiredField['newTagRadioGroupName'] =
+                                                    "Field doesn't exist!";
+                                            }
+                                            else
+                                            {
+                                                $invalidRequiredField['newTagRadioGroupName'] = "Field Empty!";
+                                            }
+                                        }
+                                        break;
+                                    case 2:
+                                        $newCommentBoxFlag = 1;
+                                        $newRadioButtonFlag = 0;
+                                        $newRadioButtonGroupName = "";
+                                        break;
+                                    default:
+                                        $invalidRequiredField['newTagType'] = $_POST['newTagType'];
+                                        break;
+                                }
+
+                                settype($_POST['newParentId'],
+                                        'integer');
+                                if (!empty($_POST['newParentId']))
+                                {
+                                    $newParentId = $_POST['newParentId'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newParentId'] = $_POST['newParentId'];
+                                }
+
+                                settype($_POST['newTagOrder'],
+                                        'integer');
+                                if (!empty($_POST['newTagOrder']))
+                                {
+                                    $newTagPosition = $_POST['newTagOrder'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTagOrder'] = $_POST['newTagOrder'];
+                                }
+
+                                if ($_POST['newTagStatus'] == 0 || $_POST['newTagStatus'] == 1)
+                                {
+                                    $newTagStatus = $_POST['newTagStatus'];
+                                }
+                                else
+                                {
+                                    $invalidRequiredField['newTagStatus'] = $_POST['newTagStatus'];
+                                }
+
+
+                                // IF A TAG_ID HAS BEEN SUPPLIED AND projectEditSubAction IS updateExistingTag
+                                if (isset($_POST['tagId']) &&
+                                    isset($_POST['oldParentId']) &&
+                                    isset($_POST['oldTagOrder']) &&
+                                    $projectEditSubAction == 'updateExistingTag'
+                                )
+                                {
+
+                                    settype($_POST['tagId'],
+                                            'integer');
+                                    if (!empty($_POST['tagId']))
+                                    {
+                                        $tagId = $_POST['tagId'];
+                                    }
+                                    else
+                                    {
+                                        $updateError = "The supplied tag Id is invalid.";
+                                        $invalidRequiredField['tagId'] = $_POST['tagId'];
+                                    }
+
+
+                                    settype($_POST['oldParentId'],
+                                            'integer');
+                                    if (!empty($_POST['oldParentId']))
+                                    {
+                                        $oldParentId = $_POST['oldParentId'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['oldParentId'] = $_POST['oldParentId'];
+                                    }
+
+                                    settype($_POST['oldTagOrder'],
+                                            'integer');
+                                    if (!empty($_POST['oldTagOrder']))
+                                    {
+                                        $oldTagPosition = $_POST['oldTagOrder'];
+                                    }
+                                    else
+                                    {
+                                        $invalidRequiredField['oldTagOrder'] = $_POST['oldTagOrder'];
+                                    }
+
+                                    if (!$invalidRequiredField)
+                                    {
+                                        $tagMetadata =
+                                            retrieve_entity_metadata($DBH,
+                                                                     $tagId,
+                                                                     'tag');
+
+                                        $oldTagStatus = $tagMetadata['is_enabled'];
+                                        $oldCommentBoxFlag = $tagMetadata['is_comment_box'];
+                                        $oldRadioButtonFlag = $tagMetadata['is_radio_button'];
+                                        $oldRadioButtonGroupName = $tagMetadata['radio_button_group'];
+                                        $oldTagName = $tagMetadata['name'];
+                                        $oldTagDescription = $tagMetadata['description'];
+                                        $oldTagDisplayText = $tagMetadata['display_text'];
+                                        $oldTagTooltipText = $tagMetadata['tooltip_text'];
+                                        $oldTagTooltipImage = $tagMetadata['tooltip_image'];
+
+                                        $tagFieldsToUpdate = array();
+
+                                        if ($oldTagStatus != $newTagStatus)
+                                        {
+                                            $tagFieldsToUpdate['is_enabled'] = $newTagStatus;
+                                        }
+
+                                        if ($oldTagName != $newTagName)
+                                        {
+                                            $tagFieldsToUpdate['name'] = $newTagName;
+                                        }
+
+                                        if ($oldTagDescription != $newTagDescription)
+                                        {
+                                            $tagFieldsToUpdate['description'] = $newTagDescription;
+                                        }
+
+                                        if ($oldTagDisplayText != $newTagDisplayText)
+                                        {
+                                            $tagFieldsToUpdate['display_text'] = $newTagDisplayText;
+                                        }
+
+                                        if ($oldTagTooltipText != $newTagToolTipText)
+                                        {
+                                            $tagFieldsToUpdate['tooltip_text'] = $newTagToolTipText;
+                                        }
+
+                                        if ($oldTagTooltipImage != $newTagToolTipImage)
+                                        {
+                                            if (!empty($newTagToolTipImage))
+                                            {
+                                                $toolTipImagesPath = "images/projects/$projectId/tooltips/";
+                                                if (file_exists($toolTipImagesPath . $newTagToolTipImage))
+                                                {
+                                                    $imageMetadata =
+                                                        getimagesize($toolTipImagesPath . $newTagToolTipImage);
+                                                    if ($imageMetadata)
+                                                    {
+                                                        $tagFieldsToUpdate['tooltip_image'] =
+                                                            $newTagToolTipImage;
+                                                        $tagFieldsToUpdate['tooltip_image_width'] =
+                                                            $imageMetadata[0];
+                                                        $tagFieldsToUpdate['tooltip_image_height'] =
+                                                            $imageMetadata[1];
+                                                    }
+                                                    else
+                                                    {
+                                                        $invalidRequiredField['newTagToolTipImage'] =
+                                                            'The image dimensions could not be read.';
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $invalidRequiredField['newTagToolTipImage'] =
+                                                        "The image could not be found.";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $tagFieldsToUpdate['tooltip_image'] = '';
+                                                $tagFieldsToUpdate['tooltip_image_width'] = 0;
+                                                $tagFieldsToUpdate['tooltip_image_height'] = 0;
+                                            }
+                                        }
+
+                                        if ($oldCommentBoxFlag != $newCommentBoxFlag)
+                                        {
+                                            $tagFieldsToUpdate['is_comment_box'] = $newCommentBoxFlag;
+                                        }
+
+                                        if ($oldRadioButtonFlag != $newRadioButtonFlag)
+                                        {
+                                            $tagFieldsToUpdate['is_radio_button'] = $newRadioButtonFlag;
+                                        }
+
+                                        if ($oldRadioButtonGroupName != $newRadioButtonGroupName)
+                                        {
+                                            $tagFieldsToUpdate['radio_button_group'] = $newRadioButtonGroupName;
+                                        }
+
+
+                                        if (!$invalidRequiredField)
+                                        {
+
+                                            if (count($tagFieldsToUpdate) > 0)
+                                            {
+                                                $dataChanges = true;
+                                                $tagUpdateFieldsQuery = "UPDATE tags "
+                                                                        . "SET ";
+                                                $tagUpdateFieldsParams = array();
+                                                $columnUpdateCount = 0;
+                                                foreach ($tagFieldsToUpdate as $column => $value)
+                                                {
+                                                    $tagUpdateFieldsQuery .= "$column=:$column";
+                                                    $columnUpdateCount++;
+                                                    if ($columnUpdateCount != count($tagFieldsToUpdate))
+                                                    {
+                                                        $tagUpdateFieldsQuery .= ", ";
+                                                    }
+                                                    $tagUpdateFieldsParams[$column] = $value;
+                                                }
+                                                $tagUpdateFieldsQuery .= " WHERE tag_id = $tagId LIMIT 1";
+
+                                                $tagUpdateResult =
+                                                    run_prepared_query($DBH,
+                                                                       $tagUpdateFieldsQuery,
+                                                                       $tagUpdateFieldsParams);
+                                                if ($tagUpdateResult->rowCount() == 1)
+                                                {
+
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['Column Updates'] = 'Failed';
+                                                }
+                                            }
+                                            else
+                                            {
+
+                                            }
+
+
+                                            ////////////////////////////////////////////////////////////////////////////////////////////////
+                                            ////////////////////////////////////////////////////////////////////////////////////////////////
+                                            // Moving to a new container
+                                            if ($newParentId != $oldParentId)
+                                            {
+                                                $dataChanges = true;
+                                                //////////////////////////////////////////////////////////////////////////////
+                                                // New Container Reordering
+                                                $newContainer = true;
+                                                $resequencing = false;
+                                                $reordering = false;
+                                                $newParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
+                                                    . "FROM tag_group_contents "
+                                                    . "WHERE tag_group_id = :parentId "
+                                                    . "ORDER BY order_number";
+                                                $newParentContainerOrderParams['parentId'] = $newParentId;
+                                                $newParentContainerOrderResult =
+                                                    run_prepared_query($DBH,
+                                                                       $newParentContainerOrderQuery,
+                                                                       $newParentContainerOrderParams);
+                                                $newParentContainerOrder =
+                                                    $newParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                                $numberOfSiblings = count($newParentContainerOrder);
+
+                                                $resequencingNumber = 1;
+                                                foreach ($newParentContainerOrder as &$individualTag)
+                                                {
+                                                    if ($individualTag['order_number'] != $resequencingNumber)
+                                                    {
+                                                        $individualTag['order_number'] = $resequencingNumber;
+                                                        $resequencing = true;
+                                                    }
+                                                    $resequencingNumber++;
+                                                }
+
+                                                foreach ($newParentContainerOrder as &$individualTag)
+                                                {
+                                                    if ($individualTag['order_number'] >= $newTagPosition)
+                                                    {
+                                                        $individualTag['order_number']++;
+                                                        $reordering = true;
+                                                    }
+                                                }
+
+                                                /////////////////////////////////////////////////////////////////////////////
+                                                // Old Container Reordering
+
+                                                $oldParentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
+                                                    . "FROM tag_group_contents "
+                                                    . "WHERE tag_group_id = :parentId "
+                                                    . "ORDER BY order_number";
+                                                $oldParentContainerOrderParams['parentId'] = $oldParentId;
+                                                $oldParentContainerOrderResult =
+                                                    run_prepared_query($DBH,
+                                                                       $oldParentContainerOrderQuery,
+                                                                       $oldParentContainerOrderParams);
+                                                $oldParentContainerOrder =
+                                                    $oldParentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                                $numberOfSiblings = count($oldParentContainerOrder);
+
+                                                for ($i = 0; $i < $numberOfSiblings; $i++)
+                                                {
+                                                    if ($oldParentContainerOrder[$i]['child_id'] == $tagId)
+                                                    {
+                                                        unset($oldParentContainerOrder[$i]);
+                                                    }
+                                                }
+
+                                                $resequencingNumber = 1;
+                                                foreach ($oldParentContainerOrder as &$individualTag)
+                                                {
+                                                    if ($individualTag['order_number'] != $resequencingNumber)
+                                                    {
+                                                        $individualTag['order_number'] = $resequencingNumber;
+                                                    }
+                                                    $resequencingNumber++;
+                                                }
+
+                                                //////////////////////////////////////////////////////////////////////////////
+                                                // Update the database - New container
+
+                                                $newParentContainerUpdateQuery =
+                                                    "UPDATE tag_group_contents SET order_in_group = CASE id ";
+
+                                                foreach ($newParentContainerOrder as $tag)
+                                                {
+                                                    $newParentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
+                                                    $newIdsToUpdate[] = $tag['db_id'];
+                                                }
+                                                $newWhereInIdsToUpdate =
+                                                    where_in_string_builder($newIdsToUpdate);
+                                                $newLimitAmount = count($newIdsToUpdate);
+                                                $newParentContainerUpdateQuery .= "END WHERE id IN ($newWhereInIdsToUpdate) LIMIT $newLimitAmount";
+                                                $newParentContainerOrderResult =
+                                                    $DBH->query($newParentContainerUpdateQuery);
+                                                if ($newParentContainerOrderResult)
+                                                {
+                                                    //////////////////////////////////////////////////////////////////////////////
+                                                    // Update the database. Old Container
+
+                                                    $oldParentContainerUpdateQuery =
+                                                        "UPDATE tag_group_contents SET order_in_group = CASE id ";
+                                                    foreach ($oldParentContainerOrder as $tag)
+                                                    {
+                                                        $oldParentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
+                                                        $oldIdsToUpdate[] = $tag['db_id'];
+                                                    }
+                                                    $oldWhereInIdsToUpdate =
+                                                        where_in_string_builder($oldIdsToUpdate);
+                                                    $oldLimitAmount = count($oldIdsToUpdate);
+                                                    $oldParentContainerUpdateQuery .= "END WHERE id IN ($oldWhereInIdsToUpdate) LIMIT $oldLimitAmount";
+                                                    $oldparentContainerOrderResult =
+                                                        $DBH->query($oldParentContainerUpdateQuery);
+                                                    if ($oldparentContainerOrderResult)
+                                                    {
+
+                                                        $tagUpdateQuery = "UPDATE tag_group_contents SET "
+                                                                          .
+                                                                          "tag_group_id = :newParentId, "
+                                                                          .
+                                                                          "order_in_group = :newTagPosition "
+                                                                          .
+                                                                          "WHERE tag_id = :tagId AND tag_group_id = :oldParentId "
+                                                                          .
+                                                                          "LIMIT 1";
+                                                        $tagUpdateParams = array(
+                                                            'newParentId'    => $newParentId,
+                                                            'newTagPosition' => $newTagPosition,
+                                                            'tagId'          => $tagId,
+                                                            'oldParentId'    => $oldParentId
+                                                        );
+                                                        $tagUpdateResults =
+                                                            run_prepared_query($DBH,
+                                                                               $tagUpdateQuery,
+                                                                               $tagUpdateParams);
+                                                        $affectedRows = $tagUpdateResults->rowCount();
+
+                                                        if (isset($affectedRows) && $affectedRows == 1)
+                                                        {
+
+                                                        }
+                                                        else
+                                                        {
+                                                            $databaseUpdateFailure['TagGroupMembershipAndOrder'] =
+                                                                '$tagUpdateQuery';
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        $databaseUpdateFailure['OldParentContainerOrderUpdate'] =
+                                                            '$oldParentContainerUpdateQuery';
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['NewParentContainerOrderUpdate'] =
+                                                        '$newParentContainerUpdateQuery';
+                                                }
+
+
+                                                ////////////////////////////////////////////////////////////////////////////////////////////////
+                                                ////////////////////////////////////////////////////////////////////////////////////////////////
+                                                // Staying in the old container
+                                            }
+                                            else
+                                            {
+                                                $newContainer = false;
+                                                $resequencing = false;
+                                                $reordering = false;
+
+                                                $parentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
+                                                    . "FROM tag_group_contents "
+                                                    . "WHERE tag_group_id = :parentId "
+                                                    . "ORDER BY order_number";
+
+                                                $parentContainerOrderParams['parentId'] = $oldParentId;
+                                                $parentContainerOrderResult =
+                                                    run_prepared_query($DBH,
+                                                                       $parentContainerOrderQuery,
+                                                                       $parentContainerOrderParams);
+                                                $parentContainerOrder =
+                                                    $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                                $numberOfSiblings = count($parentContainerOrder);
+
+                                                $resequencingNumber = 1;
+                                                $newParentResequenced = false;
+                                                $groupOrderChanged = false;
+                                                foreach ($parentContainerOrder as &$individualTag)
+                                                {
+                                                    if ($individualTag['order_number'] != $resequencingNumber)
+                                                    {
+                                                        $dataChanges = true;
+                                                        //                                                print $individualTag['order_number'] . ' becomes ' . $resequencingNumber;
+                                                        $individualTag['order_number'] = $resequencingNumber;
+                                                        $resequencing = true;
+                                                    }
+                                                    if ($individualTag['child_id'] == $tagId &&
+                                                        $individualTag['order_number'] != $newTagPosition
+                                                    )
+                                                    {
+                                                        $dataChanges = true;
+                                                        if ($newTagPosition > $oldTagPosition)
+                                                        {
+                                                            $groupOrderChanged = 'up';
+                                                        }
+                                                        else
+                                                        {
+                                                            $groupOrderChanged = 'down';
+                                                        }
+                                                    }
+                                                    $resequencingNumber++;
+                                                }
+
+                                                if ($groupOrderChanged)
+                                                {
+                                                    foreach ($parentContainerOrder as &$individualTag)
+                                                    {
+                                                        if ($groupOrderChanged == 'up' &&
+                                                            $individualTag['child_id'] != $tagId
+                                                        )
+                                                        {
+                                                            if ($individualTag['order_number'] >
+                                                                $oldTagPosition &&
+                                                                $individualTag['order_number'] <=
+                                                                $newTagPosition
+                                                            )
+                                                            {
+                                                                $individualTag['order_number']--;
+                                                            }
+                                                        }
+                                                        elseif ($groupOrderChanged == 'down' &&
+                                                                $individualTag['child_id'] != $tagId
+                                                        )
+                                                        {
+                                                            if ($individualTag['order_number'] <
+                                                                $oldTagPosition &&
+                                                                $individualTag['order_number'] >=
+                                                                $newTagPosition
+                                                            )
+                                                            {
+                                                                $individualTag['order_number']++;
+                                                            }
+                                                        }
+                                                        if ($individualTag['child_id'] == $tagId)
+                                                        {
+                                                            $individualTag['order_number'] = $newTagPosition;
+                                                        }
+                                                    }
+                                                    $reordering = true;
+                                                }
+
+
+                                                if ($resequencing || $reordering)
+                                                {
+
+                                                    $parentContainerUpdateQuery =
+                                                        "UPDATE tag_group_contents SET order_in_group = CASE id ";
+
+                                                    foreach ($parentContainerOrder as $tag)
+                                                    {
+                                                        $parentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
+                                                        $idsToUpdate[] = $tag['db_id'];
+                                                    }
+                                                    $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
+                                                    $limitAmount = count($idsToUpdate);
+                                                    $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
+                                                    $parentContainerOrderResult =
+                                                        $DBH->query($parentContainerUpdateQuery);
+                                                    if ($parentContainerOrderResult)
+                                                    {
+                                                        //                                                print "Success updating same group order";
+                                                    }
+                                                    else
+                                                    {
+                                                        $databaseUpdateFailure['ExistingParentContainerOrderUpdate'] =
+                                                            '$parentContainerUpdateQuery';
+                                                    }
+                                                }
+                                                else
+                                                {
+
+                                                }
+                                            }
+                                        } // End !InvalidRequiredField
+                                    } // End !InvalidRequiredField
+                                    if ($invalidRequiredField)
+                                    {
+                                        $updateError =
+                                            "One or more of the required fields necessary to update the group contained invalid or non-existant data.";
+                                    } // End invalidRequiredField IF
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                }
+                                else
+                                {
+                                    if ($projectEditSubAction == 'createNewTag')
+                                    {
+                                        $dataChanges = true;
+
+                                        if (!empty($newTagToolTipImage))
+                                        {
+                                            $toolTipImagesPath = "images/projects/$projectId/tooltips/";
+                                            if (file_exists($toolTipImagesPath . $newTagToolTipImage))
+                                            {
+                                                $imageMetadata =
+                                                    getimagesize($toolTipImagesPath . $newTagToolTipImage);
+                                                if ($imageMetadata)
+                                                {
+                                                    $newTooltipImageWidth = $imageMetadata[0];
+                                                    $newTooltipImageHeight = $imageMetadata[1];
+                                                }
+                                                else
+                                                {
+                                                    $invalidRequiredField['newTagToolTipImage'] =
+                                                        'The image dimensions could not be read.';
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $invalidRequiredField['newTagToolTipImage'] =
+                                                    "The image could not be found. {$toolTipImagesPath}{$newTagToolTipImage}";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $newTooltipImageWidth = 0;
+                                            $newTooltipImageHeight = 0;
+                                        }
+
+
+                                        if (!$invalidRequiredField)
+                                        {
+
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // Insert new group into tag_group_metadata
+                                            $newTagInsertQuery = "INSERT INTO tags "
+                                                                 .
+                                                                 "(project_id, is_enabled, is_comment_box, is_radio_button, radio_button_group, name, description, display_text, display_image, tooltip_text, tooltip_image, tooltip_image_width, tooltip_image_height) "
+                                                                 .
+                                                                 "VALUES (:projectId, :isEnabled, :commentBoxFlag, :radioButtonFlag, :radioButtonGroup, :name, :description, :displayText, :displayImage, :tooltipText, :tooltipImage, :tooltipImageWidth, :tooltipImageHeight)";
+                                            $newTagInsertParams = array(
+                                                'projectId'          => $projectId,
+                                                'isEnabled'          => $newTagStatus,
+                                                'commentBoxFlag'     => $newCommentBoxFlag,
+                                                'radioButtonFlag'    => $newRadioButtonFlag,
+                                                'radioButtonGroup'   => $newRadioButtonGroupName,
+                                                'name'               => $newTagName,
+                                                'description'        => $newTagDescription,
+                                                'displayText'        => $newTagDisplayText,
+                                                'displayImage'       => '',
+                                                'tooltipText'        => $newTagToolTipText,
+                                                'tooltipImage'       => $newTagToolTipImage,
+                                                'tooltipImageWidth'  => $newTooltipImageWidth,
+                                                'tooltipImageHeight' => $newTooltipImageHeight
+                                            );
+                                            $newTagInsertResult =
+                                                run_prepared_query($DBH,
+                                                                   $newTagInsertQuery,
+                                                                   $newTagInsertParams);
+
+                                            //////////////////////////////////////////////////////////////////////////////
+                                            // If the insert was successful then reorder the parent container content list
+                                            // to make room for the new group and insert it in the parent container content list.
+                                            if ($newTagInsertResult->rowCount() == 1)
+                                            {
+                                                $tagId = $DBH->lastInsertID();
+
+                                                $resequenced = false;
+
+                                                // Find the current contents of the parent container.
+
+                                                $parentContainerOrderQuery =
+                                                    "SELECT id AS db_id, tag_group_id AS parent_id, tag_id AS child_id, order_in_group AS order_number "
+                                                    . "FROM tag_group_contents "
+                                                    . "WHERE tag_group_id = :parentId "
+                                                    . "ORDER BY order_number";
+                                                $parentContainerOrderParams['parentId'] = $newParentId;
+                                                $parentContainerOrderResult =
+                                                    run_prepared_query($DBH,
+                                                                       $parentContainerOrderQuery,
+                                                                       $parentContainerOrderParams);
+                                                $parentContainerOrder =
+                                                    $parentContainerOrderResult->fetchAll(PDO::FETCH_ASSOC);
+                                                $numberOfSiblings = count($parentContainerOrder);
+                                                // Check for sequential numbering of the existing contents. Resequence sequentially if necessary.
+                                                if ($numberOfSiblings > 0)
+                                                {
+                                                    $resequencingNumber = 1;
+                                                    foreach ($parentContainerOrder as &$individualTag)
+                                                    {
+                                                        if ($individualTag['order_number'] !=
+                                                            $resequencingNumber
+                                                        )
+                                                        {
+                                                            $individualTag['order_number'] =
+                                                                $resequencingNumber;
+                                                            $resequenced = true;
+                                                        }
+                                                        $resequencingNumber++;
+                                                    }
+
+                                                    // Increment parent contents of equal or higher order than the new group by one number to make room.
+                                                    foreach ($parentContainerOrder as &$individualTag)
+                                                    {
+                                                        if ($individualTag['order_number'] >= $newTagPosition)
+                                                        {
+                                                            $individualTag['order_number']++;
+                                                        }
+                                                    }
+
+                                                    // Update the database with the new order sequence.
+
+                                                    $parentContainerUpdateQuery =
+                                                        "UPDATE tag_group_contents SET order_in_group = CASE id ";
+
+                                                    foreach ($parentContainerOrder as $tag)
+                                                    {
+                                                        $parentContainerUpdateQuery .= "WHEN {$tag['db_id']} THEN {$tag['order_number']} ";
+                                                        $idsToUpdate[] = $tag['db_id'];
+                                                    }
+                                                    $whereInIdsToUpdate = where_in_string_builder($idsToUpdate);
+                                                    $limitAmount = count($idsToUpdate);
+                                                    $parentContainerUpdateQuery .= "END WHERE id IN ($whereInIdsToUpdate) LIMIT $limitAmount";
+                                                    $parentContainerOrderResult =
+                                                        $DBH->query($parentContainerUpdateQuery);
+                                                }
+                                                else
+                                                {
+                                                    $parentContainerOrderResult = true;
+                                                }
+                                                if ($parentContainerOrderResult)
+                                                {
+                                                    // If the update of the parent contents order was successfull then insert the new
+                                                    // group into the parent content list
+                                                    $tagInsertQuery = "INSERT INTO tag_group_contents "
+                                                                      .
+                                                                      "(tag_group_id, tag_id, order_in_group) "
+                                                                      .
+                                                                      "VALUES (:newParentId, :tagId, :newTagPosition)";
+                                                    $tagInsertParams = array(
+                                                        'newParentId'    => $newParentId,
+                                                        'tagId'          => $tagId,
+                                                        'newTagPosition' => $newTagPosition
+                                                    );
+                                                    $tagInsertResult =
+                                                        run_prepared_query($DBH,
+                                                                           $tagInsertQuery,
+                                                                           $tagInsertParams);
+
+                                                    if ($tagInsertResult->rowCount() == 1)
+                                                    {
+
+                                                    }
+                                                    else
+                                                    {
+                                                        $databaseUpdateFailure['NewTagParentGroupOrderTagInsertion'] =
+                                                            $tagInsertQuery;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $databaseUpdateFailure['NewTagParentGroupReordering'] =
+                                                        $parentContainerUpdateQuery;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $databaseUpdateFailure['InsertNewTagMetaData'] =
+                                                    $newTagInsertQuery;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                $invalidRequiredField['Unknown'] =
+                                    "Core fields are missing from supplied data.";
+                            }
+                            if ($invalidRequiredField)
+                            {
+                                $actionSummaryHTML = <<<EOL
+                                <h2>Errors Detected in Input Data</h2>
+                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                                <div class="updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editTagAgain" 
+                                        title="This will return you to the current tag for further changes and updates" 
+                                        value="Edit This Tag Again"
+                                    >
+                                    <input type="button" class="clickableButton" id="returnToTaskSelection" title="This will return you to the task details editing screen screen for you to update this task's details again." value="Return to the Task Details Editor">
+                                    <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                                </div>
+EOL;
+                            }
+                            else
+                            {
+                                if (!$dataChanges)
+                                {
+                                    $actionSummaryHTML = <<<EOL
                                 <h2>No Changes Detected</h2>
                                 <p>No change in the tag detail data has been detected. The database has not been altered.</p>
 
 EOL;
-                    } else if ($databaseUpdateFailure) {
-                        $projectUpdateErrorHTML = <<<EOL
+                                }
+                                else
+                                {
+                                    if ($databaseUpdateFailure)
+                                    {
+                                        $projectUpdateErrorHTML = <<<EOL
                                 <h2>Update Failed</h2>
-                                <p>An unknown error occured during the database update. No changes have been made.
+                                <p>An unknown error occurred during the database update. No changes have been made.
                                     If this problem persists please contact an iCoast System Administrator. </p>
                                 <div class="updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editTagAgain" 
+                                        title="This will return you to the current tag for further changes and updates" 
+                                        value="Edit This Tag Again"
+                                    >
                                     <input type="button" class="clickableButton" id="returnToTagDetails" title="This will return you to the tag details editing screen screen for you to update this tag's details again." value="Return to the Tag Details Editor">
                                     <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                    } else {
-                        $actionSummaryHTML = <<<EOL
+                                    }
+                                    else
+                                    {
+                                        $actionSummaryHTML = <<<EOL
                                 <h2>Update Successful</h2>
                                 <p>It is recommended that you now review the project in iCoast to ensure your changes are
                                     displayed correctly.</p>
 
 EOL;
-                    }
+                                    }
+                                }
+                            }
 
-                    if (!$databaseUpdateFailure && !$invalidRequiredField) {
-                        // CREATE HTML TO SHOW THE NEW TASK STATUS
+                            if (!$databaseUpdateFailure && !$invalidRequiredField)
+                            {
+                                // CREATE HTML TO SHOW THE NEW TASK STATUS
 
-                        $summaryQuery = "SELECT * FROM tags WHERE tag_id = :tagId";
-                        $summaryParams['tagId'] = $tagId;
-                        $summaryResult = run_prepared_query($DBH, $summaryQuery, $summaryParams);
-                        $dbTagMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
+                                $summaryQuery = "SELECT * FROM tags WHERE tag_id = :tagId";
+                                $summaryParams['tagId'] = $tagId;
+                                $summaryResult =
+                                    run_prepared_query($DBH,
+                                                       $summaryQuery,
+                                                       $summaryParams);
+                                $dbTagMetadata = $summaryResult->fetch(PDO::FETCH_ASSOC);
 
-                        $summaryParentQuery = "SELECT tgm.name, tgc.order_in_group "
-                                . "FROM tag_group_contents tgc "
-                                . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
-                                . "WHERE tgc.tag_id = :tagId AND tgm.contains_groups = 0";
-                        $summaryParentResults = run_prepared_query($DBH, $summaryParentQuery, $summaryParams);
-                        $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
-                        $ordinalPositionInGroup = ordinal_suffix($dbParentMetadata['order_in_group']);
+                                $summaryParentQuery = "SELECT tgm.name, tgc.order_in_group "
+                                                      .
+                                                      "FROM tag_group_contents tgc "
+                                                      .
+                                                      "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
+                                                      .
+                                                      "WHERE tgc.tag_id = :tagId AND tgm.contains_groups = 0";
+                                $summaryParentResults =
+                                    run_prepared_query($DBH,
+                                                       $summaryParentQuery,
+                                                       $summaryParams);
+                                $dbParentMetadata = $summaryParentResults->fetch(PDO::FETCH_ASSOC);
+                                $ordinalPositionInGroup = ordinal_suffix($dbParentMetadata['order_in_group']);
 
-                        if (empty($dbTagMetadata['tooltip_image'])) {
-                            $dbTagTooltipImage = 'None';
-                        } else {
-                            $dbTagTooltipImage = $dbTagMetadata['tooltip_image'];
-                        }
+                                if (empty($dbTagMetadata['tooltip_image']))
+                                {
+                                    $dbTagTooltipImage = 'None';
+                                }
+                                else
+                                {
+                                    $dbTagTooltipImage = $dbTagMetadata['tooltip_image'];
+                                }
 
-                        if ($dbTagMetadata['is_enabled'] == 1) {
-                            $dbTagStatusText = 'Enabled';
-                        } else {
-                            $dbTagStatusText = '<span class="redHighlight">Disabled</span>';
-                        }
+                                if ($dbTagMetadata['is_enabled'] == 1)
+                                {
+                                    $dbTagStatusText = 'Enabled';
+                                }
+                                else
+                                {
+                                    $dbTagStatusText = '<span class="redHighlight">Disabled</span>';
+                                }
 
-                        $showRadioGroupName = FALSE;
-                        if ($dbTagMetadata['is_comment_box'] == 0 && $dbTagMetadata['is_radio_button'] == 0) {
-                            $dbTagType = "Multi-Select";
-                        } else if ($dbTagMetadata['is_radio_button'] == 1) {
-                            $dbTagType = "Mutually Exclusive";
-                            $showRadioGroupName = TRUE;
-                        } else {
-                            $dbTagType = "Comment Box";
-                        }
+                                $showRadioGroupName = false;
+                                if ($dbTagMetadata['is_comment_box'] == 0 &&
+                                    $dbTagMetadata['is_radio_button'] == 0
+                                )
+                                {
+                                    $dbTagType = "Multi-Select";
+                                }
+                                else
+                                {
+                                    if ($dbTagMetadata['is_radio_button'] == 1)
+                                    {
+                                        $dbTagType = "Mutually Exclusive";
+                                        $showRadioGroupName = true;
+                                    }
+                                    else
+                                    {
+                                        $dbTagType = "Comment Box";
+                                    }
+                                }
 
-                        $actionSummaryHTML .= <<<EOL
+                                $actionSummaryHTML .= <<<EOL
                                 <h3>Tag Summary</h3>
                                 <table id="updateSummaryTable">
                                     <tbody>
@@ -2213,16 +3783,17 @@ EOL;
                                         </tr>
 
 EOL;
-                        if ($showRadioGroupName) {
-                            $actionSummaryHTML .= <<<EOL
+                                if ($showRadioGroupName)
+                                {
+                                    $actionSummaryHTML .= <<<EOL
                                         <tr>
                                             <td>Exclusivity Group Name:</td>
                                             <td class = "userData">{$dbTagMetadata['radio_button_group']}</td>
                                         </tr>
 
 EOL;
-                        }
-                        $actionSummaryHTML .= <<<EOL
+                                }
+                                $actionSummaryHTML .= <<<EOL
                                         <tr>
                                             <td>Parent Group Name:</td>
                                             <td class = "userData">{$dbParentMetadata['name']}</td>
@@ -2244,22 +3815,53 @@ EOL;
                                     </button>
                                 </div>
                                 <div class = "updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editTagAgain" 
+                                        title="This will return you to the current tag for further changes and updates" 
+                                        value="Edit This Tag Again"
+                                    >
                                     <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Tag Screen">
                                     <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
                                 </div>
 
 EOL;
-                        $jQueryDocumentDotReadyCode .= <<<EOL
+                                $jQueryDocumentDotReadyCode .= <<<EOL
                             $('#previewQuestionSetButton').click(function () {
                                 window.open("taskPreview.php?projectId={$projectMetadata['project_id']}", "", "menubar=1, resizable=1, scrollbars=1, status=1, titlebar=1, toolbar=1, width=1250, height=828");
                             });
 
 EOL;
+                            }
+                        }
                     }
+                    else
+                    {
+                        $tagId = $_POST['tagId'];
+                        $actionSummaryHTML = <<<EOL
+                                <h2>Errors Detected in Input Data</h2>
+                                <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
+                                <div class = "updateFormSubmissionControls"><hr>
+                                    <input 
+                                        type="button" 
+                                        class="clickableButton" 
+                                        id="editTagAgain" 
+                                        title="This will return you to the current tag for further changes and updates" 
+                                        value="Edit This Tag Again"
+                                    >
+                                    <input type = "button" class = "clickableButton" id = "returnToTagSelection" title = "This will return you to the tag selection screen for you to choose another tag to edit or create." value = "Return to the Group Selection Screen">
+                                    <input type = "button" class = "clickableButton" id = "returnToActionSelection" title = "This will return you to the Action Selection screen for you to choose another project editing activity." value = "Return To Action Selection Screen">
+                                </div>
 
+EOL;
+                    }
                     break; // END tags CASE
+
             }
-        } else { // END SUCESSFUL USER UPDATE PERMISSION CHECK - if (in_array($_POST['projectId'], $userAdministeredProjects))
+        }
+        else
+        { // END SUCESSFUL USER UPDATE PERMISSION CHECK - if (in_array($_POST['projectId'], $userAdministeredProjects))
             $projectUpdateErrorHTML = <<<EOL
         <h2>Project Update Error</h2>
         <p>You have requested to update a project for which you do not have sufficient permission.
@@ -2268,7 +3870,9 @@ EOL;
 EOL;
             // ERROR LOGGING
         } // END FAILED USER PERMISSION CHECK - if (in_array($_POST['projectId'], $userAdministeredProjects)) ELSE
-    } else { // END SUCCESSFUL CHECK OF PROJECT ID AND PROPERTY TO UPDATE CHECK - if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate']))
+    }
+    else
+    { // END SUCCESSFUL CHECK OF PROJECT ID AND PROPERTY TO UPDATE CHECK - if (isset($_POST['projectId']) && isset($_POST['projectPropertyToUpdate']))
         $projectUpdateErrorHTML = <<<EOL
         <h2>Project Update Error</h2>
         <p>Required fields are either missing or contain invalid data. No changes have been made to the database. Please try again and if this problem persists contact an administrator.</p>
@@ -2289,25 +3893,38 @@ EOL;
 //
 //
 // CHECK OF A PROJECT TO UPDATE HAS ALREADY BEEN SPECIFIED OR PROVIDE A CHOICE OF PROJECTS TO UPDATE
-if (isset($_POST['projectId'])) {
-// IF A PROJECT HAS ALREADY BEEN SELECTED CHECK THE USER PERMISSIONS AND IF SUCCESSFUL DETERMINE THE PROJECT
-// METADATA AND COPY TO LOCAL VARIABLES
-    $invalidRequiredField = FALSE;
-    settype($_POST['projectId'], 'integer');
-    if (!empty($_POST['projectId'])) {
+if (isset($_POST['projectId']))
+{
+    // IF A PROJECT HAS ALREADY BEEN SELECTED CHECK THE USER PERMISSIONS AND IF SUCCESSFUL DETERMINE THE PROJECT
+    // METADATA AND COPY TO LOCAL VARIABLES
+    $invalidRequiredField = false;
+    settype($_POST['projectId'],
+            'integer');
+    if (!empty($_POST['projectId']))
+    {
         $projectId = $_POST['projectId'];
-        $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-        if (!$projectMetadata) {
+        $projectMetadata =
+            retrieve_entity_metadata($DBH,
+                                     $projectId,
+                                     'project');
+        if (!$projectMetadata)
+        {
             $invalidRequiredField['projectId'] = $_POST['projectId'];
         }
-    } else {
+    }
+    else
+    {
         $invalidRequiredField['projectId'] = $_POST['projectId'];
     }
     // CHECK USER HAS THE PERMISSION TO EDIT THE SELECTED PROJECT
     $projectList = find_projects($DBH);
-    $hasProjectPermission = FALSE;
-    if (!$invalidRequiredField && in_array($_POST['projectId'], $projectList)) {
-        $hasProjectPermission = TRUE;
+    $hasProjectPermission = false;
+    if (!$invalidRequiredField &&
+        in_array($_POST['projectId'],
+                 $projectList)
+    )
+    {
+        $hasProjectPermission = true;
         $projectName = $projectMetadata['name'];
         $projectSelectHTML = <<<EOL
             <div id=chosenProjectNotificationWrapper>
@@ -2317,7 +3934,9 @@ if (isset($_POST['projectId'])) {
                 </form>
             </div>
 EOL;
-    } else { // END SUCCESSFUL CHECK OF USER PERMISSION TO EDIT PROJECT - if (in_array($_POST['projectId'], $userAdministeredProjects))
+    }
+    else
+    { // END SUCCESSFUL CHECK OF USER PERMISSION TO EDIT PROJECT - if (in_array($_POST['projectId'], $userAdministeredProjects))
         $projectUpdateErrorHTML = <<<EOL
         <h2>Project Edit Error</h2>
         <p>The specified project was either invalid or you have requested to edit a project for which you do not have sufficient permission.
@@ -2330,25 +3949,33 @@ EOL;
 
 EOL;
     } // END FAILED CHECK OF USER PERMISSION TO EDIT PROJECT - if (in_array($_POST['projectId'], $userAdministeredProjects)) ELSE
-} else {
+}
+else
+{
     // DETERMINE THE LIST OF AVAILABLE/PERMISSIONED PROJECTS
-    $projectList = find_projects($DBH, TRUE);
+    $projectList =
+        find_projects($DBH,
+                      true);
     $projectCount = count($projectList);
     // IF ONLY 1 PROJECT EXISTS AUTO SELECT IT FOR THE USER
-    if ($projectCount == 1) {
+    if ($projectCount == 1)
+    {
         $projectId = $projectList[0]['project_id'];
         $projectName = $projectList[0]['name'];
-        $hasProjectPermission = TRUE;
+        $hasProjectPermission = true;
         $projectSelectHTML = <<<EOL
             <div id=chosenProjectNotificationWrapper>
                 <p>Your are editing the <span class="userData">$projectName</span> project.</p>
             </div>
 EOL;
-    } else { // END AUTO SELCTION OF A SINGLE PROJECT. BEGIN CREATION OF PROJECT SELECTION BOX. - if ($projectCount == 1)
+    }
+    else
+    { // END AUTO SELCTION OF A SINGLE PROJECT. BEGIN CREATION OF PROJECT SELECTION BOX. - if ($projectCount == 1)
         // BUILD ALL FORM SELECT OPTIONS AND RADIO BUTTONS
         // PROJECT SELECT
         $projectSelectHTML = "";
-        foreach ($projectList as $singeUserAdministeredProject) {
+        foreach ($projectList as $singeUserAdministeredProject)
+        {
             $optionProjectId = $singeUserAdministeredProject['project_id'];
             $optionProjectName = $singeUserAdministeredProject['name'];
             $optionProjectDescription = $singeUserAdministeredProject['description'];
@@ -2382,7 +4009,8 @@ EOL;
 //
 // FROM THIS POINT ON THE PROJECT ID AND NAME HAS BEEN COPIED FROM $_POST TO VARIABLES
 // BEGIN SELECTION OF THE PROJECT PROPERTY TO UPDATE IF IT HAS NOT BEEN SPECIFIED.
-if (isset($projectId) && $hasProjectPermission && !isset($_POST['projectPropertyToUpdate'])) {
+if (isset($projectId) && $hasProjectPermission && !isset($_POST['projectPropertyToUpdate']))
+{
     $actionSelectionHTML = <<<EOL
             <h3>Select an Action to Perform on this Project</h3>
             <p>What would you like to edit in this project?</p>
@@ -2417,12 +4045,15 @@ EOL;
 // IF THE PROJECT AND PROPERTY TO UPDATE HAS BEEN SPECIFIED AND THERE IS NO SUPPLIED DATA TO UPDATE CREATE
 // THE FORMS NECESSARY TO PROVIDE UPDATED DETAILS
 if (isset($projectId) &&
-        $hasProjectPermission &&
-        isset($_POST['projectPropertyToUpdate']) &&
-        !isset($_POST['editSubmitted'])) {
+    $hasProjectPermission &&
+    isset($_POST['projectPropertyToUpdate']) &&
+    !isset($_POST['editSubmitted'])
+)
+{
     $projectPropertyToUpdate = $_POST['projectPropertyToUpdate'];
     // CUSTOMIZE THE UPDATE FORM TO THE PROPERTY THAT IS TO BE UPDATED
-    switch ($projectPropertyToUpdate) {
+    switch ($projectPropertyToUpdate)
+    {
         // UPDATE THE PROJECT DETAILS
         //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2431,10 +4062,14 @@ if (isset($projectId) &&
         //
         case 'details':
             // FIND THE CURRENT PROJECT DETAILS TO POPULATE THE UPDATE FIELDS WITH AND COPY TO VARIABLES
-            if (!isset($projectMetadata)) {
+            if (!isset($projectMetadata))
+            {
                 $projectDetailsQuery = "SELECT * FROM projects WHERE project_id = :projectId";
                 $projectDetailsParams['projectId'] = $projectId;
-                $projectDetailsResult = run_prepared_query($DBH, $projectDetailsQuery, $projectDetailsParams);
+                $projectDetailsResult =
+                    run_prepared_query($DBH,
+                                       $projectDetailsQuery,
+                                       $projectDetailsParams);
                 $projectMetadata = $projectDetailsResult->fetch(PDO::FETCH_ASSOC);
             }
             $currentProjectName = $projectMetadata['name'];
@@ -2449,10 +4084,19 @@ if (isset($projectId) &&
                             <input type="radio" id="editProjectStatusDisabled" name="newProjectStatus" value="0">
                             <label for="editProjectStatusDisabled" class="clickableButton" title="The project will NOT be available for public viewing and phot classification.">Disabled</label>
 EOL;
-            if ($currentProjectStatus == 1) {
-                $projectStatusRadioButtonHTML = str_replace('1">', '1" checked>', $projectStatusRadioButtonHTML);
-            } else {
-                $projectStatusRadioButtonHTML = str_replace('0">', '0" checked>', $projectStatusRadioButtonHTML);
+            if ($currentProjectStatus == 1)
+            {
+                $projectStatusRadioButtonHTML =
+                    str_replace('1">',
+                                '1" checked>',
+                                $projectStatusRadioButtonHTML);
+            }
+            else
+            {
+                $projectStatusRadioButtonHTML =
+                    str_replace('0">',
+                                '0" checked>',
+                                $projectStatusRadioButtonHTML);
             }
 
             // BUILD THE PROJECT DETAILS UPDATE FORM HTML
@@ -2506,13 +4150,28 @@ EOL;
         case 'tasks':
             // IF A TASK TO UPDATE HAS NOT BEEN SPECIFIED OR THE OPTION TO CREATE A NEW TASK WAS NOT SELECTED THEN
             // BUILD A TASK SELECTION FORM AND GIVE THE OPTION TO CREATE A NEW TASK
-            if (!isset($_POST['projectEditSubAction'])) {
-                $tasks = buildTaskSelectOptions($DBH, $projectId);
+            if (!isset($_POST['projectEditSubAction']))
+            {
+                $tasks =
+                    buildTaskSelectOptions($DBH,
+                                           $projectId);
                 $taskSelectOptionsHTML = $tasks[0];
                 $actionControlsHTML = <<<EOL
                             <h2>Edit Project Tasks</h2>
                             <div class="threeColumnOrSplit">
                                 <div>
+                                    <p>Click to create a new task</p>
+                                    <form method="post" class="taskSelectForm">
+                                        <input type="hidden" name="projectPropertyToUpdate" value="tasks" />
+                                        <input type="hidden" name="projectId" value="$projectId" />
+                                        <input type="hidden" name="projectEditSubAction" value="createNewTask" />
+                                        <input type="submit" id ="createNewTaskButton" class="clickableButton" value="Create New Task in This Project" />
+                                    </form>
+                                </div>
+                                <div>
+                                    <p>OR</p>
+                                </div>
+                                 <div>
                                         <p>Please select a task to edit</p>
                                     <form method="post" class="taskSelectForm">
                                         <div id="formFieldRow">
@@ -2528,18 +4187,7 @@ EOL;
                                         <input type="submit" id="editSelectedItemButton" class="clickableButton disabledClickableButton" value="Edit Selected Task" disabled />
                                     </form>
                                 </div>
-                                <div>
-                                    <p>OR</p>
-                                </div>
-                                <div>
-                                    <p>Click to create a new task</p>
-                                    <form method="post" class="taskSelectForm">
-                                        <input type="hidden" name="projectPropertyToUpdate" value="tasks" />
-                                        <input type="hidden" name="projectId" value="$projectId" />
-                                        <input type="hidden" name="projectEditSubAction" value="createNewTask" />
-                                        <input type="submit" id ="createNewTaskButton" class="clickableButton" value="Create New Task in This Project" />
-                                    </form>
-                                </div>
+                               
                             </div>
                             <div class="updateFormSubmissionControls">
                                 <button type="button" class="clickableButton" id="previewQuestionSetButton" name="previewQuestionSet"
@@ -2560,41 +4208,61 @@ EOL;
 EOL;
             } // END THE CREATION OF THE TASK SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
             // CREATE VARIABLES AND HTML THAT IS SHARED BETWEEN UPDATING A TASK AND CREATING A TASK
-            else {
+            else
+            {
                 // FIND DETAILS OF ALL OTHER TASKS
-                $invalidRequiredField = FALSE;
-                if ($_POST['projectEditSubAction'] == 'updateExistingTask' || $_POST['projectEditSubAction'] == 'createNewTask') {
+                $invalidRequiredField = false;
+                if ($_POST['projectEditSubAction'] == 'updateExistingTask' ||
+                    $_POST['projectEditSubAction'] == 'createNewTask'
+                )
+                {
                     $projectEditSubAction = $_POST['projectEditSubAction'];
-                } else {
+                }
+                else
+                {
                     $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                 }
-                if (!$invalidRequiredField) {
-                    $projectTaskQuery = "SELECT * FROM task_metadata WHERE project_id = :projectId ORDER BY order_in_project ASC";
+                if (!$invalidRequiredField)
+                {
+                    $projectTaskQuery =
+                        "SELECT * FROM task_metadata WHERE project_id = :projectId ORDER BY order_in_project ASC";
                     $projectTaskParams['projectId'] = $projectId;
-                    $projectTaskResults = run_prepared_query($DBH, $projectTaskQuery, $projectTaskParams);
+                    $projectTaskResults =
+                        run_prepared_query($DBH,
+                                           $projectTaskQuery,
+                                           $projectTaskParams);
                     $projectTasks = $projectTaskResults->fetchAll(PDO::FETCH_ASSOC);
                     $numberOfTasks = count($projectTasks);
 
                     $taskOrderTableContentHTML = '';
                     $newOrderInProjectSelectHTML = '';
-                    $sequentialOrderInProjectNumber = 1; // USED TO CREATE A SEQUENTIAL TASK NUMBER IN CASE DATABSE HAS HOLES IN ORDER LIST
+                    $sequentialOrderInProjectNumber =
+                        1; // USED TO CREATE A SEQUENTIAL TASK NUMBER IN CASE DATABSE HAS HOLES IN ORDER LIST
                     // IF A TASK ID TO UPDATE HAS BEEN SUPPLIED BUILD THE FORM TO UPDATE THE TASK
-                    if (isset($_POST["taskId"]) && $projectEditSubAction == 'updateExistingTask') {
-                        settype($_POST['taskId'], 'integer');
-                        if (!empty($_POST['taskId'])) {
+                    if (isset($_POST["taskId"]) && $projectEditSubAction == 'updateExistingTask')
+                    {
+                        settype($_POST['taskId'],
+                                'integer');
+                        if (!empty($_POST['taskId']))
+                        {
                             $taskId = $_POST['taskId'];
-                        } else {
+                        }
+                        else
+                        {
                             $invalidRequiredField['taskId'] = $_POST['taskId'];
                         }
-                        if (!$invalidRequiredField) {
+                        if (!$invalidRequiredField)
+                        {
                             // COPY CURRENT TASK DETAILS TO VARIABLES AND BUILD TASK SPECIFIC HTML
                             // LOOP THROUGH THE TASKS
-                            for ($i = 0; $i < $numberOfTasks; $i++) {
+                            for ($i = 0; $i < $numberOfTasks; $i++)
+                            {
                                 $ordinalOrderInProject = ordinal_suffix($sequentialOrderInProjectNumber);
                                 // REPLACE THE TASK ORDER NUMBER WITH AN EQUIVELENT SEQUENTIAL NUMBER
                                 $projectTasks[$i]['order_in_project'] = $sequentialOrderInProjectNumber;
                                 // IF TASK IS THE TASK TO BE UPDATED COPY OFF THE DETAILS
-                                if ($projectTasks[$i]['task_id'] == $taskId) {
+                                if ($projectTasks[$i]['task_id'] == $taskId)
+                                {
                                     $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\" selected>$ordinalOrderInProject</option>";
                                     $taskOrderTableContentHTML .= '<tr id="currentProperty"';
                                     $currentTaskStatus = $projectTasks[$i]["is_enabled"];
@@ -2602,15 +4270,22 @@ EOL;
                                     $currentTaskDescription = $projectTasks[$i]["description"];
                                     $currentOrderInProject = $projectTasks[$i]["order_in_project"];
                                     $currentDisplayTitle = $projectTasks[$i]["display_title"];
-                                } else if ($projectTasks[$i]["is_enabled"] == 0) {
-                                    $taskOrderTableContentHTML .= '<tr class="disabledProperty"';
-                                    $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
-                                } else {
-                                    $taskOrderTableContentHTML .= '<tr';
-                                    $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
+                                }
+                                else
+                                {
+                                    if ($projectTasks[$i]["is_enabled"] == 0)
+                                    {
+                                        $taskOrderTableContentHTML .= '<tr class="disabledProperty"';
+                                        $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
+                                    }
+                                    else
+                                    {
+                                        $taskOrderTableContentHTML .= '<tr';
+                                        $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
+                                    }
                                 } // END if ($projectTasks[$i]['task_id'] == $taskId)
                                 $taskOrderTableContentHTML .= " title=\"{$projectTasks[$i]["display_title"]}\"><td>$ordinalOrderInProject</td><td>{$projectTasks[$i]["name"]}</td></tr>";
-                                $sequentialOrderInProjectNumber ++;
+                                $sequentialOrderInProjectNumber++;
                             } //END for ($i = 0; $i < $numberOfTasks; $i++)
                             // CREATE TASK STATUS HTML AND ADDED THE NECESSARY CHECK HTML TO THE CORRECT OPTION
                             $taskStatusRadioButtonHTML = <<<EOL
@@ -2619,10 +4294,63 @@ EOL;
                             <input type="radio" id="editTaskStatusDisabled" name="newTaskStatus" value="0">
                             <label for="editTaskStatusDisabled" class="clickableButton" title="The task and its contents will NOT be available for public viewing.">Disabled</label>
 EOL;
-                            if ($currentTaskStatus == 1) {
-                                $taskStatusRadioButtonHTML = str_replace('1">', '1" checked>', $taskStatusRadioButtonHTML);
-                            } else {
-                                $taskStatusRadioButtonHTML = str_replace('0">', '0" checked>', $taskStatusRadioButtonHTML);
+                            if ($currentTaskStatus == 1)
+                            {
+                                $taskStatusRadioButtonHTML =
+                                    str_replace('1">',
+                                                '1" checked>',
+                                                $taskStatusRadioButtonHTML);
+                            }
+                            else
+                            {
+                                $taskStatusRadioButtonHTML =
+                                    str_replace('0">',
+                                                '0" checked>',
+                                                $taskStatusRadioButtonHTML);
+                            }
+
+                            $taskHasContents =
+                                taskContentsCheck($DBH,
+                                                  $taskId);
+
+                            if ($taskHasContents)
+                            {
+                                $deleteTaskButtonHTML = <<<HTML
+                            <input class="clickableButton disabledClickableButton" 
+                                id="deleteTaskButton" 
+                                value="Delete Task"  
+                                title="This task cannot be deleted at this time as it contains one or more groups."   
+                                type="button"
+                                disabled>
+HTML;
+                                $deleteTaskJavascript = '';
+                            }
+                            else
+                            {
+                                $deleteTaskButtonHTML = <<<HTML
+                            <input class="clickableButton" 
+                                id="deleteTaskButton" 
+                                value="Delete Task"  
+                                title="Deleting a task will remove it permanently from your question set. This can not be undone."
+                                type="button">
+HTML;
+                                $deleteTaskJavascript = <<<JS
+                             $('#deleteTaskButton').click(function() {
+                                 if (confirm("Please confirm you wish to delete the task from iCoast.")) {
+                                     var form = $('<form id="deleteTaskForm" method="post">' +
+                                        '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                                        '<input type="hidden" name="projectPropertyToUpdate" value="tasks" />' +
+                                        '<input type="hidden" name="projectEditSubAction" value="deleteExistingTask" />' +
+                                        '<input type="hidden" name="editSubmitted" value="1" />' +
+                                        '<input type="hidden" name="taskId" value="' + $taskId + '" />' +
+                                        '</form>');
+                                    $('body').append(form);
+                                    $('#deleteTaskForm').submit();
+                                 }
+                            });
+
+JS;
+
                             }
 
                             // BUILD THE PROJECT DETAILS UPDATE FORM HTML
@@ -2678,6 +4406,13 @@ EOL;
                                     <label title="Disabling a task removes it, and all of the groups and tags it contains, from public view. By doing this it is removed from the task flow in the classification page but can easily be re-added again in the future br re-enabling the task here.">Task Status:</label>
                                     $taskStatusRadioButtonHTML
                                 </div>
+                                <div class="formFieldRow">
+                                    <label title="Deleting a task will remove it permanently from your 
+                                    question set. This can not be undone. If this option is unavailable then 
+                                    the task contains one or more groups which must be moved elsewhere or 
+                                    deleted first.">Delete Task:</label>
+                                    $deleteTaskButtonHTML
+                                </div>
 
                                 <input type="hidden" name="projectId" value="$projectId" />
                                 <input type="hidden" name="projectPropertyToUpdate" value="$projectPropertyToUpdate" />
@@ -2697,31 +4432,38 @@ EOL;
                         }
                     } // END FORM CREATION FOR UPDATING OF AN EXISTING TASK - if (isset($_POST["taskId"]))
                     // IF REQUEST IS TO BUILD A NEW TASK THEN BUILD THE FORM TO CREATE THE TASK
-                    else if ($projectEditSubAction == 'createNewTask') {
-                        // LOOP THROUGH THE EXISTING TASKS RESEQUENCING THE ORDER NUMBERS AND BUILDING TASK SPECIFIC HTML
-                        for ($i = 0; $i < $numberOfTasks; $i++) {
+                    else
+                    {
+                        if ($projectEditSubAction == 'createNewTask')
+                        {
+                            // LOOP THROUGH THE EXISTING TASKS RESEQUENCING THE ORDER NUMBERS AND BUILDING TASK SPECIFIC HTML
+                            for ($i = 0; $i < $numberOfTasks; $i++)
+                            {
+
+                                $ordinalOrderInProject = ordinal_suffix($sequentialOrderInProjectNumber);
+                                // REPLACE THE TASK ORDER NUMBER WITH AN EQUIVELENT SEQUENTIAL NUMBER
+                                $projectTasks[$i]['order_in_project'] = $sequentialOrderInProjectNumber;
+                                // IF TASK IS THE TASK TO BE UPDATED COPY OFF THE DETAILS
+                                if ($projectTasks[$i]["is_enabled"] == 0)
+                                {
+                                    $taskOrderTableContentHTML .= '<tr class="disabledProperty"';
+                                    $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
+                                }
+                                else
+                                {
+                                    $taskOrderTableContentHTML .= '<tr';
+                                    $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
+                                } // END if ($projectTasks[$i]['task_id'] == $taskId)
+                                $taskOrderTableContentHTML .= " title=\"{$projectTasks[$i]["display_title"]}\"><td>$ordinalOrderInProject</td><td>{$projectTasks[$i]["name"]}</td></tr>";
+                                $sequentialOrderInProjectNumber++;
+                            } //END for ($i = 0; $i < $numberOfTasks; $i++)
 
                             $ordinalOrderInProject = ordinal_suffix($sequentialOrderInProjectNumber);
-                            // REPLACE THE TASK ORDER NUMBER WITH AN EQUIVELENT SEQUENTIAL NUMBER
-                            $projectTasks[$i]['order_in_project'] = $sequentialOrderInProjectNumber;
-                            // IF TASK IS THE TASK TO BE UPDATED COPY OFF THE DETAILS
-                            if ($projectTasks[$i]["is_enabled"] == 0) {
-                                $taskOrderTableContentHTML .= '<tr class="disabledProperty"';
-                                $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
-                            } else {
-                                $taskOrderTableContentHTML .= '<tr';
-                                $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\">$ordinalOrderInProject</option>";
-                            } // END if ($projectTasks[$i]['task_id'] == $taskId)
-                            $taskOrderTableContentHTML .= " title=\"{$projectTasks[$i]["display_title"]}\"><td>$ordinalOrderInProject</td><td>{$projectTasks[$i]["name"]}</td></tr>";
-                            $sequentialOrderInProjectNumber ++;
-                        } //END for ($i = 0; $i < $numberOfTasks; $i++)
-
-                        $ordinalOrderInProject = ordinal_suffix($sequentialOrderInProjectNumber);
-                        $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\" selected>$ordinalOrderInProject</option>";
+                            $newOrderInProjectSelectHTML .= "<option value=\"$sequentialOrderInProjectNumber\" selected>$ordinalOrderInProject</option>";
 
 
-                        // BUILD THE PROJECT DETAILS UPDATE FORM HTML
-                        $actionControlsHTML = <<<EOL
+                            // BUILD THE PROJECT DETAILS UPDATE FORM HTML
+                            $actionControlsHTML = <<<EOL
                             <h2>Create New Task</h2>
                             <form method="post" id="editTaskDetailsForm" autocomplete="off">
                                 <div class="formFieldRow">
@@ -2789,13 +4531,18 @@ EOL;
 
                             </form>
 EOL;
+                        }
                     }
                 }
-                if ($invalidRequiredField) {
+                if ($invalidRequiredField)
+                {
                     $actionControlsHTML = <<<EOL
                           <h2>Errors Detected in Input Data</h2>
                           <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
-
+                        <div class="updateFormSubmissionControls"><hr>
+                            <input type="button" class="clickableButton" id="returnToProjectDetails" title="This will return you to the project details editing screen screen for you to update this project's details again." value="Return to the Project Details Editor">
+                            <input type="button" class="clickableButton" id="returnToActionSelection" title="This will return you to the Action Selection screen for you to choose another project editing activity." value="Return To Action Selection Screen">
+                        </div>
 EOL;
                 }
             }
@@ -2810,29 +4557,50 @@ EOL;
         case 'groups':
             // IF A GROUP TO UPDATE HAS NOT BEEN SPECIFIED OR THE OPTION TO CREATE A NEW GROUP WAS NOT SELECTED THEN
             // BUILD A GROUP SELECTION FORM AND GIVE THE OPTION TO CREATE A NEW TASK
-            if (!isset($_POST['projectEditSubAction'])) {
+            if (!isset($_POST['projectEditSubAction']))
+            {
                 // FIND DATA FOR ALL GROUPS IN THE PROJECT
-                $projectGroupQuery = "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId ORDER BY name";
+                $projectGroupQuery =
+                    "SELECT tag_group_id, name, description, is_enabled FROM tag_group_metadata WHERE project_id = :projectId ORDER BY name";
                 $projectGroupParams['projectId'] = $projectId;
-                $projectGroupResults = run_prepared_query($DBH, $projectGroupQuery, $projectGroupParams);
+                $projectGroupResults =
+                    run_prepared_query($DBH,
+                                       $projectGroupQuery,
+                                       $projectGroupParams);
                 $projectGroups = $projectGroupResults->fetchAll(PDO::FETCH_ASSOC);
 
                 // BUILD THE GROUP SELECTION HTML FORM
                 $groupSelectOptionsHTML = '';
-                foreach ($projectGroups as $individualGroup) {
+                foreach ($projectGroups as $individualGroup)
+                {
                     $individualGroupId = $individualGroup['tag_group_id'];
                     $individualGroupName = $individualGroup['name'];
                     $individualGroupDescription = $individualGroup['description'];
                     $isEnabled = $individualGroup['is_enabled'];
-                    if ($isEnabled == 1) {
+                    if ($isEnabled == 1)
+                    {
                         $groupSelectOptionsHTML .= "<option title=\"$individualGroupDescription\" value=\"$individualGroupId\">$individualGroupName</option>";
-                    } else {
+                    }
+                    else
+                    {
                         $groupSelectOptionsHTML .= "<option title=\"$individualGroupDescription\" value=\"$individualGroupId\">$individualGroupName (Disabled)</option>";
                     }
                 }
                 $actionControlsHTML = <<<EOL
                             <h2>Edit Project Groups</h2>
                             <div class="threeColumnOrSplit">
+                                 <div>
+                                    <p>Click to create a new group</p>
+                                    <form method="post" class="groupSelectForm">
+                                        <input type="hidden" name="projectPropertyToUpdate" value="groups" />
+                                        <input type="hidden" name="projectId" value="$projectId" />
+                                        <input type="hidden" name="projectEditSubAction" value="createNewGroup" />
+                                        <input type="submit" id ="createNewGroupButton" class="clickableButton" value="Create New Group in This Project" />
+                                    </form>
+                                </div>
+                                <div>
+                                    <p>OR</p>
+                                </div>
                                 <div>
                                     <p>Please select a group to edit</p>
                                     <form method="post" class="groupSelectForm">
@@ -2847,18 +4615,6 @@ EOL;
                                         <input type="hidden" name="projectId" value="$projectId" />
                                         <input type="hidden" name="projectEditSubAction" value="updateExistingGroup" />
                                         <input type="submit" id="editSelectedItemButton" class="clickableButton disabledClickableButton" value="Edit Selected Group" disabled />
-                                    </form>
-                                </div>
-                                <div>
-                                    <p>OR</p>
-                                </div>
-                                <div>
-                                    <p>Click to create a new group</p>
-                                    <form method="post" class="groupSelectForm">
-                                        <input type="hidden" name="projectPropertyToUpdate" value="groups" />
-                                        <input type="hidden" name="projectId" value="$projectId" />
-                                        <input type="hidden" name="projectEditSubAction" value="createNewGroup" />
-                                        <input type="submit" id ="createNewGroupButton" class="clickableButton" value="Create New Group in This Project" />
                                     </form>
                                 </div>
                             </div>
@@ -2881,25 +4637,43 @@ EOL;
 EOL;
             } // END THE CREATION OF THE GROUP SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
             // CREATE VARIABLES AND HTML THAT IS SHARED BETWEEN UPDATING A TASK AND CREATING A TASK
-            else {
-                $invalidRequiredField = FALSE;
-                if ($_POST['projectEditSubAction'] == 'updateExistingGroup' || $_POST['projectEditSubAction'] == 'createNewGroup') {
+            else
+            {
+                $invalidRequiredField = false;
+                if ($_POST['projectEditSubAction'] == 'updateExistingGroup' ||
+                    $_POST['projectEditSubAction'] == 'createNewGroup'
+                )
+                {
                     $projectEditSubAction = $_POST['projectEditSubAction'];
-                } else {
+                }
+                else
+                {
                     $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                 }
                 // IF A TASK ID TO UPDATE HAS BEEN SUPPLIED BUILD THE FORM TO UPDATE THE TASK
-                if (isset($_POST["groupId"]) && isset($projectEditSubAction) && $projectEditSubAction == 'updateExistingGroup') {
-                    settype($_POST['groupId'], 'integer');
-                    if (!empty($_POST['groupId'])) {
+                if (isset($_POST["groupId"]) &&
+                    isset($projectEditSubAction) &&
+                    $projectEditSubAction == 'updateExistingGroup'
+                )
+                {
+                    settype($_POST['groupId'],
+                            'integer');
+                    if (!empty($_POST['groupId']))
+                    {
                         $groupId = $_POST['groupId'];
-                    } else {
+                    }
+                    else
+                    {
                         $invalidRequiredField['groupId'] = $_POST['groupId'];
                     }
 
-                    if (!$invalidRequiredField) {
+                    if (!$invalidRequiredField)
+                    {
 
-                        $groupMetadata = retrieve_entity_metadata($DBH, $groupId, 'group');
+                        $groupMetadata =
+                            retrieve_entity_metadata($DBH,
+                                                     $groupId,
+                                                     'group');
                         $currentGroupName = $groupMetadata['name'];
                         $currentGroupDescription = $groupMetadata['description'];
                         $currentGroupDisplayText = $groupMetadata['display_text'];
@@ -2909,7 +4683,8 @@ EOL;
                         $currentGroupStatus = $groupMetadata['is_enabled'];
                         $currentGroupContainsGroups = $groupMetadata['contains_groups'];
 
-                        if ($currentGroupWidth == 0) {
+                        if ($currentGroupWidth == 0)
+                        {
                             $currentGroupWidth = '';
                         }
 
@@ -2921,18 +4696,43 @@ EOL;
                         <label for="editGroupContainsGroups" class="clickableButton" title="Sets this group to contain other groups. If this option is unavailable then the group is currently set to contain tags and it has tags assigned to it. You must remove these child tags from this group first before you can set it to contain groups.">Groups</label>
 
 EOL;
-                        $groupHasContents = groupContentsCheck($DBH, $groupId);
-                        if ($currentGroupContainsGroups == 1) {
-                            $groupContentsRadioHTML = str_replace('1">', '1" checked>', $groupContentsRadioHTML);
-                            if ($groupHasContents) {
-                                $groupContentsRadioHTML = str_replace('for="editGroupContainsTags" class="clickableButton"', 'for="editGroupContainsTags" class="clickableButton disabledClickableButton"', $groupContentsRadioHTML);
-                                $groupContentsRadioHTML = str_replace('0">', '0" disabled>', $groupContentsRadioHTML);
+                        $groupHasContents =
+                            groupContentsCheck($DBH,
+                                               $groupId);
+                        if ($currentGroupContainsGroups == 1)
+                        {
+                            $groupContentsRadioHTML =
+                                str_replace('1">',
+                                            '1" checked>',
+                                            $groupContentsRadioHTML);
+                            if ($groupHasContents)
+                            {
+                                $groupContentsRadioHTML =
+                                    str_replace('for="editGroupContainsTags" class="clickableButton"',
+                                                'for="editGroupContainsTags" class="clickableButton disabledClickableButton"',
+                                                $groupContentsRadioHTML);
+                                $groupContentsRadioHTML =
+                                    str_replace('0">',
+                                                '0" disabled>',
+                                                $groupContentsRadioHTML);
                             }
-                        } else {
-                            $groupContentsRadioHTML = str_replace('0">', '0" checked>', $groupContentsRadioHTML);
-                            if ($groupHasContents) {
-                                $groupContentsRadioHTML = str_replace('for="editGroupContainsGroups" class="clickableButton"', 'for="editGroupContainsGroups" class="clickableButton disabledClickableButton"', $groupContentsRadioHTML);
-                                $groupContentsRadioHTML = str_replace('1">', '1" disabled>', $groupContentsRadioHTML);
+                        }
+                        else
+                        {
+                            $groupContentsRadioHTML =
+                                str_replace('0">',
+                                            '0" checked>',
+                                            $groupContentsRadioHTML);
+                            if ($groupHasContents)
+                            {
+                                $groupContentsRadioHTML =
+                                    str_replace('for="editGroupContainsGroups" class="clickableButton"',
+                                                'for="editGroupContainsGroups" class="clickableButton disabledClickableButton"',
+                                                $groupContentsRadioHTML);
+                                $groupContentsRadioHTML =
+                                    str_replace('1">',
+                                                '1" disabled>',
+                                                $groupContentsRadioHTML);
                             }
                         }
 
@@ -2944,13 +4744,20 @@ EOL;
                         <label for="editGroupHasBorderYes" class="clickableButton" title="Turns the group border on.">On</label>
 
 EOL;
-                        if ($currentGroupBorder == 1) {
-                            $groupDisplayBorderRadioHTML = str_replace('1">', '1" checked>', $groupDisplayBorderRadioHTML);
-                        } else {
-                            $groupDisplayBorderRadioHTML = str_replace('0">', '0" checked>', $groupDisplayBorderRadioHTML);
+                        if ($currentGroupBorder == 1)
+                        {
+                            $groupDisplayBorderRadioHTML =
+                                str_replace('1">',
+                                            '1" checked>',
+                                            $groupDisplayBorderRadioHTML);
                         }
-
-
+                        else
+                        {
+                            $groupDisplayBorderRadioHTML =
+                                str_replace('0">',
+                                            '0" checked>',
+                                            $groupDisplayBorderRadioHTML);
+                        }
 
 
                         $groupBackgroundColorRadioHTML = <<<EOL
@@ -2960,14 +4767,21 @@ EOL;
                         <label for="editGroupHasColorYes" class="clickableButton" title="Turns the group border on.">On</label>
 EOL;
                         $groupBackgroudColorPickerValue = '';
-                        if (!empty($currentGroupColor)) {
-                            $groupBackgroundColorRadioHTML = str_replace('1">', '1" checked>', $groupBackgroundColorRadioHTML);
+                        if (!empty($currentGroupColor))
+                        {
+                            $groupBackgroundColorRadioHTML =
+                                str_replace('1">',
+                                            '1" checked>',
+                                            $groupBackgroundColorRadioHTML);
                             $groupBackgroudColorPickerValue = $currentGroupColor;
-                        } else {
-                            $groupBackgroundColorRadioHTML = str_replace('0">', '0" checked>', $groupBackgroundColorRadioHTML);
                         }
-
-
+                        else
+                        {
+                            $groupBackgroundColorRadioHTML =
+                                str_replace('0">',
+                                            '0" checked>',
+                                            $groupBackgroundColorRadioHTML);
+                        }
 
 
                         $groupStatusRadioButtonHTML = <<<EOL
@@ -2977,53 +4791,94 @@ EOL;
                             <label for="editGroupStatusDisabled" class="clickableButton" title="The group and its contents will NOT be available for public viewing.">Disabled</label>
 
 EOL;
-                        if ($currentGroupStatus == 1) {
-                            $groupStatusRadioButtonHTML = str_replace('1">', '1" checked>', $groupStatusRadioButtonHTML);
-                        } else {
-                            $groupStatusRadioButtonHTML = str_replace('0">', '0" checked>', $groupStatusRadioButtonHTML);
+                        if ($currentGroupStatus == 1)
+                        {
+                            $groupStatusRadioButtonHTML =
+                                str_replace('1">',
+                                            '1" checked>',
+                                            $groupStatusRadioButtonHTML);
+                        }
+                        else
+                        {
+                            $groupStatusRadioButtonHTML =
+                                str_replace('0">',
+                                            '0" checked>',
+                                            $groupStatusRadioButtonHTML);
                         }
 
 
                         $findParentTaskQuery = "SELECT task_id FROM task_contents WHERE tag_group_id = :groupId";
                         $findParentTaskParams['groupId'] = $groupId;
-                        $findParentTaskResult = run_prepared_query($DBH, $findParentTaskQuery, $findParentTaskParams);
+                        $findParentTaskResult =
+                            run_prepared_query($DBH,
+                                               $findParentTaskQuery,
+                                               $findParentTaskParams);
                         $parentOfSelectedGroup = $findParentTaskResult->fetchColumn();
-                        if (!$parentOfSelectedGroup) {
+                        if (!$parentOfSelectedGroup)
+                        {
                             $findParentGroupQuery = "SELECT tgc.tag_group_id "
-                                    . "FROM tag_group_contents tgc "
-                                    . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
-                                    . "WHERE tgc.tag_id = :groupId AND tgm.contains_groups = 1";
+                                                    .
+                                                    "FROM tag_group_contents tgc "
+                                                    .
+                                                    "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
+                                                    .
+                                                    "WHERE tgc.tag_id = :groupId AND tgm.contains_groups = 1";
                             $findParentGroupParams['groupId'] = $groupId;
-                            $findParentGroupResult = run_prepared_query($DBH, $findParentGroupQuery, $findParentGroupParams);
+                            $findParentGroupResult =
+                                run_prepared_query($DBH,
+                                                   $findParentGroupQuery,
+                                                   $findParentGroupParams);
                             $parentOfSelectedGroup = $findParentGroupResult->fetchColumn();
-                            $parentOfSelectedGroupIsTask = FALSE;
+                            $parentOfSelectedGroupIsTask = false;
                             $parentType = 'group';
-                        } else {
-                            $parentOfSelectedGroupIsTask = TRUE;
+                        }
+                        else
+                        {
+                            $parentOfSelectedGroupIsTask = true;
                             $parentType = 'task';
                         }
 
-                        if ($parentOfSelectedGroupIsTask) {
-                            $tasks = buildTaskSelectOptions($DBH, $projectId, $parentOfSelectedGroup);
-                        } else {
-                            $tasks = buildTaskSelectOptions($DBH, $projectId);
+                        if ($parentOfSelectedGroupIsTask)
+                        {
+                            $tasks =
+                                buildTaskSelectOptions($DBH,
+                                                       $projectId,
+                                                       $parentOfSelectedGroup);
+                        }
+                        else
+                        {
+                            $tasks =
+                                buildTaskSelectOptions($DBH,
+                                                       $projectId);
                         }
                         $taskSelectOptionsHTML = $tasks[0];
                         $taskIdList = $tasks[1];
                         $taskNameList = $tasks[2];
                         $whereInTasks = where_in_string_builder($taskIdList);
 
-                        if (!$parentOfSelectedGroupIsTask) {
-                            $groups = buildGroupSelectOptions($DBH, $projectId, $parentOfSelectedGroup, true);
-                        } else {
-                            $groups = buildGroupSelectOptions($DBH, $projectId, false, true);
+                        if (!$parentOfSelectedGroupIsTask)
+                        {
+                            $groups =
+                                buildGroupSelectOptions($DBH,
+                                                        $projectId,
+                                                        $parentOfSelectedGroup,
+                                                        true);
+                        }
+                        else
+                        {
+                            $groups =
+                                buildGroupSelectOptions($DBH,
+                                                        $projectId,
+                                                        false,
+                                                        true);
                         }
                         $groupSelectOptionsHTML = $groups[0];
                         $groupIdList = $groups[1];
                         $groupNameList = $groups[2];
                         $whereInGroups = where_in_string_builder($groupIdList);
 
-                        if (empty($groupSelectOptionsHTML)) {
+                        if (empty($groupSelectOptionsHTML))
+                        {
                             $groupContainedInHTML = <<<EOL
                                         <div id="formFieldRow">
                                             <label for="taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
@@ -3034,7 +4889,9 @@ EOL;
 
 EOL;
                             $groupContainer = 'Task';
-                        } else {
+                        }
+                        else
+                        {
                             $groupContainedInHTML = <<<EOL
                                 <div class="threeColumnOrSplit">
                                     <div>
@@ -3063,29 +4920,34 @@ EOL;
                         }
 
 
-
-
-
-                        $taskGroupOrderQuery = "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tc.task_id AS parent_id, tc.tag_group_id AS child_id, tc.order_in_task "
-                                . "FROM task_contents tc "
-                                . "LEFT JOIN tag_group_metadata tgm ON tc.tag_group_id = tgm.tag_group_id "
-                                . "WHERE tc.task_id IN ($whereInTasks) "
-                                . "ORDER BY parent_id, tc.order_in_task";
+                        $taskGroupOrderQuery =
+                            "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tc.task_id AS parent_id, tc.tag_group_id AS child_id, tc.order_in_task "
+                            . "FROM task_contents tc "
+                            . "LEFT JOIN tag_group_metadata tgm ON tc.tag_group_id = tgm.tag_group_id "
+                            . "WHERE tc.task_id IN ($whereInTasks) "
+                            . "ORDER BY parent_id, tc.order_in_task";
                         $taskGroupOrderParams['projectId'] = $projectId;
-                        $taskGroupOrderResults = run_prepared_query($DBH, $taskGroupOrderQuery, $taskGroupOrderParams);
+                        $taskGroupOrderResults =
+                            run_prepared_query($DBH,
+                                               $taskGroupOrderQuery,
+                                               $taskGroupOrderParams);
                         $taskGroups = $taskGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
                         $groupOrderInParentTask = array();
-                        foreach ($taskGroups as $taskGroup) {
+                        foreach ($taskGroups as $taskGroup)
+                        {
                             $groupOrderInParentTask[$taskGroup['parent_id']][] = $taskGroup;
                         }
                         $javascriptGroupOrderInParentTask = array();
-                        foreach ($groupOrderInParentTask as &$parentContainer) {
-                            $containerContainsGroup = FALSE;
+                        foreach ($groupOrderInParentTask as &$parentContainer)
+                        {
+                            $containerContainsGroup = false;
                             $parentId = '';
                             $sequentialOrderInTask = '';
                             $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                            $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                            for ($i = 0; $i < count($parentContainer); $i++) {
+                            $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
                                 $sequentialOrderInTask = $i + 1;
                                 $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
                                 $parentId = $parentContainer[$i]['parent_id'];
@@ -3097,54 +4959,82 @@ EOL;
 
                                 $orderInTask = $parentContainer[$i]['order_in_task'];
 
-                                if ($childId == $groupId) {
+                                if ($childId == $groupId)
+                                {
                                     $oldGroupParentId = $parentId;
                                     $oldGroupOrderNumber = $orderInTask;
-                                    $containerContainsGroup = TRUE;
-                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr id="currentProperty"';
-                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
-                                } else if ($isEnabled == 0) {
-                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr class="disabledProperty"';
-                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
-                                } else {
-                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr';
-                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
+                                    $containerContainsGroup = true;
+                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] .
+                                        '<tr id="currentProperty"';
+                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                        $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                        "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
                                 }
-                                $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInTask</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                else
+                                {
+                                    if ($isEnabled == 0)
+                                    {
+                                        $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                            $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] .
+                                            '<tr class="disabledProperty"';
+                                        $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
+                                    }
+                                    else
+                                    {
+                                        $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                            $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr';
+                                        $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
+                                    }
+                                }
+                                $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInTask</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
                             }
-                            if (!$containerContainsGroup) {
+                            if (!$containerContainsGroup)
+                            {
                                 $sequentialOrderInTask++;
                                 $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
-                                $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
+                                $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
                             }
                         }
                         $javascriptGroupOrderInParentTask = json_encode($javascriptGroupOrderInParentTask);
 
 
-
-
-
-
-                        $nestedGroupOrderQuery = "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tgc.tag_group_id AS parent_id, tgc.tag_id AS child_id, tgc.order_in_group "
-                                . "FROM tag_group_contents tgc "
-                                . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_id = tgm.tag_group_id "
-                                . "WHERE tgc.tag_group_id IN ($whereInGroups)"
-                                . "ORDER BY parent_id, tgc.order_in_group";
+                        $nestedGroupOrderQuery =
+                            "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tgc.tag_group_id AS parent_id, tgc.tag_id AS child_id, tgc.order_in_group "
+                            . "FROM tag_group_contents tgc "
+                            . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_id = tgm.tag_group_id "
+                            . "WHERE tgc.tag_group_id IN ($whereInGroups)"
+                            . "ORDER BY parent_id, tgc.order_in_group";
                         $nestedGroupOrderParams['projectId'] = $projectId;
-                        $nestedGroupOrderResults = run_prepared_query($DBH, $nestedGroupOrderQuery, $nestedGroupOrderParams);
+                        $nestedGroupOrderResults =
+                            run_prepared_query($DBH,
+                                               $nestedGroupOrderQuery,
+                                               $nestedGroupOrderParams);
                         $nestedGroups = $nestedGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
                         $groupOrderInParentGroup = array();
-                        foreach ($nestedGroups as $nestedGroup) {
+                        foreach ($nestedGroups as $nestedGroup)
+                        {
                             $groupOrderInParentGroup[$nestedGroup['parent_id']][] = $nestedGroup;
                         }
                         $javascriptGroupOrderInParentGroup = array();
-                        foreach ($groupOrderInParentGroup as &$parentContainer) {
-                            $containerContainsGroup = FALSE;
+                        foreach ($groupOrderInParentGroup as &$parentContainer)
+                        {
+                            $containerContainsGroup = false;
                             $parentId = '';
                             $sequentialOrderInGroup = '';
                             $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                            $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                            for ($i = 0; $i < count($parentContainer); $i++) {
+                            $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
                                 $sequentialOrderInGroup = $i + 1;
                                 $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
                                 $parentId = $parentContainer[$i]['parent_id'];
@@ -3155,32 +5045,96 @@ EOL;
 
                                 $orderInParent = $parentContainer[$i]['order_in_group'];
 
-                                if ($childId == $groupId) {
+                                if ($childId == $groupId)
+                                {
                                     $oldGroupParentId = $parentId;
                                     $oldGroupOrderNumber = $orderInParent;
-                                    $containerContainsGroup = TRUE;
-                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr id="currentProperty" ';
-                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
-                                } else if ($isEnabled == 0) {
-                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr class="disabledProperty" ';
-                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
-                                } else {
-                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
-                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    $containerContainsGroup = true;
+                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] .
+                                        '<tr id="currentProperty" ';
+                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                        $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                        "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
                                 }
-                                $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                else
+                                {
+                                    if ($isEnabled == 0)
+                                    {
+                                        $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                            $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] .
+                                            '<tr class="disabledProperty" ';
+                                        $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    }
+                                    else
+                                    {
+                                        $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                            $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
+                                        $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    }
+                                }
+                                $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
                             }
-                            if (!$containerContainsGroup) {
+                            if (!$containerContainsGroup)
+                            {
                                 $sequentialOrderInGroup++;
                                 $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                                $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
+                                $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
                             }
                         }
                         $javascriptGroupOrderInParentGroup = json_encode($javascriptGroupOrderInParentGroup);
 
+                        $groupHasContents =
+                            groupContentsCheck($DBH,
+                                               $groupId);
 
+                        if ($groupHasContents)
+                        {
+                            $deleteGroupButtonHTML = <<<HTML
+                            <input class="clickableButton disabledClickableButton" 
+                                id="deleteGroupButton" 
+                                value="Delete Group"  
+                                title="This group cannot be deleted at this time as it contains one or more other groups or tags."   
+                                type="button"
+                                disabled>
+HTML;
+                            $deleteGroupJavascript = '';
+                        }
+                        else
+                        {
+                            $deleteGroupButtonHTML = <<<HTML
+                            <input class="clickableButton" 
+                                id="deleteGroupButton" 
+                                value="Delete Group"  
+                                title="Deleting a group will remove it permanently from your question set. This can not be undone."
+                                type="button">
+HTML;
+                            $deleteGroupJavascript = <<<JS
+                             $('#deleteGroupButton').click(function() {
+                                 if (confirm("Please confirm you wish to delete the group from iCoast.")) {
+                                     var form = $('<form id="deleteGroupForm" method="post">' +
+                                        '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                                        '<input type="hidden" name="projectPropertyToUpdate" value="groups" />' +
+                                        '<input type="hidden" name="projectEditSubAction" value="deleteExistingGroup" />' +
+                                        '<input type="hidden" name="editSubmitted" value="1" />' +
+                                        '<input type="hidden" name="groupId" value="' + $groupId + '" />' +
+                                        '</form>');
+                                    $('body').append(form);
+                                    $('#deleteGroupForm').submit();
+                                 }
+                            });
 
+JS;
 
+                        }
 
 
                         // BUILD THE PROJECT DETAILS UPDATE FORM HTML
@@ -3252,7 +5206,13 @@ EOL;
                                     <label title="Disabling a group removes it, and all of the tags it contains from public view. It can easily be re-added in the future br re-enabling the group here.">Group Status:</label>
                                     $groupStatusRadioButtonHTML
                                 </div>
-
+                                <div class="formFieldRow">
+                                    <label title="Deleting a tag group will remove it permanently from your 
+                                    question set. This can not be undone. If this option is unavailable then 
+                                    the tag group contains one or more other tag groups or tags which must be moved elsewhere or 
+                                    deleted first.">Delete Tag Group:</label>
+                                    $deleteGroupButtonHTML
+                                </div>
                                 <input type="hidden" name="oldGroupParentType" value="$parentType" />
                                 <input type="hidden" name="oldGroupParentId" value="$oldGroupParentId" />
                                 <input type="hidden" name="oldGroupOrderInParent" value="$oldGroupOrderNumber" />
@@ -3274,23 +5234,33 @@ EOL;
                     }
                 } // END FORM CREATION FOR UPDATING OF AN EXISTING TASK - if (isset($_POST["taskId"]))
                 // IF REQUEST IS TO BUILD A NEW TASK THEN BUILD THE FORM TO CREATE THE TASK
-                else if (isset($projectEditSubAction) && $projectEditSubAction == 'createNewGroup') {
+                else
+                {
+                    if (isset($projectEditSubAction) && $projectEditSubAction == 'createNewGroup')
+                    {
 
-                    $tasks = buildTaskSelectOptions($DBH, $projectId);
-                    $taskSelectOptionsHTML = $tasks[0];
-                    $taskIdList = $tasks[1];
-                    $taskNameList = $tasks[2];
-                    $whereInTasks = where_in_string_builder($taskIdList);
+                        $tasks =
+                            buildTaskSelectOptions($DBH,
+                                                   $projectId);
+                        $taskSelectOptionsHTML = $tasks[0];
+                        $taskIdList = $tasks[1];
+                        $taskNameList = $tasks[2];
+                        $whereInTasks = where_in_string_builder($taskIdList);
 
 
-                    $groups = buildGroupSelectOptions($DBH, $projectId, false, true);
-                    $groupSelectOptionsHTML = $groups[0];
-                    $groupIdList = $groups[1];
-                    $groupNameList = $groups[2];
-                    $whereInGroups = where_in_string_builder($groupIdList);
+                        $groups =
+                            buildGroupSelectOptions($DBH,
+                                                    $projectId,
+                                                    false,
+                                                    true);
+                        $groupSelectOptionsHTML = $groups[0];
+                        $groupIdList = $groups[1];
+                        $groupNameList = $groups[2];
+                        $whereInGroups = where_in_string_builder($groupIdList);
 
-                    if (empty($groupSelectOptionsHTML)) {
-                        $groupContainedInHTML = <<<EOL
+                        if (empty($groupSelectOptionsHTML))
+                        {
+                            $groupContainedInHTML = <<<EOL
                                         <div id="formFieldRow">
                                             <label for="taskSelectBox" title="Use this select box to choose the task that should contain this group.">Parent Task:</label>
                                             <select id="taskSelectBox" class="clickableButton" name="taskId">
@@ -3299,9 +5269,11 @@ EOL;
                                         </div>
 
 EOL;
-                        $groupContainer = 'Task';
-                    } else {
-                        $groupContainedInHTML = <<<EOL
+                            $groupContainer = 'Task';
+                        }
+                        else
+                        {
+                            $groupContainedInHTML = <<<EOL
                                 <div class="threeColumnOrSplit">
                                     <div>
                                         <p>Select a task to contain this group</p>
@@ -3326,99 +5298,131 @@ EOL;
                                     </div>
                                 </div>
 EOL;
-                    }
+                        }
 
 
-
-
-
-                    $taskGroupOrderQuery = "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tc.task_id AS parent_id, tc.order_in_task "
+                        $taskGroupOrderQuery =
+                            "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tc.task_id AS parent_id, tc.order_in_task "
                             . "FROM task_contents tc "
                             . "LEFT JOIN tag_group_metadata tgm ON tc.tag_group_id = tgm.tag_group_id "
                             . "WHERE tc.task_id IN ($whereInTasks) "
                             . "ORDER BY parent_id, tc.order_in_task";
-                    $taskGroupOrderParams['projectId'] = $projectId;
-                    $taskGroupOrderResults = run_prepared_query($DBH, $taskGroupOrderQuery, $taskGroupOrderParams);
-                    $taskGroups = $taskGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
-                    $groupOrderInParentTask = array();
-                    foreach ($taskGroups as $taskGroup) {
-                        $groupOrderInParentTask[$taskGroup['parent_id']][] = $taskGroup;
-                    }
-                    $javascriptGroupOrderInParentTask = array();
-                    foreach ($groupOrderInParentTask as &$parentContainer) {
-                        $parentId = '';
-                        $sequentialOrderInTask = '';
-                        $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                        $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                        for ($i = 0; $i < count($parentContainer); $i++) {
-                            $sequentialOrderInTask = $i + 1;
-                            $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
-                            $parentId = $parentContainer[$i]['parent_id'];
-                            $isEnabled = $parentContainer[$i]['is_enabled'];
-                            $parentContainer[$i]['order_in_task'] = $sequentialOrderInTask;
-
-                            if ($isEnabled == 0) {
-                                $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr class="disabledProperty"';
-                            } else {
-                                $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr';
-                            }
-                            $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] = $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInTask</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
-                            $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
+                        $taskGroupOrderParams['projectId'] = $projectId;
+                        $taskGroupOrderResults =
+                            run_prepared_query($DBH,
+                                               $taskGroupOrderQuery,
+                                               $taskGroupOrderParams);
+                        $taskGroups = $taskGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
+                        $groupOrderInParentTask = array();
+                        foreach ($taskGroups as $taskGroup)
+                        {
+                            $groupOrderInParentTask[$taskGroup['parent_id']][] = $taskGroup;
                         }
-                        $sequentialOrderInTask++;
-                        $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
-                        $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
-                    }
-                    $javascriptGroupOrderInParentTask = json_encode($javascriptGroupOrderInParentTask);
+                        $javascriptGroupOrderInParentTask = array();
+                        foreach ($groupOrderInParentTask as &$parentContainer)
+                        {
+                            $parentId = '';
+                            $sequentialOrderInTask = '';
+                            $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['tableHTML'] = '';
+                            $javascriptGroupOrderInParentTask[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
+                                $sequentialOrderInTask = $i + 1;
+                                $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
+                                $parentId = $parentContainer[$i]['parent_id'];
+                                $isEnabled = $parentContainer[$i]['is_enabled'];
+                                $parentContainer[$i]['order_in_task'] = $sequentialOrderInTask;
+
+                                if ($isEnabled == 0)
+                                {
+                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] .
+                                        '<tr class="disabledProperty"';
+                                }
+                                else
+                                {
+                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] . '<tr';
+                                }
+                                $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] =
+                                    $javascriptGroupOrderInParentTask[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInTask</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInTask\">$ordinalOrderInTask</option>\n\r";
+                            }
+                            $sequentialOrderInTask++;
+                            $ordinalOrderInTask = ordinal_suffix($sequentialOrderInTask);
+                            $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] =
+                                $javascriptGroupOrderInParentTask[$parentId]['newOrderSelectHTML'] .
+                                "<option value=\"$sequentialOrderInTask\" selected>$ordinalOrderInTask</option>\n\r";
+                        }
+                        $javascriptGroupOrderInParentTask = json_encode($javascriptGroupOrderInParentTask);
 
 
-
-
-
-
-                    $nestedGroupOrderQuery = "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tgc.tag_group_id AS parent_id, tgc.order_in_group "
+                        $nestedGroupOrderQuery =
+                            "SELECT tgm.name, tgm.is_enabled, tgm.display_text, tgc.tag_group_id AS parent_id, tgc.order_in_group "
                             . "FROM tag_group_contents tgc "
                             . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_id = tgm.tag_group_id "
                             . "WHERE tgc.tag_group_id IN ($whereInGroups)"
                             . "ORDER BY parent_id, tgc.order_in_group";
-                    $nestedGroupOrderParams['projectId'] = $projectId;
-                    $nestedGroupOrderResults = run_prepared_query($DBH, $nestedGroupOrderQuery, $nestedGroupOrderParams);
-                    $nestedGroups = $nestedGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
-                    $groupOrderInParentGroup = array();
-                    foreach ($nestedGroups as $nestedGroup) {
-                        $groupOrderInParentGroup[$nestedGroup['parent_id']][] = $nestedGroup;
-                    }
-                    $javascriptGroupOrderInParentGroup = array();
-                    foreach ($groupOrderInParentGroup as &$parentContainer) {
-                        $parentId = '';
-                        $sequentialOrderInGroup = '';
-                        $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                        $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                        for ($i = 0; $i < count($parentContainer); $i++) {
-                            $sequentialOrderInGroup = $i + 1;
-                            $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                            $parentId = $parentContainer[$i]['parent_id'];
-                            $isEnabled = $parentContainer[$i]['is_enabled'];
-                            $parentContainer[$i]['order_in_group'] = $sequentialOrderInGroup;
-
-                            if ($isEnabled == 0) {
-                                $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr class="disabledProperty"';
-                            } else {
-                                $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
-                            }
-                            $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
-                            $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                        $nestedGroupOrderParams['projectId'] = $projectId;
+                        $nestedGroupOrderResults =
+                            run_prepared_query($DBH,
+                                               $nestedGroupOrderQuery,
+                                               $nestedGroupOrderParams);
+                        $nestedGroups = $nestedGroupOrderResults->fetchAll(PDO::FETCH_ASSOC);
+                        $groupOrderInParentGroup = array();
+                        foreach ($nestedGroups as $nestedGroup)
+                        {
+                            $groupOrderInParentGroup[$nestedGroup['parent_id']][] = $nestedGroup;
                         }
-                        $sequentialOrderInGroup++;
-                        $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                        $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
-                    }
-                    $javascriptGroupOrderInParentGroup = json_encode($javascriptGroupOrderInParentGroup);
+                        $javascriptGroupOrderInParentGroup = array();
+                        foreach ($groupOrderInParentGroup as &$parentContainer)
+                        {
+                            $parentId = '';
+                            $sequentialOrderInGroup = '';
+                            $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
+                            $javascriptGroupOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
+                                $sequentialOrderInGroup = $i + 1;
+                                $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
+                                $parentId = $parentContainer[$i]['parent_id'];
+                                $isEnabled = $parentContainer[$i]['is_enabled'];
+                                $parentContainer[$i]['order_in_group'] = $sequentialOrderInGroup;
+
+                                if ($isEnabled == 0)
+                                {
+                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] .
+                                        '<tr class="disabledProperty"';
+                                }
+                                else
+                                {
+                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
+                                }
+                                $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] =
+                                    $javascriptGroupOrderInParentGroup[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                            }
+                            $sequentialOrderInGroup++;
+                            $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
+                            $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                $javascriptGroupOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
+                        }
+                        $javascriptGroupOrderInParentGroup = json_encode($javascriptGroupOrderInParentGroup);
 
 
-
-                    // BUILD THE PROJECT DETAILS UPDATE FORM HTML
-                    $actionControlsHTML = <<<EOL
+                        // BUILD THE PROJECT DETAILS UPDATE FORM HTML
+                        $actionControlsHTML = <<<EOL
                             <h2>Create New Tag Group</h2>
                             <form method="post" id="editGroupDetailsForm" autocomplete="off">
                                 <div class="formFieldRow">
@@ -3513,8 +5517,10 @@ EOL;
 
                             </form>
 EOL;
+                    }
                 }
-                if ($invalidRequiredField) {
+                if ($invalidRequiredField)
+                {
                     $actionControlsHTML = <<<EOL
                           <h2>Errors Detected in Input Data</h2>
                           <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
@@ -3531,29 +5537,50 @@ EOL;
         case 'tags':
             // IF A GROUP TO UPDATE HAS NOT BEEN SPECIFIED OR THE OPTION TO CREATE A NEW GROUP WAS NOT SELECTED THEN
             // BUILD A GROUP SELECTION FORM AND GIVE THE OPTION TO CREATE A NEW TASK
-            if (!isset($_POST['projectEditSubAction'])) {
+            if (!isset($_POST['projectEditSubAction']))
+            {
                 // FIND DATA FOR ALL GROUPS IN THE PROJECT
-                $projectTagsQuery = "SELECT tag_id, name, description, is_enabled FROM tags WHERE project_id = :projectId ORDER BY name";
+                $projectTagsQuery =
+                    "SELECT tag_id, name, description, is_enabled FROM tags WHERE project_id = :projectId ORDER BY name";
                 $projectTagsParams['projectId'] = $projectId;
-                $projectTagsResults = run_prepared_query($DBH, $projectTagsQuery, $projectTagsParams);
+                $projectTagsResults =
+                    run_prepared_query($DBH,
+                                       $projectTagsQuery,
+                                       $projectTagsParams);
                 $projectTags = $projectTagsResults->fetchAll(PDO::FETCH_ASSOC);
 
                 // BUILD THE GROUP SELECTION HTML FORM
                 $tagSelectOptionsHTML = '';
-                foreach ($projectTags as $individualTag) {
+                foreach ($projectTags as $individualTag)
+                {
                     $individualTagId = $individualTag['tag_id'];
                     $individualTagName = $individualTag['name'];
                     $individualTagDescription = $individualTag['description'];
                     $isEnabled = $individualTag['is_enabled'];
-                    if ($isEnabled == 1) {
+                    if ($isEnabled == 1)
+                    {
                         $tagSelectOptionsHTML .= "<option title=\"$individualTagDescription\" value=\"$individualTagId\">$individualTagName</option>";
-                    } else {
+                    }
+                    else
+                    {
                         $tagSelectOptionsHTML .= "<option title=\"$individualTagDescription\" value=\"$individualTagId\">$individualTagName (Disabled)</option>";
                     }
                 }
                 $actionControlsHTML = <<<EOL
                             <h2>Edit Project Tags</h2>
                             <div class="threeColumnOrSplit">
+                                <div>
+                                    <p>Click to create a new tag</p>
+                                    <form method="post" class="tagSelectForm">
+                                        <input type="hidden" name="projectPropertyToUpdate" value="tags" />
+                                        <input type="hidden" name="projectId" value="$projectId" />
+                                        <input type="hidden" name="projectEditSubAction" value="createNewTag" />
+                                        <input type="submit" id ="createNewGroupButton" class="clickableButton" value="Create New Tag in This Project" />
+                                    </form>
+                                </div>
+                                <div>
+                                    <p>OR</p>
+                                </div>
                                 <div>
                                     <p>Please select a tag to edit</p>
                                     <form method="post" class="tagSelectForm">
@@ -3568,18 +5595,6 @@ EOL;
                                         <input type="hidden" name="projectId" value="$projectId" />
                                         <input type="hidden" name="projectEditSubAction" value="updateExistingTag" />
                                         <input type="submit" id="editSelectedItemButton" class="clickableButton disabledClickableButton" value="Edit Selected Tag" disabled />
-                                    </form>
-                                </div>
-                                <div>
-                                    <p>OR</p>
-                                </div>
-                                <div>
-                                    <p>Click to create a new tag</p>
-                                    <form method="post" class="tagSelectForm">
-                                        <input type="hidden" name="projectPropertyToUpdate" value="tags" />
-                                        <input type="hidden" name="projectId" value="$projectId" />
-                                        <input type="hidden" name="projectEditSubAction" value="createNewTag" />
-                                        <input type="submit" id ="createNewGroupButton" class="clickableButton" value="Create New Tag in This Project" />
                                     </form>
                                 </div>
                             </div>
@@ -3602,23 +5617,41 @@ EOL;
 EOL;
             } // END THE CREATION OF THE GROUP SELECTION FORM - if (!isset($_POST['taskId']) && !isset($_POST['projectEditSubAction']))
             // CREATE VARIABLES AND HTML THAT IS SHARED BETWEEN UPDATING A TASK AND CREATING A TASK
-            else {
-                $invalidRequiredField = FALSE;
-                if ($_POST['projectEditSubAction'] == 'updateExistingTag' || $_POST['projectEditSubAction'] == 'createNewTag') {
+            else
+            {
+                $invalidRequiredField = false;
+                if ($_POST['projectEditSubAction'] == 'updateExistingTag' ||
+                    $_POST['projectEditSubAction'] == 'createNewTag'
+                )
+                {
                     $projectEditSubAction = $_POST['projectEditSubAction'];
-                } else {
+                }
+                else
+                {
                     $invalidRequiredField['projectEditSubAction'] = $_POST['projectEditSubAction'];
                 }
                 // IF A TASK ID TO UPDATE HAS BEEN SUPPLIED BUILD THE FORM TO UPDATE THE TASK
-                if (isset($_POST["tagId"]) && isset($projectEditSubAction) && $projectEditSubAction == 'updateExistingTag') {
-                    settype($_POST['tagId'], 'integer');
-                    if (!empty($_POST['tagId'])) {
+                if (isset($_POST["tagId"]) &&
+                    isset($projectEditSubAction) &&
+                    $projectEditSubAction == 'updateExistingTag'
+                )
+                {
+                    settype($_POST['tagId'],
+                            'integer');
+                    if (!empty($_POST['tagId']))
+                    {
                         $tagId = $_POST['tagId'];
-                    } else {
+                    }
+                    else
+                    {
                         $invalidRequiredField['tagId'] = $_POST['tagId'];
                     }
-                    if (!$invalidRequiredField) {
-                        $tagMetadata = retrieve_entity_metadata($DBH, $tagId, 'tag');
+                    if (!$invalidRequiredField)
+                    {
+                        $tagMetadata =
+                            retrieve_entity_metadata($DBH,
+                                                     $tagId,
+                                                     'tag');
                         $currentTagName = $tagMetadata['name'];
                         $currentTagDescription = $tagMetadata['description'];
                         $currentTagDisplayText = $tagMetadata['display_text'];
@@ -3643,15 +5676,30 @@ EOL;
 
 EOL;
 
-                        if ($currentTagIsComment) {
-                            $tagTypeRadioHTML = str_replace('2" /', '2" checked /', $tagTypeRadioHTML);
-                        } else if ($currentTagIsRadio) {
-                            $tagTypeRadioHTML = str_replace('1" /', '1" checked /', $tagTypeRadioHTML);
-                        } else {
-                            $tagTypeRadioHTML = str_replace('0" /', '0" checked /', $tagTypeRadioHTML);
+                        if ($currentTagIsComment)
+                        {
+                            $tagTypeRadioHTML =
+                                str_replace('2" /',
+                                            '2" checked /',
+                                            $tagTypeRadioHTML);
                         }
-
-
+                        else
+                        {
+                            if ($currentTagIsRadio)
+                            {
+                                $tagTypeRadioHTML =
+                                    str_replace('1" /',
+                                                '1" checked /',
+                                                $tagTypeRadioHTML);
+                            }
+                            else
+                            {
+                                $tagTypeRadioHTML =
+                                    str_replace('0" /',
+                                                '0" checked /',
+                                                $tagTypeRadioHTML);
+                            }
+                        }
 
 
                         $tagStatusRadioButtonHTML = <<<EOL
@@ -3661,38 +5709,70 @@ EOL;
                             <label for="editTagStatusDisabled" class="clickableButton" title="The tag will NOT be available for selection and will be hidden from view.">Disabled</label>
 
 EOL;
-                        if ($currentTagStatus == 1) {
-                            $tagStatusRadioButtonHTML = str_replace('1">', '1" checked>', $tagStatusRadioButtonHTML);
-                        } else {
-                            $tagStatusRadioButtonHTML = str_replace('0">', '0" checked>', $tagStatusRadioButtonHTML);
+                        if ($currentTagStatus == 1)
+                        {
+                            $tagStatusRadioButtonHTML =
+                                str_replace('1">',
+                                            '1" checked>',
+                                            $tagStatusRadioButtonHTML);
                         }
-
-
+                        else
+                        {
+                            $tagStatusRadioButtonHTML =
+                                str_replace('0">',
+                                            '0" checked>',
+                                            $tagStatusRadioButtonHTML);
+                        }
 
 
                         $findParentGroupQuery = "SELECT tag_group_id FROM tag_group_contents WHERE tag_id = :tagId";
                         $findParentGroupParams['tagId'] = $tagId;
-                        $findParentGroupResult = run_prepared_query($DBH, $findParentGroupQuery, $findParentGroupParams);
+                        $findParentGroupResult =
+                            run_prepared_query($DBH,
+                                               $findParentGroupQuery,
+                                               $findParentGroupParams);
                         $allTagParents = $findParentGroupResult->fetchAll(PDO::FETCH_ASSOC);
-                        $parentOfSelectedTag = FALSE;
-                        if (count($allTagParents) > 1) {
-                            foreach ($allTagParents as $parentGroup) {
-                                $groupTypeQuery = "SELECT COUNT(*) FROM tag_group_metadata WHERE tag_group_id = :groupId AND contains_groups = 0";
+                        $parentOfSelectedTag = false;
+                        if (count($allTagParents) > 1)
+                        {
+                            foreach ($allTagParents as $parentGroup)
+                            {
+                                $groupTypeQuery =
+                                    "SELECT COUNT(*) FROM tag_group_metadata WHERE tag_group_id = :groupId AND contains_groups = 0";
                                 $groupTypeParams['groupId'] = $parentGroup['tag_group_id'];
-                                $groupTypeResults = run_prepared_query($DBH, $groupTypeQuery, $groupTypeParams);
-                                if ($groupTypeResults->fetchColumn() == 1) {
+                                $groupTypeResults =
+                                    run_prepared_query($DBH,
+                                                       $groupTypeQuery,
+                                                       $groupTypeParams);
+                                if ($groupTypeResults->fetchColumn() == 1)
+                                {
                                     $parentOfSelectedTag = $parentGroup['tag_group_id'];
                                     break;
                                 }
                             }
-                        } else {
+                        }
+                        else
+                        {
                             $parentOfSelectedTag = $allTagParents[0]['tag_group_id'];
                         }
 
-                        if ($parentOfSelectedTag) {
-                            $groups = buildGroupSelectOptions($DBH, $projectId, $parentOfSelectedTag, false, true);
-                        } else {
-                            $groups = buildGroupSelectOptions($DBH, $projectId, false, false, true);
+                        if ($parentOfSelectedTag)
+                        {
+                            $groups =
+                                buildGroupSelectOptions($DBH,
+                                                        $projectId,
+                                                        $parentOfSelectedTag,
+                                                        false,
+                                                        true);
+                        }
+                        else
+                        {
+                            $groups =
+                                buildGroupSelectOptions($DBH,
+                                                        $projectId,
+                                                        false,
+                                                        false,
+                                                        true);
                         }
                         $groupSelectOptionsHTML = $groups[0];
                         $groupIdList = $groups[1];
@@ -3700,31 +5780,36 @@ EOL;
                         $whereInGroups = where_in_string_builder($groupIdList);
 
 
-
-
-
-                        $tagOrderQuery = "SELECT t.name, t.is_enabled, t.display_text, tgc.tag_group_id AS parent_id, t.tag_id AS child_id, tgc.order_in_group "
-                                . "FROM tag_group_contents tgc "
-                                . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
-                                . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
-                                . "WHERE tgc.tag_group_id IN ($whereInGroups) AND tgm.contains_groups = 0 "
-                                . "ORDER BY parent_id, tgc.order_in_group";
+                        $tagOrderQuery =
+                            "SELECT t.name, t.is_enabled, t.display_text, tgc.tag_group_id AS parent_id, t.tag_id AS child_id, tgc.order_in_group "
+                            . "FROM tag_group_contents tgc "
+                            . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
+                            . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
+                            . "WHERE tgc.tag_group_id IN ($whereInGroups) AND tgm.contains_groups = 0 "
+                            . "ORDER BY parent_id, tgc.order_in_group";
                         $tagOrderParams = array();
-                        $tagOrderResults = run_prepared_query($DBH, $tagOrderQuery, $tagOrderParams);
+                        $tagOrderResults =
+                            run_prepared_query($DBH,
+                                               $tagOrderQuery,
+                                               $tagOrderParams);
                         $tags = $tagOrderResults->fetchAll(PDO::FETCH_ASSOC);
                         $tagOrderInParentGroup = array();
-                        foreach ($tags as $individualTag) {
+                        foreach ($tags as $individualTag)
+                        {
                             $tagOrderInParentGroup[$individualTag['parent_id']][] = $individualTag;
                         }
 
                         $javascriptTagOrderInParentGroup = array();
-                        foreach ($tagOrderInParentGroup as &$parentContainer) {
+                        foreach ($tagOrderInParentGroup as &$parentContainer)
+                        {
                             $parentId = '';
                             $sequentialOrderInGroup = '';
-                            $containerContainsTag = FALSE;
+                            $containerContainsTag = false;
                             $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                            $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                            for ($i = 0; $i < count($parentContainer); $i++) {
+                            $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
                                 $sequentialOrderInGroup = $i + 1;
                                 $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
                                 $parentId = $parentContainer[$i]['parent_id'];
@@ -3735,28 +5820,96 @@ EOL;
                                 $parentContainer[$i]['order_in_group'] = $sequentialOrderInGroup;
                                 $orderInGroup = $sequentialOrderInGroup;
 
-                                if ($childId == $tagId) {
+                                if ($childId == $tagId)
+                                {
                                     $oldTagParentId = $parentId;
-                                    $containerContainsTag = TRUE;
+                                    $containerContainsTag = true;
                                     $oldTagOrderNumber = $orderInGroup;
-                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr id="currentProperty"';
-                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
-                                } else if ($isEnabled == 0) {
-                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr class="disabledProperty"';
-                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
-                                } else {
-                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
-                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] .
+                                        '<tr id="currentProperty"';
+                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                        $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                        "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
                                 }
-                                $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                else
+                                {
+                                    if ($isEnabled == 0)
+                                    {
+                                        $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                            $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] .
+                                            '<tr class="disabledProperty"';
+                                        $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    }
+                                    else
+                                    {
+                                        $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                            $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
+                                        $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                            $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                            "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                                    }
+                                }
+                                $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
                             }
-                            if (!$containerContainsTag) {
+                            if (!$containerContainsTag)
+                            {
                                 $sequentialOrderInGroup++;
                                 $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                                $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
+                                $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
                             }
                         }
                         $javascriptTagOrderInParentGroup = json_encode($javascriptTagOrderInParentGroup);
+
+                        $tagHasAnnotations =
+                            tagHasAnnotationsCheck($DBH,
+                                                   $tagId);
+
+                        if ($tagHasAnnotations)
+                        {
+                            $deleteTagButtonHTML = <<<HTML
+                            <input class="clickableButton disabledClickableButton" 
+                                id="deleteTagButton" 
+                                value="Delete Tag"  
+                                title="This tag cannot be deleted as it already has associated annotations."   
+                                type="button"
+                                disabled>
+HTML;
+                            $deleteTagJavascript = '';
+                        }
+                        else
+                        {
+                            $deleteTagButtonHTML = <<<HTML
+                            <input class="clickableButton" 
+                                id="deleteTagButton" 
+                                value="Delete Tag"  
+                                title="Deleting a tag will remove it permanently from your question set. This can not be undone."
+                                type="button">
+HTML;
+                            $deleteTagJavascript = <<<JS
+                             $('#deleteTagButton').click(function() {
+                                 if (confirm("Please confirm you wish to delete the tag from iCoast.")) {
+                                     var form = $('<form id="deleteTagForm" method="post">' +
+                                        '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                                        '<input type="hidden" name="projectPropertyToUpdate" value="tags" />' +
+                                        '<input type="hidden" name="projectEditSubAction" value="deleteExistingTag" />' +
+                                        '<input type="hidden" name="editSubmitted" value="1" />' +
+                                        '<input type="hidden" name="tagId" value="' + $tagId + '" />' +
+                                        '</form>');
+                                    $('body').append(form);
+                                    $('#deleteTagForm').submit();
+                                 }
+                            });
+
+JS;
+
+                        }
 
                         // BUILD THE PROJECT DETAILS UPDATE FORM HTML
                         $actionControlsHTML = <<<EOL
@@ -3829,6 +5982,13 @@ EOL;
                                     <label title="Disabling a tag removes it from public view and therefore cannot be selected. A disabled tag can easily be re-added in the future br re-enabling it here.">Tag Status:</label>
                                     $tagStatusRadioButtonHTML
                                 </div>
+                                <div class="formFieldRow">
+                                    <label title="Deleting a tag will remove it permanently from your 
+                                    question set. This can not be undone. If this option is unavailable then 
+                                    the tag already has associated annotations and cannot be deleted. You may disable it 
+                                    instead to remove it from inclusion in your question set.">Delete Tag:</label>
+                                    $deleteTagButtonHTML
+                                </div>
 
                                 <input type="hidden" name="oldParentId" value="$oldTagParentId" />
                                 <input type="hidden" name="oldTagOrder" value="$oldTagOrderNumber" />
@@ -3850,61 +6010,89 @@ EOL;
                     }
                 } // END FORM CREATION FOR UPDATING OF AN EXISTING TASK - if (isset($_POST["taskId"]))
                 // IF REQUEST IS TO BUILD A NEW TASK THEN BUILD THE FORM TO CREATE THE TASK
-                else if ($projectEditSubAction == 'createNewTag') {
+                else
+                {
+                    if ($projectEditSubAction == 'createNewTag')
+                    {
+                        print 'createNewTag';
 
-                    $groups = buildGroupSelectOptions($DBH, $projectId, false, false, true);
-                    $groupSelectOptionsHTML = $groups[0];
-                    $groupIdList = $groups[1];
-                    $groupNameList = $groups[2];
-                    $whereInGroups = where_in_string_builder($groupIdList);
+                        $groups =
+                            buildGroupSelectOptions($DBH,
+                                                    $projectId,
+                                                    false,
+                                                    false,
+                                                    true);
+                        $groupSelectOptionsHTML = $groups[0];
+                        $groupIdList = $groups[1];
+                        $groupNameList = $groups[2];
+                        $whereInGroups = where_in_string_builder($groupIdList);
 
 
-                    $tagOrderQuery = "SELECT t.name, t.is_enabled, t.display_text, tgc.tag_group_id AS parent_id, t.tag_id AS child_id, tgc.order_in_group "
+                        $tagOrderQuery =
+                            "SELECT t.name, t.is_enabled, t.display_text, tgc.tag_group_id AS parent_id, t.tag_id AS child_id, tgc.order_in_group "
                             . "FROM tag_group_contents tgc "
                             . "LEFT JOIN tags t ON tgc.tag_id = t.tag_id "
                             . "LEFT JOIN tag_group_metadata tgm ON tgc.tag_group_id = tgm.tag_group_id "
                             . "WHERE tgc.tag_group_id IN ($whereInGroups) AND tgm.contains_groups = 0 "
                             . "ORDER BY parent_id, tgc.order_in_group";
-                    $tagOrderParams = array();
-                    $tagOrderResults = run_prepared_query($DBH, $tagOrderQuery, $tagOrderParams);
-                    $tags = $tagOrderResults->fetchAll(PDO::FETCH_ASSOC);
-                    $tagOrderInParentGroup = array();
-                    foreach ($tags as $individualTag) {
-                        $tagOrderInParentGroup[$individualTag['parent_id']][] = $individualTag;
-                    }
-
-                    $javascriptTagOrderInParentGroup = array();
-                    foreach ($tagOrderInParentGroup as &$parentContainer) {
-                        $parentId = '';
-                        $sequentialOrderInGroup = '';
-                        $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
-                        $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] = '';
-                        for ($i = 0; $i < count($parentContainer); $i++) {
-                            $sequentialOrderInGroup = $i + 1;
-                            $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                            $parentId = $parentContainer[$i]['parent_id'];
-                            $childId = $parentContainer[$i]['child_id'];
-                            $isEnabled = $parentContainer[$i]['is_enabled'];
-                            $parentContainer[$i]['order_in_group'] = $sequentialOrderInGroup;
-
-                            if ($isEnabled == 0) {
-                                $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr class="disabledProperty"';
-                            } else {
-                                $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
-                            }
-                            $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] = $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
-                            $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                        $tagOrderParams = array();
+                        $tagOrderResults =
+                            run_prepared_query($DBH,
+                                               $tagOrderQuery,
+                                               $tagOrderParams);
+                        $tags = $tagOrderResults->fetchAll(PDO::FETCH_ASSOC);
+                        $tagOrderInParentGroup = array();
+                        foreach ($tags as $individualTag)
+                        {
+                            $tagOrderInParentGroup[$individualTag['parent_id']][] = $individualTag;
                         }
-                        $sequentialOrderInGroup++;
-                        $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
-                        $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] = $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] . "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
-                    }
-                    $javascriptTagOrderInParentGroup = json_encode($javascriptTagOrderInParentGroup);
+
+                        $javascriptTagOrderInParentGroup = array();
+                        foreach ($tagOrderInParentGroup as &$parentContainer)
+                        {
+                            $parentId = '';
+                            $sequentialOrderInGroup = '';
+                            $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['tableHTML'] = '';
+                            $javascriptTagOrderInParentGroup[$parentContainer[0]['parent_id']]['newOrderSelectHTML'] =
+                                '';
+                            for ($i = 0; $i < count($parentContainer); $i++)
+                            {
+                                $sequentialOrderInGroup = $i + 1;
+                                $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
+                                $parentId = $parentContainer[$i]['parent_id'];
+                                $childId = $parentContainer[$i]['child_id'];
+                                $isEnabled = $parentContainer[$i]['is_enabled'];
+                                $parentContainer[$i]['order_in_group'] = $sequentialOrderInGroup;
+
+                                if ($isEnabled == 0)
+                                {
+                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] .
+                                        '<tr class="disabledProperty"';
+                                }
+                                else
+                                {
+                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                        $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] . '<tr';
+                                }
+                                $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] =
+                                    $javascriptTagOrderInParentGroup[$parentId]['tableHTML'] .
+                                    " title=\"{$parentContainer[$i]["display_text"]}\"><td>$ordinalOrderInGroup</td><td>{$parentContainer[$i]["name"]}</td></tr>\n\r";
+                                $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                    $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                    "<option value=\"$sequentialOrderInGroup\">$ordinalOrderInGroup</option>\n\r";
+                            }
+                            $sequentialOrderInGroup++;
+                            $ordinalOrderInGroup = ordinal_suffix($sequentialOrderInGroup);
+                            $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] =
+                                $javascriptTagOrderInParentGroup[$parentId]['newOrderSelectHTML'] .
+                                "<option value=\"$sequentialOrderInGroup\" selected>$ordinalOrderInGroup</option>\n\r";
+                        }
+                        $javascriptTagOrderInParentGroup = json_encode($javascriptTagOrderInParentGroup);
 
 
-
-                    // BUILD THE PROJECT DETAILS UPDATE FORM HTML
-                    $actionControlsHTML = <<<EOL
+                        // BUILD THE PROJECT DETAILS UPDATE FORM HTML
+                        $actionControlsHTML = <<<EOL
                             <h2>Create New Tag</h2>
                             <form method="post" id="editTagDetailsForm" autocomplete="off">
                                 <div class="formFieldRow">
@@ -3998,8 +6186,10 @@ EOL;
 
                             </form>
 EOL;
+                    }
                 }
-                if ($invalidRequiredField) {
+                if ($invalidRequiredField)
+                {
                     $actionControlsHTML = <<<EOL
                           <h2>Errors Detected in Input Data</h2>
                           <p>One or more of the required data fields are either missing from the submission or contain invalid data.</p>
@@ -4012,19 +6202,41 @@ EOL;
 } // END if (isset($projectId) && ... !isset($_POST['editSubmitted']))
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build variable javascript code.
-if (isset($_POST['projectId'])) {
+if (isset($_POST['projectId']))
+{
     $javaScript .= "var projectId = {$_POST['projectId']};\n\r";
 }
-if (isset($_POST['projectPropertyToUpdate'])) {
+if (isset($_POST['projectPropertyToUpdate']))
+{
     $javaScript .= "var propertyToUpdate = '{$_POST['projectPropertyToUpdate']}';\n\r";
 }
-if (isset($javascriptGroupOrderInParentTask)) {
+if (isset($projectEditSubAction))
+{
+    $javaScript .= "var projectEditSubAction = '{$projectEditSubAction}';\n\r";
+}
+
+if (isset($taskId))
+{
+    $javaScript .= "var taskId = '$taskId';\n\r";
+}
+if (isset($groupId))
+{
+    $javaScript .= "var groupId = '$groupId';\n\r";
+}
+if (isset($tagId))
+{
+    $javaScript .= "var tagId = '$tagId';\n\r";
+}
+if (isset($javascriptGroupOrderInParentTask))
+{
     $javaScript .= 'var groupOrderInTaskData = ' . $javascriptGroupOrderInParentTask . ";\n\r";
 }
-if (isset($javascriptGroupOrderInParentGroup)) {
+if (isset($javascriptGroupOrderInParentGroup))
+{
     $javaScript .= 'var groupOrderInGroupData = ' . $javascriptGroupOrderInParentGroup . ";\n\r";
 }
-if (isset($javascriptTagOrderInParentGroup)) {
+if (isset($javascriptTagOrderInParentGroup))
+{
     $javaScript .= 'var tagOrderInGroupData = ' . $javascriptTagOrderInParentGroup . ";\n\r";
 }
 
@@ -4032,7 +6244,7 @@ if (isset($javascriptTagOrderInParentGroup)) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Build jQuery Document.Ready code.
 
-$jQueryDocumentDotReadyCode .= <<<EOL
+$jQueryDocumentDotReadyCode .= <<<JS
         $('#taskSelectBox, #groupSelectBox, #tagSelectBox,#tagParentGroupSelectBox').prop("selectedIndex", -1);
 
         $('#taskSelectBox, #groupSelectBox, #tagSelectBox').change(function() {
@@ -4073,7 +6285,7 @@ $jQueryDocumentDotReadyCode .= <<<EOL
             $('body').append(form);
             $(form).submit();
         });
-
+        
         $('#returnToTaskSelection, #returnToProjectDetails, #returnToTagSelection').click(function() {
             var form = $('<form method="post">' +
                     '<input type="hidden" name="projectId" value="' + projectId + '" />' +
@@ -4083,38 +6295,109 @@ $jQueryDocumentDotReadyCode .= <<<EOL
             $(form).submit();
         });
 
+       
+        $('#editTaskAgain').click(function() {
+            var form = $('<form method="post">' +
+                    '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                    '<input type="hidden" name="projectPropertyToUpdate" value="tasks" />' +
+                    '<input type="hidden" name="projectEditSubAction" value="updateExistingTask" />' +
+                    '<input type="hidden" name="taskId" value="' + taskId + '" />' +
+                    '</form>');
+            $('body').append(form);
+            $(form).submit();
+        });
+        
+        $('#editGroupAgain').click(function() {
+            var form = $('<form method="post">' +
+                    '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                    '<input type="hidden" name="projectPropertyToUpdate" value="groups" />' +
+                    '<input type="hidden" name="projectEditSubAction" value="updateExistingGroup" />' +                    '<input type="hidden" name="groupId" value="' + groupId + '" />' +
+                    '</form>');
+            $('body').append(form);
+            $(form).submit();
+        });
+        
+        $('#editTagAgain').click(function() {
+            var form = $('<form method="post">' +
+                    '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                    '<input type="hidden" name="projectPropertyToUpdate" value="tags" />' +
+                    '<input type="hidden" name="projectEditSubAction" value="updateExistingTag" />' +
+                    '<input type="hidden" name="tagId" value="' + tagId + '" />' +
+                    '</form>');
+            $('body').append(form);
+            $(form).submit();
+        });
+
         $('#taskSelectBox').change(function() {
             var selectedTask = $(this).val();
-            console.log(groupOrderInTaskData[selectedTask]['tableHTML']);
             $('#groupSelectBox').prop("selectedIndex", -1);
-            $('#propertyOrderTable tbody').empty();
-            $('#propertyOrderTable tbody').append(groupOrderInTaskData[selectedTask]['tableHTML']);
-            $('#editGroupOrder').empty();
-            $('#editGroupOrder').append(groupOrderInTaskData[selectedTask]['newOrderSelectHTML']);
+            
+            if(groupOrderInTaskData.hasOwnProperty(selectedTask)){  
+                $('#propertyOrderTable tbody').empty();
+                $('#propertyOrderTable tbody').append(groupOrderInTaskData[selectedTask]['tableHTML']);
+                $('#editGroupOrder').empty();
+                $('#editGroupOrder').append(groupOrderInTaskData[selectedTask]['newOrderSelectHTML']);
+            } else {
+                $('#propertyOrderTable tbody').empty();
+                $('#editGroupOrder').empty();
+                $('#editGroupOrder').append('<option value="1" selected="">1st</option>');
+            }
+
         });
 
         $('#groupSelectBox').change(function() {
             var selectedGroup = $(this).val();
-            console.log(groupOrderInGroupData[selectedGroup]['tableHTML']);
             $('#taskSelectBox').prop("selectedIndex", -1);
-            $('#propertyOrderTable tbody').empty();
-            $('#propertyOrderTable tbody').append(groupOrderInGroupData[selectedGroup]['tableHTML']);
-            $('#editGroupOrder').empty();
-            $('#editGroupOrder').append(groupOrderInGroupData[selectedGroup]['newOrderSelectHTML']);
+            
+            
+            if(groupOrderInGroupData.hasOwnProperty(selectedGroup)){  
+                $('#propertyOrderTable tbody').empty();
+                $('#propertyOrderTable tbody').append(groupOrderInGroupData[selectedGroup]['tableHTML']);
+                $('#editTagOrder').empty();
+                $('#editTagOrder').append(groupOrderInGroupData[selectedGroup]['newOrderSelectHTML']);
+            } else {
+                $('#propertyOrderTable tbody').empty();
+                $('#editTagOrder').empty();
+                $('#editTagOrder').append('<option value="1" selected="">1st</option>');
+            }
+
         });
 
         $('#tagParentGroupSelectBox').change(function() {
             var selectedGroup = $(this).val();
-            console.log(tagOrderInGroupData[selectedGroup]['tableHTML']);
-            $('#propertyOrderTable tbody').empty();
-            $('#propertyOrderTable tbody').append(tagOrderInGroupData[selectedGroup]['tableHTML']);
-            $('#editTagOrder').empty();
-            $('#editTagOrder').append(tagOrderInGroupData[selectedGroup]['newOrderSelectHTML']);
+            if(tagOrderInGroupData.hasOwnProperty(selectedGroup)){  
+                $('#propertyOrderTable tbody').empty();
+                $('#propertyOrderTable tbody').append(tagOrderInGroupData[selectedGroup]['tableHTML']);
+                $('#editTagOrder').empty();
+                $('#editTagOrder').append(tagOrderInGroupData[selectedGroup]['newOrderSelectHTML']);
+            } else {
+                $('#propertyOrderTable tbody').empty();
+                $('#editTagOrder').empty();
+                $('#editTagOrder').append('<option value="1" selected="">1st</option>');
+            }
+            
+        
+        });
+$deleteTaskJavascript        
+$deleteGroupJavascript
+         $('#deleteTagButton').click(function() {
+             if (confirm("Please confirm you wish to delete the tag from iCoast.")) {
+                 var form = $('<form id="deleteTagForm" method="post">' +
+                    '<input type="hidden" name="projectId" value="' + projectId + '" />' +
+                    '<input type="hidden" name="projectPropertyToUpdate" value="tags" />' +
+                    '<input type="hidden" name="projectEditSubAction" value="deleteExistingTag" />' +
+                    '<input type="hidden" name="editSubmitted" value="1" />' +
+                    '<input type="hidden" name="tagId" value="' + $tagId + '" />' +
+                    '</form>');
+                $('body').append(form);
+                $('#deleteTagForm').submit();
+             }
         });
 
-EOL;
+JS;
 
-if (isset($javascriptGroupOrderInParentTask)) {
+if (isset($javascriptGroupOrderInParentTask))
+{
     $jQueryDocumentDotReadyCode .= <<<EOL
                     var selectedTaskElement = $('#taskSelectBox option[selected]');
                     var selectedTaskValue = selectedTaskElement.val();
@@ -4128,7 +6411,8 @@ if (isset($javascriptGroupOrderInParentTask)) {
 EOL;
 }
 
-if (isset($javascriptGroupOrderInParentGroup)) {
+if (isset($javascriptGroupOrderInParentGroup))
+{
     $jQueryDocumentDotReadyCode .= <<<EOL
                     var selectedGroupElement = $('#groupSelectBox option[selected]');
                     var selectedGroupValue = selectedGroupElement.val();
@@ -4142,7 +6426,8 @@ if (isset($javascriptGroupOrderInParentGroup)) {
 EOL;
 }
 
-if (isset($javascriptTagOrderInParentGroup)) {
+if (isset($javascriptTagOrderInParentGroup))
+{
     $jQueryDocumentDotReadyCode .= <<<EOL
                     var selectedGroupElement = $('#tagParentGroupSelectBox option[selected]');
                     var selectedGroupValue = selectedGroupElement.val();

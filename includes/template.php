@@ -26,7 +26,7 @@ require("includes/templateCode.php");
         <meta name="expires" content="Never">
         <meta name="language" content="EN">
         <link rel="stylesheet" href="css/icoast.css">
-        <link rel="stylesheet" href="http://www.usgs.gov/styles/common.css" />
+        <link rel="stylesheet" href="css/common.css">
         <link rel="stylesheet" href="css/custom.css">
         <link rel="stylesheet" href="css/tipTip.css">
         <?php
@@ -70,7 +70,7 @@ print $embeddedCSS;
         <a href="#skipmenu" title="Skip this menu"></a>
         <div id='navigationBar'>
             <?php print $mainNav ?>
-            <div id="OMBInfo"><p>OMB Control Number: 1028-0109<br>Expiration Date: 09/2017</p></div>
+            <div id="OMBInfo"><p>OMB Control Number: 1028-0109<br>Expiration Date: 12/2020</p></div>
         </div>
         <a id="skipmenu"></a>
 

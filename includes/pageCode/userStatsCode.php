@@ -1277,9 +1277,9 @@ EOL;
     }
 }
 
-$cssLinkArray[] = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css";
+$cssLinkArray[] = "css/leaflet.css";
 $cssLinkArray[] = "css/markerCluster.css";
-$javaScriptLinkArray[] = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js";
+$javaScriptLinkArray[] = "scripts/leaflet.js";
 $javaScriptLinkArray[] = "scripts/leafletMarkerCluster-min.js";
 
 $javaScript = <<<EOL

@@ -164,7 +164,7 @@ print $jQueryDocumentDotReadyCode . "\n\r";
                         As a result the iCoast user list is broken down into groups (below) that do not exceed this length.<br>
                        Copy each list into the BCC field of separate emails and then duplicate (copy/paste) all desired content.<br>
                        Alternativley mail the 1st user group and then forward that mail (removing any subject and body prefix/suffix) to the other user groups, again remembering to use the BCC field for addresses.<br>
-                       Be sure to add an unsubscribe footer to the email directing users to their "profile" page (<a href="http://coastal.er.usgs.gov/icoast/profile.php">http://coastal.er.usgs.gov/icoast/profile.php</a>) where they can unsubscribe.<br>
+                       Be sure to add an unsubscribe footer to the email directing users to their "profile" page (<a href="https://coastal.er.usgs.gov/icoast/profile.php">https://coastal.er.usgs.gov/icoast/profile.php</a>) where they can unsubscribe.<br>
                        The required number of emails have automatically been opened in your email system (ensure you will be sending your emails from the correct account (usgsicoast@usgs.gov)).
                     </p>
                     <p class="redHighlight">Do not paste the lists into the TO or CC fields. This will expose user addresses to all other recipients and compromise user security.<br>

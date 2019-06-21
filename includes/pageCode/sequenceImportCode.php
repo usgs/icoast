@@ -184,9 +184,9 @@ EOL;
 
 
 
-    $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+    $cssLinkArray[] = 'css/leaflet.css';
 
-    $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
+    $javaScriptLinkArray[] = 'scripts/leaflet.js';
 
     $sequencedPhotoQuery = <<<EOL
         SELECT import_image_id, latitude, longitude

@@ -1,7 +1,7 @@
 <!-- BEGIN USGS Header Template -->
 <div id="usgscolorband">
 	<div id="usgsbanner">
-		<div id="usgsidentifier"><a href="http://www.usgs.gov/"><img src="/images/header_graphic_usgsIdentifier_white.jpg" alt="USGS - science for a changing world" title="U.S. Geological Survey Home Page" width="178" height="72" /></a></div>
+		<div id="usgsidentifier"><a href="http://www.usgs.gov/"><img src="images/header_graphic_usgsIdentifier_white.jpg" alt="USGS - science for a changing world" title="U.S. Geological Survey Home Page" width="178" height="72" /></a></div>
 		<div id="usgsccsabox">
 			<div id="usgsccsa">
 			  <br /><a href="http://www.usgs.gov/">USGS Home</a>

@@ -310,6 +310,11 @@ input::-moz-focus-inner {
     text-align: center;
 }
 
+#adminPageWrapper {
+    min-height: 500px;
+    background-color: #d3e2f0;
+}
+
 #contentWrapper p,
 #adminPageWrapper p,
 #refreshWrapper p {
@@ -714,6 +719,10 @@ label.error {
 
 #leftMapColumn p {
     font-weight: bold;
+}
+
+#leftMapColumn img {
+    max-height: 295px;
 }
 
 #mapContent {
@@ -1171,6 +1180,23 @@ label.error {
 }
 
 
+.paragraphPrefix {
+    font-weight: bold;
+}
+
+#govStatementWrapper {
+    height: 60vh;
+    width: 90%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    margin: auto;
+    padding: 0 25px;
+    background-color: white;
+}
+
+#statementAgreementButtons {
+    margin-top: 10px;
+}
 
 
 
@@ -1505,6 +1531,7 @@ label.error {
 #faqs .faqQuestion p:last-of-type {
     float: left;
     margin-left: 0px;
+    max-width: 1110px;
     font-weight: bold;
 }
 
@@ -1718,7 +1745,7 @@ label.error {
 /*Annotation Section*/
 
 #annotationWrapper {
-    min-height: 343px;
+    min-height: 330px;
     border-radius: 0 0 5px 5px;
     border-top: 4px solid #666666;
     position: relative;
@@ -1812,14 +1839,13 @@ label.error {
 
 
 /*Tasks*/
-.task,
-#taskWrapper {
+#photoMatchingWrapper {
     display: none;
 }
 
-.task h1 {
-    display: none;
-}
+/*.task h1 {*/
+    /*display: none;*/
+/*}*/
 
 .task h1,
 #photoMatchingWrapper h1 {
@@ -1827,7 +1853,6 @@ label.error {
     margin: 0;
     font-size: 1.5em;
 }
-
 #photoMatchingWrapper > p {
     font-weight: bold;
     font-size: 1.2em;
@@ -1840,7 +1865,7 @@ label.error {
 }*/
 
 .annotationForm {
-    padding-bottom: 44px;
+    padding-bottom: 55px;
 }
 
 .groupWrapper {
@@ -1859,7 +1884,7 @@ label.error {
 }
 
 .annotationSubgroup {
-    margin: 0 10px;
+    margin: 0 10px 5px;
 }
 
 .tagInstruction {
@@ -1883,7 +1908,8 @@ label.error {
     margin: 5px;
     border-radius: 5px;
     width: 90px;
-    height: 30px;
+    /*height: 30px;*/
+    height : 36px;
     font-size:0.91em;
     box-shadow: 3px 3px 3px #222222;
     font-weight: bold;

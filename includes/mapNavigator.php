@@ -1,6 +1,6 @@
 <?php
 
-$mapScript = <<<EOL
+$mapScript = <<<JS
   var map = null;
   var bounds;
   var markers = null;
@@ -299,9 +299,9 @@ $mapScript = <<<EOL
     }
   } // End function dynamicSizing
 
-EOL;
+JS;
 
-$mapDocumentReadyScript = <<<EOL
+$mapDocumentReadyScript = <<<JS
     initializeMaps();
 
     $(window).resize(function() {
@@ -356,7 +356,7 @@ $mapDocumentReadyScript = <<<EOL
       window.location.href = "classification.php?projectId=" + projectId + "&imageId=" + randomImageId;
     });
 
-EOL;
+JS;
 
 $mapHTML = <<<EOL
   <div id="mapWrapper">

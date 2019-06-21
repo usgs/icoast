@@ -44,19 +44,47 @@ $annotationCompleteFlag = filter_input(INPUT_POST, 'annotationComplete', FILTER_
 $validUser = validateUser($DBH, $userId, $authCheckCode);
 if (!$validUser['validationResult']) {
     // file_put_contents('loggerLog.txt', "Not a valid user. Exit.", FILE_APPEND);
-    exit;
+//    echo json_encode(array('result' => 0,
+//                           'details' => "Invalid user credentials"
+//                     )
+//    );
+    exit('{"result":false, "details":"Invalid user authentication credentials."}');
 }
 
 $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
 $postImageMetadata = retrieve_entity_metadata($DBH, $postImageId, 'image');
-if (
-        !$projectMetadata ||
-        !$postImageMetadata ||
-        ($projectMetadata && $projectMetadata['is_public'] == 0) ||
-        ($postImageMetadata && $postImageMetadata['is_globally_disabled'] == 1)
-) {
+if (!$projectMetadata ||
+    !$postImageMetadata ||
+    $postImageMetadata && $postImageMetadata['is_globally_disabled'] == 1) {
+    exit('{"result":false, "details":"Invalid project, invalid post-event image, or post-event image is globally 
+    disabled"}');
+}
+
+if ($projectMetadata['is_public'] == 0) {
     // file_put_contents('loggerLog.txt', "Not valid project or post image. Exit.", FILE_APPEND);
-    exit;
+    $previewUserQuery = <<<MySQL
+		SELECT DISTINCT 
+			ugm.project_id
+		FROM 
+			user_groups ug
+		LEFT JOIN user_group_metadata ugm ON ug.user_group_id = ugm.user_group_id
+		LEFT JOIN projects p ON ugm.project_id = p.project_id
+		WHERE 
+			ug.user_id = $userId AND
+			ugm.is_enabled = 1 AND
+			p.is_complete = 1 
+MySQL;
+    $userHasPreviewPermission = false;
+    $previewUserResult = $DBH->query($previewUserQuery);
+    while ($previewProjectId = $previewUserResult->fetchColumn()) {
+        if ($projectMetadata['project_id'] == $previewProjectId) {
+            $userHasPreviewPermission = true;
+        }
+    }
+    if (!$userHasPreviewPermission)
+    {
+        exit('{"result":false, "details":"The project is not public and user does not have preview permission."}');
+    }
 }
 // file_put_contents('loggerLog.txt', "Project and Post Image Verified\n\r", FILE_APPEND);
 if (isset($preImageId)) {
@@ -64,7 +92,7 @@ if (isset($preImageId)) {
     if (!$preImageMetadata ||
             ($preImageMetadata && $preImageMetadata['is_globally_disabled'] == 1)) {
         // file_put_contents('loggerLog.txt', "Not a valid pre image. Exit.", FILE_APPEND);
-        exit;
+        exit('{"result":false, "details":"Invalid pre-event image."}');
     }
     // file_put_contents('loggerLog.txt', "Pre Image Verified\n\r", FILE_APPEND);
 }
@@ -86,11 +114,13 @@ $existingAnnotationParams = array(
 );
 $existingAnnotationResult = run_prepared_query($DBH, $existingAnnotationQuery, $existingAnnotationParams);
 $existingAnnotation = $existingAnnotationResult->fetch(PDO::FETCH_ASSOC);
-if ($existingAnnotation) {
-    // file_put_contents('loggerLog.txt', "Existing Annotation: " . print_r($existingAnnotation, true) . "\n\r", FILE_APPEND);
-} else {
-    // file_put_contents('loggerLog.txt', "No Existing Annotation.\n\r", FILE_APPEND);
-}
+//if ($existingAnnotation) {
+//    print "Existing Annotation<br>";
+//     file_put_contents('loggerLog.txt', "Existing Annotation: " . print_r($existingAnnotation, true) . "\n\r", FILE_APPEND);
+//} else {
+//    print "New Annotation<br>";
+//     file_put_contents('loggerLog.txt', "No Existing Annotation.\n\r", FILE_APPEND);
+//}
 
 if ($startClassificationFlag) {
     // file_put_contents('loggerLog.txt', "Just loaded classification.\n\r", FILE_APPEND);
@@ -123,9 +153,10 @@ if ($startClassificationFlag) {
         $insertAnnotationResult = run_prepared_query($DBH, $insertAnnotationQuery, $insertAnnotationParams);
         if ($insertNewAnnotationResult->rowCount() != 1) {
             // file_put_contents('loggerLog.txt', "New annotation insert failed. Exit.", FILE_APPEND);
-            exit;
+            exit('{"result":false, "details":"Server failed to insert new annotation into database"}');
         }
     } else { // END if (empty($existingAnnotation))
+
         // file_put_contents('loggerLog.txt', "Existing Classification\n\r", FILE_APPEND);
         if (
                 is_null($existingAnnotation['user_match_id']) &&
@@ -147,7 +178,8 @@ if ($startClassificationFlag) {
             $updateAnnotationResult = run_prepared_query($DBH, $updateAnnotationQuery, $updateAnnotationParams);
             if ($updateAnnotationResult->rowCount() != 1) {
                 // file_put_contents('loggerLog.txt', "Update of exissting annotaion failed. Exit.", FILE_APPEND);
-                exit;
+                exit('{"result":false, "details":"Server failed to update the existing annotation with initial session 
+                details"}');
             }
         }
     } // END if (empty($existingAnnotation)) ELSE
@@ -157,7 +189,7 @@ if ($startClassificationFlag) {
 
     if (empty($existingAnnotation)) {
         // file_put_contents('loggerLog.txt', "There should be an existing classification. But there isn't!\n\r", FILE_APPEND);
-        exit;
+        exit('{"result":false, "details":"No start flag was detected and no exiting annotation found."}');
     }
 
 
@@ -198,25 +230,63 @@ if ($startClassificationFlag) {
 
     $newSelectedTagIds = array();
     $newUserComments = array();
-    foreach ($_POST as $tagId => $tagValue) {
-        $filteredTagId = filter_var($tagId, FILTER_VALIDATE_INT);
-        $filteredTagValue = filter_var(trim($tagValue));
-        // file_put_contents('loggerLog.txt', "Checking POST entry $tagId ($filteredTagId) containing value '$tagValue' ($filteredTagValue).\n\r", FILE_APPEND);
+    foreach ($_POST as $postName => $postValue) {
+//        print $tagId . '<br>' . $postValue . '<br>';
+        $filteredPostName = filter_var($postName, FILTER_VALIDATE_INT);
+        $filteredPostValue = filter_var(trim($postValue));
+//        print $filteredTagId . '<br>' . $filteredTagValue . '<br>------------------------<br>';
+//         file_put_contents('loggerLog.txt', "Checking POST entry $postName ($filteredPostName) containing value '$postValue' ($filteredPostValue).\n\r", FILE_APPEND);
 
-        if (
-                $filteredTagId &&
-                array_search($filteredTagId, $validTagIds) !== false) {
-            $newSelectedTagIds[$filteredTagValue] = $filteredTagValue;
-            // file_put_contents('loggerLog.txt', "The tag is a valid tag.\n\r", FILE_APPEND);
-        } else if (
-                $filteredTagId &&
-                array_search($filteredTagId, $validCommentIds) !== false) {
-            $newUserComments[$filteredTagId] = $filteredTagValue;
-            // file_put_contents('loggerLog.txt', "The tag is a valid comment tag.\n\r", FILE_APPEND);
+
+        switch ($postName)
+        {
+            case 'annotationSessionId':
+            case 'authCheckCode':
+            case 'userId':
+            case 'projectId':
+            case 'postImageId':
+            case 'preImageId':
+            case 'startClassification':
+            case 'annotationComplete':
+            case '__ncforminfo':
+//                file_put_contents('loggerLog.txt',
+//                                  "The entry is a valid metadata tag.\n\r",
+//                                  FILE_APPEND);
+                break;
+            default:
+                if (
+                    $filteredPostValue &&
+                    array_search($filteredPostValue,
+                                 $validTagIds) !== false
+                )
+                {
+                    $newSelectedTagIds[$filteredPostValue] = $filteredPostValue;
+//                    file_put_contents('loggerLog.txt',
+//                                      "The entry is a valid tag.\n\r",
+//                                      FILE_APPEND);
+                }
+                else
+                {
+                    if (
+                        $filteredPostName &&
+                        array_search($filteredPostName,
+                                     $validCommentIds) !== false
+                    )
+                    {
+                        $newUserComments[$filteredPostName] = $filteredPostValue;
+//                        file_put_contents('loggerLog.txt',
+//                                          "The entry is a valid comment tag.\n\r",
+//                                          FILE_APPEND);
+                    }
+                    else
+                    {
+                        exit('{"result":false, "details":"Unexpected information was detected in the data upload."}');
+                    }
+                }
         }
     }
-    // file_put_contents('loggerLog.txt', "New Tags are:" . print_r($newSelectedTagIds, true) . "\n\r", FILE_APPEND);
-    // file_put_contents('loggerLog.txt', "New Comment Tags are:" . print_r($newUserComments, true) . "\n\r", FILE_APPEND);
+//     file_put_contents('loggerLog.txt', "New Tags are:" . print_r($newSelectedTagIds, true) . "\n\r", FILE_APPEND);
+//     file_put_contents('loggerLog.txt', "New Comment Tags are:" . print_r($newUserComments, true) . "\n\r", FILE_APPEND);
 
 
     $existingTagSelectionsQuery = "
@@ -229,18 +299,18 @@ if ($startClassificationFlag) {
     $existingTagSelectionsParams['annotationId'] = $existingAnnotation['annotation_id'];
     $existingTagSelectionsResult = run_prepared_query($DBH, $existingTagSelectionsQuery, $existingTagSelectionsParams);
     $existingTagSelections = $existingTagSelectionsResult->fetchAll(PDO::FETCH_ASSOC);
-    // file_put_contents('loggerLog.txt', "Existing tags are:" . print_r($existingTagSelections, true) . "\n\r", FILE_APPEND);
+//     file_put_contents('loggerLog.txt', "Existing tags are:" . print_r($existingTagSelections, true) . "\n\r", FILE_APPEND);
 
 
     foreach ($existingTagSelections as $existingTagSelection) {
         $existingTagId = $existingTagSelection['tag_id'];
         $existingTableId = $existingTagSelection['table_id'];
-        // file_put_contents('loggerLog.txt', "Checking existing tag $existingTagId in row $existingTableId.\n\r", FILE_APPEND);
+//         file_put_contents('loggerLog.txt', "Checking existing tag $existingTagId in row $existingTableId.\n\r", FILE_APPEND);
         if (in_array($existingTagId, $newSelectedTagIds)) {
-            // file_put_contents('loggerLog.txt', "The existing tag is unchanged in the new submission.\n\r", FILE_APPEND);
+//             file_put_contents('loggerLog.txt', "The existing tag is unchanged in the new submission.\n\r", FILE_APPEND);
             unset($newSelectedTagIds[$existingTagId]);
         } else {
-            // file_put_contents('loggerLog.txt', "The existing tag is no longer selected and is being rmoved form the DB.\n\r", FILE_APPEND);
+//             file_put_contents('loggerLog.txt', "The existing tag is no longer selected and is being rmoved form the DB.\n\r", FILE_APPEND);
             $unselectedTagDeleteQuery = "
                 DELETE FROM 
                     annotation_selections
@@ -254,7 +324,8 @@ if ($startClassificationFlag) {
 
             if ($unselectedTagDeleteResult->rowCount() != 1) {
                 // file_put_contents('loggerLog.txt', "Deleting an unselcted tag failed. Exit.", FILE_APPEND);
-                exit;
+                exit('{"result":false, "details":"Server failed to remove a previously chosen tag from the database
+                ."}');
             }
             $userDataChange = TRUE;
         }
@@ -285,7 +356,7 @@ if ($startClassificationFlag) {
             $newSelectedTagInsertResult = run_prepared_query($DBH, $newSelectedTagInsertQuery, $newSelectedTagInsertParams);
             if ($newSelectedTagInsertResult->rowCount() != 1) {
                 // file_put_contents('loggerLog.txt', "Inserting a new tag failed. Exit.", FILE_APPEND);
-                exit;
+                exit('{"result":false, "details":"Server failed to insert a newly selected tag into the database."}');
             }
             $userDataChange = TRUE;
         }
@@ -336,7 +407,7 @@ if ($startClassificationFlag) {
                     $updateExistingCommentResult = run_prepared_query($DBH, $updateExistingCommentQuery, $updateExistingCommentParams);
                     if ($updateExistingCommentResult->rowCount() != 1) {
                         // file_put_contents('loggerLog.txt', "Update of existing comment failed. Exit.", FILE_APPEND);
-                        exit;
+                        exit('{"result":false, "details":"Server failed to update an existing comment."}');
                     }
                 } else {
                     // file_put_contents('loggerLog.txt', "Existing comment is no longer supplied. Removing it from the DB.\n\r", FILE_APPEND);
@@ -354,7 +425,7 @@ if ($startClassificationFlag) {
                     $deleteExistingCommentResult = run_prepared_query($DBH, $deleteExistingCommentQuery, $deleteExistingCommentParams);
                     if ($deleteExistingCommentResult->rowCount() != 1) {
                         // file_put_contents('loggerLog.txt', "Deletion of existing comment failed. Exit.", FILE_APPEND);
-                        exit;
+                        exit('{"result":false, "details":"Server failed to delete an existing comment."}');
                     }
                 }
                 unset($newUserComments[$existingCommentTagId]);
@@ -390,7 +461,7 @@ if ($startClassificationFlag) {
                 $newCommentInsertResult = run_prepared_query($DBH, $newCommentInsertQuery, $newCommentInsertParams);
                 if ($newCommentInsertResult->rowCount() != 1) {
                     // file_put_contents('loggerLog.txt', "Insertion of new user comment failed. Exit.", FILE_APPEND);
-                    exit;
+                    exit('{"result":false, "details":"Server failed to insert new comment."}');
                 }
                 $userDataChange = TRUE;
             } else {
@@ -439,7 +510,7 @@ if ($startClassificationFlag) {
             $annotationUpdateResult = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
             if ($annotationUpdateResult->rowCount() != 1) {
                 // file_put_contents('loggerLog.txt', "Updating the annotation row failed. Exit.", FILE_APPEND);
-                exit;
+                exit('{"result":false, "details":"Server failed to update the annotation."}');
             }
         } else {
             if ($annotationSessionId != $existingAnnotation['revision_session_id']) {
@@ -490,12 +561,14 @@ if ($startClassificationFlag) {
             $annotationUpdateResult = run_prepared_query($DBH, $annotationUpdateQuery, $annotationUpdateParams);
             if ($annotationUpdateResult->rowCount() != 1) {
                 // file_put_contents('loggerLog.txt', "Updating the annotaion row under revision failed. Exit.", FILE_APPEND);
-                exit;
+                exit('{"result":false, "details":"Server failed to update the annotation currently under revision."}');
             }
         }
     } // END if ($userDataChange)
 }  // END if ($startClassificationFlag) ELSE
 
 // file_put_contents('loggerLog.txt', "END", FILE_APPEND);
+//echo json_encode(array('result' => 1));
+print '{"result":true}';
 
 

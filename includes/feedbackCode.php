@@ -29,7 +29,46 @@ $feedbackPanel2 = '';
 $cancelFeedbackButtonHTML = '<input type="button" class="clickableButton cancelFeedback" title="Closes the feedback form and resets it to default values." value="Cancel Feedback">';
 
 $allProjects = array();
-$allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 ORDER BY project_id ASC";
+if ($userId == 0)
+{
+    $allProjectsQuery = "SELECT project_id, name FROM projects WHERE is_public = 1 ORDER BY project_id DESC";
+} else {
+    $allProjectsQuery = <<<MySQL
+SELECT 
+	*
+FROM 
+(
+	(
+		SELECT 
+			project_id, 
+			name 
+		FROM projects 
+		WHERE 
+			is_public = 1 AND 
+			is_complete = 1 
+	)
+	UNION
+	(
+		SELECT DISTINCT 
+			ugm.project_id,
+			concat(p.name, ' (Preview)')
+		FROM 
+			user_groups ug
+		LEFT JOIN user_group_metadata ugm ON ug.user_group_id = ugm.user_group_id
+		LEFT JOIN projects p ON ugm.project_id = p.project_id
+		WHERE 
+			ug.user_id = $userId AND
+			ugm.is_enabled = 1 AND
+			p.is_complete = 1 
+	)
+) AS t
+GROUP BY
+	t.project_id
+ORDER BY 
+    t.project_id DESC
+MySQL;
+
+}
 foreach ($DBH->query($allProjectsQuery) as $row) {
     $allProjects[] = $row;
 }

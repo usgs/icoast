@@ -43,6 +43,9 @@ if ($pageName == 'registration') {
     $pageTitle = "USGS iCoast - User Registration";
 }
 
+if ($pageName == 'login') {
+  $pageTitle = "USGS iCoast - User Login and Registration Statements";
+}
 
 if ($pageName == 'start' || $pageName == 'classification' || $pageName == 'complete') {
     switch ($pageName) {

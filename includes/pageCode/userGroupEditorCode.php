@@ -1,6 +1,6 @@
 <?php
 
-//A template file to use for page code files
+//A template file Successfullyypage code files
 $cssLinkArray = array();
 $embeddedCSS = '';
 $javaScriptLinkArray = array();
@@ -13,63 +13,89 @@ require_once('includes/adminNavigation.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
+$cssLinkArray[] = 'css/userGroupEditor.css';
+
 $pageCodeModifiedTime = filemtime(__FILE__);
 $userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
+
+function emailSort($a, $b)
+{
+    if ($a['email'] == $b['email']) {
+        return 0;
+    }
+    return ($a['email'] < $b['email']) ? -1 : 1;
+}
 
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
 
-$successMessage = '';
+
+$projectsQuery = <<<MySQL
+  SELECT 
+    project_id AS projectId, 
+    name, 
+    description 
+  FROM projects
+  WHERE 
+    creator = $userId
+MySQL;
+$projectsResult = $DBH->query($projectsQuery);
+$projects = $projectsResult->fetchAll(PDO::FETCH_ASSOC);
+$projectsJS = json_encode($projects);
+unset($projectsQuery, $projectsResult, $projects);
 
 
-if (isset($_POST['submitted']) &&
-        (isset($_POST['user']) && is_numeric($_POST['user'])) &&
-        (isset($_POST['group']) && is_numeric($_POST['group']))) {
-
-    $queryParams = array(
-        'user' => $_POST['user'],
-        'group' => $_POST['group']
-    );
-
-    $userCheckQuery = "SELECT COUNT(*) FROM user_groups WHERE user_group_id = :group AND user_id = :user";
-    $userCheckResult = run_prepared_query($DBH, $userCheckQuery, $queryParams);
-    if ($userCheckResult->fetchColumn() == 0) {
-
-        $insertQuery = "INSERT INTO user_groups (user_group_id, user_id) VALUES (:group, :user)";
-
-        $insertResult = run_prepared_query($DBH, $insertQuery, $queryParams);
-        if ($insertResult->rowCount() == 1) {
-            $successMessage = '<p class="userData">User Sucessfully Inserted<br />Add another?</p>';
-        }
-    } else {
-        $successMessage = '<p class="redHighlight">User already exists in this group. No changes made to the database.<br />Try again?</p>';
-    }
-}
-
-
-$groupsHTML = '';
-$groupsQuery = "SELECT user_group_id, name, description FROM user_group_metadata";
+$groupsQuery = <<<MySQL
+  SELECT 
+    ugm.user_group_id AS groupId, 
+    ugm.project_id as projectId,
+    ugm.name, 
+    ugm.description 
+  FROM user_group_metadata ugm
+  LEFT JOIN projects p ON ugm.project_id = p.project_id
+  WHERE
+    p.creator = $userId
+  ORDER BY 
+    ugm.project_id ASC
+MySQL;
 $groupsResult = $DBH->query($groupsQuery);
 $groups = $groupsResult->fetchAll(PDO::FETCH_ASSOC);
+$groupArray = array();
 foreach ($groups as $group) {
-    $groupId = $group['user_group_id'];
-    $groupName = $group['name'];
-    $groupDescription = $group['description'];
-    $groupsHTML .= "<option value=\"$groupId\" title=\"$groupDescription\">$groupName</option>";
+    $groupArray[$group['projectId']][] = $group;
 }
+$groupsJS = json_encode($groupArray);
+unset($groupsQuery, $groupsResult, $groups, $group, $groupArray);
 
-$usersHTML = '';
-$usersQuery = "SELECT user_id, encrypted_email, encryption_data FROM users ORDER BY masked_email";
+
+$usersQuery = <<<MySQL
+    SELECT 
+      user_id AS userId, 
+      encrypted_email AS encryptedEmail, 
+      encryption_data AS encryptionData 
+    FROM 
+      users 
+    ORDER BY 
+      masked_email
+MySQL;
 $usersResult = $DBH->query($usersQuery);
 $users = $usersResult->fetchAll(PDO::FETCH_ASSOC);
-foreach ($users as $user) {
-    $userId = $user['user_id'];
-    $userEncEmail = $user['encrypted_email'];
-    $userEncData = $user['encryption_data'];
-    $unencryptedEmail = mysql_aes_decrypt($userEncEmail, $userEncData);
-    $usersHTML .= "<option value=\"$userId\">$unencryptedEmail</option>";
+$userArray = array();
+foreach ($users as &$user) {
+    $userArray[$user['userId']] = mysql_aes_decrypt($user['encryptedEmail'], $user['encryptionData']);
 }
 
+$usersJS = json_encode($userArray);
+unset($usersQuery, $usersResult, $users, $user);
+
+$javaScript .= <<<JS
+    var projects = $projectsJS;
+    var groups = $groupsJS;
+    var allUsers = $usersJS;
+console.log(projects);
+console.log(groups);
+JS;
+unset($projectsJS, $groupsJS, $usersJS);
 
 
-$jQueryDocumentDotReadyCode = "$('#userSelect, #userGroupSelect').prop('selectedIndex', -1);";
+$jQueryDocumentDotReadyCode = "";

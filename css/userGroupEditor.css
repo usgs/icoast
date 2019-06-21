@@ -1,0 +1,85 @@
+#actionButtonWrapper input[type=button],
+.submitButton,
+.resetButton {
+    height: 50px;
+    width: 250px;
+}
+
+#actionButtonWrapper input[type=text] {
+    width: 400px;
+}
+
+#actionButtonWrapper,
+#newGroupWrapper,
+#editGroupWrapper,
+#deleteGroupWrapper {
+    display: none;
+}
+
+.error {
+    margin-left: 10px;
+    line-height: 50px;
+}
+
+.formFieldRow {
+    margin: auto;
+    width: 850px;
+    overflow: hidden;
+    line-height: 50px;
+    text-align: left;
+}
+
+.summaryRow {
+    margin: 10px auto;
+    width: 850px;
+    overflow: hidden;
+    text-align: left;
+    line-height: 1.3em;
+}
+
+.formFieldRow input,
+.formFieldRow select,
+.formFieldRow textarea {
+    width: 350px;
+}
+
+.formFieldRow label {
+    width: 200px !important;
+}
+
+.summaryTitle {
+    display: block;
+    width: 200px;
+    margin: 0 5px 0 0;
+    float: left;
+    text-align: right;
+    font-weight: bold;
+}
+
+.summaryContent {
+    float: right;
+    width: 640px;
+    font-weight: bold;
+}
+
+#editGroupMembersLeftColumn {
+    width: 49%;
+    float: left;
+}
+
+#editGroupSubmitButton {
+    clear: both;
+}
+
+#deleteGroupSummaryWrapper {
+    display: none;
+}
+
+#deleteGroupSummaryMembers {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.existingUserRow {
+    display: block;
+}

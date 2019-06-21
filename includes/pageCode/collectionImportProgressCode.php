@@ -12,8 +12,9 @@ require_once('includes/adminNavigation.php');
 $dbConnectionFile = DB_file_location();
 require_once($dbConnectionFile);
 
+
 $pageCodeModifiedTime = filemtime(__FILE__);
-$userData = authenticate_user($DBH, TRUE, TRUE, TRUE);
+$userData = authenticate_user($DBH, true, true, true);
 $userId = $userData['user_id'];
 $maskedEmail = $userData['masked_email'];
 
@@ -21,18 +22,16 @@ $collectionId = filter_input(INPUT_GET, 'collectionId', FILTER_VALIDATE_INT);
 
 $collectionMetadata = retrieve_entity_metadata($DBH, $collectionId, 'importCollection');
 if (empty($collectionMetadata)) {
-    header("Location: collectionCreator.php?error=NoCollection");
-    exit;
+  header("Location: collectionCreator.php?error=NoCollection");
+  exit;
 }
 
 
 $importStatus = collection_creation_stage($collectionMetadata['import_collection_id']);
 if ($importStatus != 2 && $importStatus != 3) {
-    header('Location: collectionCreator.php?error=InvalidCollection');
-    exit;
+  header('Location: collectionCreator.php?error=InvalidCollection');
+  exit;
 }
-
-
 
 
 $embeddedCSS .= <<<EOL
@@ -41,7 +40,7 @@ $embeddedCSS .= <<<EOL
     }    
 EOL;
 
-$javaScript .= <<<JS
+$javaScript .= <<< JS
 
     var collectionId = {$collectionMetadata['import_collection_id']};
     var progressCheckTimer;
@@ -198,6 +197,8 @@ $javaScript .= <<<JS
                 //
                 //
             } else if (importProgress.status === 'aborted') {
+                        clearInterval(countdownTimer);
+        clearInterval(progressCheckTimer);
                 var htmlToInsert = ' \
                     <h3>Collection Import Progress</h3> \
                     <p class="error">Import Aborted</p> \
@@ -216,6 +217,8 @@ $javaScript .= <<<JS
                 //
                 //
             } else if (importProgress.status === 'complete') {
+        clearInterval(countdownTimer);
+        clearInterval(progressCheckTimer);
                 var htmlToInsert = '<h3>Collection Import Progress</h3>';
 
 
@@ -233,7 +236,6 @@ $javaScript .= <<<JS
                             Is there a problem with your CSV file?</p>';
                     }
                     deleteButtonHTML = '<button id="collectionDeleteButton" class="clickableButton">Reimport This Collection</button>';
-
 
 
                 } else { // ELSE IF (importProgress.successfulImages == 0)
@@ -369,6 +371,8 @@ $javaScript .= <<<JS
                 //
                 //
             } else {
+                        clearInterval(countdownTimer);
+        clearInterval(progressCheckTimer);
                 var htmlToInsert = ' \
                     <h3>Collection Import Progress</h3> \
                     <div id="collectionImportDetails">\

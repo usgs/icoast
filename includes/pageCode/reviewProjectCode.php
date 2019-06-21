@@ -720,8 +720,8 @@ if ($numberOfPotentialMatches > 0) {
 
 
 
-$javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
-$cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
+$cssLinkArray[] = 'css/leaflet.css';
 
 $embeddedCSS .= <<<EOL
             #projectReviewWrapper,

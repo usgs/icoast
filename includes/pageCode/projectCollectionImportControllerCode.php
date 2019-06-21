@@ -278,11 +278,11 @@ if ((!$errorArray &&
                     $badData[] = 4;
                 }
 
-                if (preg_match('#^http://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[4]) == FALSE) {
+                if (preg_match('#^https?://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[4]) == FALSE) {
                     $badData[] = 5;
                 }
 
-                if (preg_match('#^http://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[5]) == FALSE) {
+                if (preg_match('#^https?://[a-zA-Z0-9\./_]+\.[a-zA-Z]{3,4}$#', $csvRow[5]) == FALSE) {
                     $badData[] = 6;
                 }
 
@@ -1090,8 +1090,8 @@ if (empty($pageContentHTML)) {
                 $importFailureDetails
 
 EOL;
-    $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
-    $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+    $javaScriptLinkArray[] = 'scripts/leaflet.js';
+    $cssLinkArray[] = 'css/leaflet.css';
     $jQueryDocumentDotReadyCode = <<<EOL
                         var collectionMap = L.map('importExistingCollectionMap', {maxZoom: 16}).setView([35, -92], 3);
                         L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {

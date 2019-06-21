@@ -10,9 +10,14 @@ $projectId = $_GET['projectId'];
 $userId = $_GET['userId'];
 
 $projectMetadata = retrieve_entity_metadata($DBH, $projectId, 'project');
-$data['newRandomImageId'] = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id'], $userId);
+$data['newRandomImageId'] = random_post_image_id_generator($DBH, $projectId, $filtered,
+                                                           $projectMetadata['post_collection_id'],
+                                                           $projectMetadata['pre_collection_id'], $userId, true);
 if ($data['newRandomImageId'] == 'allPoolAnnotated' || $data['newRandomImageId'] == 'poolEmpty') {
-    $data['newRandomImageId'] = random_post_image_id_generator($DBH, $projectId, $filtered, $projectMetadata['post_collection_id'], $projectMetadata['pre_collection_id']);
+    $data['newRandomImageId'] = random_post_image_id_generator($DBH, $projectId, $filtered,
+                                                               $projectMetadata['post_collection_id'],
+                                                               $projectMetadata['pre_collection_id'],
+                                                               $userId);
 }
 if ($data['newRandomImageId'] == 'allPoolAnnotated' || $data['newRandomImageId'] == 'poolEmpty' || $data['newRandomImageId'] === FALSE) {
     exit("An error was detected while generating a new image. $newRandomImageId");

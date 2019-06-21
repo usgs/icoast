@@ -28,19 +28,19 @@ $pageBody = <<<EOL
                     <div class="photoPopupThumbnailCenteringWrapper">
                         <div class="photoPopupThumbnailWrapper">
                             <div class="examplePhotoWrapper">
-                                <img src="http://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1104/2012_1104_185318d.jpg" height="88" width="135">
+                                <img src="https://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1104/2012_1104_185318d.jpg" height="88" width="135">
                             </div>
                             <div class="examplePhotoWrapper">
-                                <img src="http://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1106/2012_1106_145031d.jpg" height="88" width="135">
+                                <img src="https://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1106/2012_1106_145031d.jpg" height="88" width="135">
                             </div>
                             <div class="examplePhotoWrapper">
-                                <img src="http://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_180033d.jpg" height="8" width="135">
+                                <img src="https://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_180033d.jpg" height="8" width="135">
                             </div>
                             <div class="examplePhotoWrapper">
-                                <img src="http://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_174025d.jpg" height="88" width="135">
+                                <img src="https://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_174025d.jpg" height="88" width="135">
                             </div>
                             <div class="examplePhotoWrapper">
-                                <img src="http://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_142652d.jpg" height="88" width="135">
+                                <img src="https://coastal.er.usgs.gov/hurricanes/oblique/thumbnails/2012/1105/2012_1105_142652d.jpg" height="88" width="135">
                             </div>
 
                         </div>
@@ -79,6 +79,18 @@ $pageBody = <<<EOL
                     <p>Thanks for your help to improve the quality of iCoast's data!</p>
                     <input type="button" id="confirmNoMatch" class="clickableButton" value="Confirm This Photo Has No Match">
                     <input type="button" class="clickableButton cancelPopup" value="Cancel">
+                </div>
+                <div class="popupContent" id="loggingError"  style="display: none">
+                    <h2>An Error Was Detected While Saving Your Tags</h2>
+                    <p>An error has been detected while attempting to save you latest tagging activity. The error 
+                    was:</p>
+                    <p id="annotationError" class="error"></p>
+                    <p>You may reload this photo and attempt to make your selections again or try a different photo 
+                    by using either of the buttons below.</p>
+                    <p>If this error persists please report it using the feedback slide out panel found in the 
+                    lower right side of your browser window.</p>
+                    <input type="button" id="reloadPhotoButton" class="clickableButton" value="Reload This Photo">
+                    <input type="button" id="startButton" class="clickableButton" value="Select Another Photo">
                 </div>
             </div>
         </div>
@@ -128,9 +140,12 @@ $pageBody = <<<EOL
 
         <div id="annotationWrapper">
             <div id="photoMatchingWrapper">
-                <h1>FIND THE BEST MATCHING PRE-STORM PHOTO</h1>
-                <p>Before any image comparison can be made you first need to ensure you have a pre-storm photo that accurately matches the post-storm photo.</p>
-                <p>Our proximity based computer match is shown above-left. If this match is incorrect then select any of the thumbnails,<br>arrow buttons or map pins to browse other adjacent pre-storm photos.</p>
+                <h1>FIND THE BEST MATCHING BEFORE PHOTO</h1>
+                <p>Before any image comparison can be made you first need to ensure you have a before photo that 
+                accurately matches the after photo.</p>
+                <p>Our proximity based computer match is shown above-left. If this match is incorrect then select any
+                 of the thumbnails,<br>arrow buttons or map pins to browse other adjacent before photos. NOTE: This NEED NOT BE AN
+                 EXACT match due to differences in the field of view of each photo.</p>
                 <p>The coloring of the thumbnail and image borders match that of the map pins to help you visualize where the images are in relation to each other.</p>
                 <div id="preNavigationCenteringWrapper">
                     <div id="preNavigationWrapper">

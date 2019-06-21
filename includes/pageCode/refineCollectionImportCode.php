@@ -302,7 +302,7 @@ JS;
 
 
                 $('.pageJumpSelect').change(function() {
-                    var requestedPage = $('.pageJumpSelect').val();
+                    var requestedPage = $(this).val();
                     jumpPhotoPosition = (requestedPage - 1) * photosPerPage;
                     window.location.href='refineCollectionImport.php?'
                         + 'collectionId=' + collectionId
@@ -369,10 +369,10 @@ MYSQL;
 
 HTML;
 
-    $cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+    $cssLinkArray[] = 'css/leaflet.css';
     $cssLinkArray[] = 'css/markerCluster.css';
 
-    $javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
+    $javaScriptLinkArray[] = 'scripts/leaflet.js';
     $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 
     $jQueryDocumentDotReadyCode .= <<<JS

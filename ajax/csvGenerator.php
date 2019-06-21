@@ -608,7 +608,7 @@ switch ($_GET['dataSource']) {
             }
 
             $userGroupIdsArray = array();
-            $userGroupIdsQuery = "SELECT user_group_id FROM user_group_assignments WHERE image_group_id = $imageGroupId";
+            $userGroupIdsQuery = "SELECT user_group_id FROM user_group_image_assignments WHERE image_group_id = $imageGroupId";
             foreach ($DBH->query($userGroupIdsQuery) as $userGroupId) {
                 $userGroupIdsArray[] = $userGroupId['user_group_id'];
             }

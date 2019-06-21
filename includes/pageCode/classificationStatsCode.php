@@ -1,6 +1,10 @@
 <?php
 
 //A template file to use for page code files
+
+ini_set('memory_limit',
+        '128M');
+
 $cssLinkArray = array();
 $embeddedCSS = '';
 $javaScriptLinkArray = array();
@@ -889,10 +893,10 @@ foreach ($projectList as $singeUserAdministeredProject) {
     $projectSelectHTML .= ">$optionProjectName</option>";
 }
 
-$cssLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css';
+$cssLinkArray[] = 'css/leaflet.css';
 $cssLinkArray[] = 'css/markerCluster.css';
 
-$javaScriptLinkArray[] = 'http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js';
+$javaScriptLinkArray[] = 'scripts/leaflet.js';
 $javaScriptLinkArray[] = 'scripts/leafletMarkerCluster-min.js';
 
 $javaScript .= <<<EOL
